@@ -108,18 +108,18 @@ packages:
     dependency: "direct main"
     description:
       name: fc_file_picker_util
-      sha256: f4c542d6e68f37a5e0f3a6bad1766b7e5896102524d347b5f58c1cc7a80fdf0b
+      sha256: b54c2bbdc7d10721a88ab359d0da0d796b005f9925655ac5ca452ea0e05b0242
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.2"
+    version: "0.0.7"
   fc_material_alert:
     dependency: "direct main"
     description:
       name: fc_material_alert
-      sha256: "7afcae96d17da3deebd8d76778869e6f914c76d7cbd3e540ccb731bda308f331"
+      sha256: "02d59b40e2213e1f1329351cfbf42caeb1717a00446d4a201e4687d309947847"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.2"
+    version: "0.0.3"
   fc_path_util:
     dependency: transitive
     description:
