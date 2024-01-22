@@ -424,6 +424,25 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(st2.length, -1);
     });
 
+    ns.add('rename (folder) (filed)', (h) async {
+      try {
+        final r = h.data as BFPath;
+        final newDir = await env.mkdirp(r, ['一 二'].lock);
+        await env.slowWriteFileBytes(r, 'test 仨.txt',
+            Uint8List.fromList(utf8.encode(defStringContents)));
+
+        await env.rename(newDir, 'test 仨.txt', true);
+        throw Error();
+      } on Exception catch (_) {
+        final st = await env.stat(h.data as BFPath, relPath: ['一 二'].lock);
+
+        h.notNull(st);
+        h.equals(st!.isDir, true);
+        h.equals(st.name, '一 二');
+        h.equals(st.length, -1);
+      }
+    });
+
     ns.add('rename (file)', (h) async {
       final r = h.data as BFPath;
       final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
@@ -443,6 +462,26 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(st2!.isDir, false);
       h.equals(st2.name, 'test 仨 2.txt');
       h.equals(st2.length, 15);
+    });
+
+    ns.add('rename (file) (failed)', (h) async {
+      try {
+        final r = h.data as BFPath;
+        await env.mkdirp(r, ['test 仨 2.txt'].lock);
+
+        final fileUri = await env.slowWriteFileBytes(r, 'test 仨.txt',
+            Uint8List.fromList(utf8.encode(defStringContents)));
+
+        await env.rename(fileUri, 'test 仨 2.txt', false);
+        throw Error();
+      } on Exception catch (_) {
+        final st =
+            await env.stat(h.data as BFPath, relPath: ['test 仨.txt'].lock);
+        h.notNull(st);
+        h.equals(st!.isDir, false);
+        h.equals(st.name, 'test 仨.txt');
+        h.equals(st.length, 15);
+      }
     });
 
     ns.add('Move and replace and delete', (h) async {
