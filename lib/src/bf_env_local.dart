@@ -59,16 +59,8 @@ class BFEnvLocal extends BFEnv {
   }
 
   @override
-  Future<BFPath> ensureDir(BFPath dir, String name) async {
+  Future<BFPath> ensureDirCore(BFPath dir, String name) async {
     final path = p.join(dir.localPath(), name);
-    final pathStat = await stat(BFLocalPath(path));
-    if (pathStat != null) {
-      if (pathStat.isDir) {
-        return BFLocalPath(path);
-      }
-      throw Exception('$path is not a directory');
-    }
-
     await Directory(path).create(recursive: true);
     return BFLocalPath(path);
   }

@@ -52,7 +52,7 @@ class BFEnvAppleCloud extends BFEnv {
   }
 
   @override
-  Future<BFPath> ensureDir(BFPath dir, String name) async {
+  Future<BFPath> ensureDirCore(BFPath dir, String name) async {
     final newDirUri = await dir.iosJoinRelPath([name].lock, true);
     await _icloudPlugin.mkdir(newDirUri.scopedID());
     return newDirUri;

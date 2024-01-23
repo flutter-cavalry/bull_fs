@@ -16,11 +16,23 @@ abstract class BFEnv {
 
   Future<BFEntity?> stat(BFPath path, {IList<String>? relPath});
 
-  Future<BFPath> ensureDir(
+  Future<BFPath> ensureDirCore(
     BFPath dir,
     String name,
   );
   Future<BFPath> ensureDirs(BFPath dir, IList<String> path);
+
+  Future<BFPath> ensureDir(BFPath dir, String name) async {
+    final st = await stat(dir, relPath: [name].lock);
+    if (st != null) {
+      if (st.isDir) {
+        return st.path;
+      } else {
+        throw Exception('Path exists but is not a directory: ${st.path}');
+      }
+    }
+    return ensureDirCore(dir, name);
+  }
 
   Future<BFPath> rename(BFPath path, String newName, bool isDir);
 

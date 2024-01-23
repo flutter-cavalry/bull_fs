@@ -93,12 +93,14 @@ class BFEnvAndroidSAF extends BFEnv {
       final srcTmpName = tmpFileName() + (isDir ? '' : p.extension(src.last));
       srcTmpUri = await rename(srcStat.path, srcTmpName, isDir);
 
-      final desiredName = src.last;
+      final unsafeDestName = src.last;
+      final safeDestName = await ZBFInternal.nonSAFNextAvailableFileName(
+          this, destDirStat.path, unsafeDestName, isDir);
       var destUri =
           await _safMove(srcTmpUri, srcParentStat.path, destDirStat.path);
 
       // Rename it back to desired name.
-      destUri = await rename(destUri, desiredName, isDir);
+      destUri = await rename(destUri, safeDestName, isDir);
       return destUri;
     } catch (err) {
       // Try reverting changes if exception happened.
@@ -126,7 +128,7 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
-  Future<BFPath> ensureDir(BFPath dir, String name) async {
+  Future<BFPath> ensureDirCore(BFPath dir, String name) async {
     // If `name` exists, Android SAF creates a `name (1)`. We will return the existing URI in that case.
     final st = await stat(dir, relPath: [name].lock);
     if (st != null) {

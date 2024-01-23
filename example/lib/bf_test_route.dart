@@ -17,6 +17,7 @@ const bool _appMacOSScoped = true;
 const _defFolderContentFile = 'content.bin';
 const _defStringContents = 'abcdef 🍉🌏';
 final _defStringContentsBytes = utf8.encode(_defStringContents);
+const _dupFileSuffix = '(2)';
 
 extension BFEntityExtension on BFEntity {
   BFPathAndName toMini() {
@@ -160,6 +161,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, 'space 一 二 三');
+
+      h.mapEquals(await env.directoryToMap(r), {"space 一 二 三": {}});
     });
 
     ns.add('ensureDir (failed)', (h) async {
@@ -179,12 +182,18 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('ensureDirs', (h) async {
       final r = h.data as BFPath;
-      final newDir =
-          await env.ensureDirs(r, ['space 一 二 三', '22', '3 33'].lock);
+      final newDir = await env.ensureDirs(r, ['space 一 二 三', '22'].lock);
 
       h.notNull(await env.directoryExists(r, relPath: ['space 一 二 三'].lock));
       h.notNull(
           await env.directoryExists(r, relPath: ['space 一 二 三', '22'].lock));
+
+      // Do it again with a new subdir.
+      await env.ensureDirs(r, ['space 一 二 三', '22', '3 33'].lock);
+
+      // Do it again.
+      await env.ensureDirs(r, ['space 一 二 三', '22', '3 33'].lock);
+
       h.notNull(await env.directoryExists(r,
           relPath: ['space 一 二 三', '22', '3 33'].lock));
       h.isNull(await env.directoryExists(r,
@@ -192,10 +201,21 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.isNull(
           await env.directoryExists(r, relPath: ['space 一 二 三', '4 44'].lock));
 
-      final st = await env.stat(newDir);
+      var st = await env.stat(newDir);
+      h.notNull(st);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, '22');
+
+      st = await env.stat(st.path, relPath: ['3 33'].lock);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '3 33');
+
+      h.mapEquals(await env.directoryToMap(r), {
+        "space 一 二 三": {
+          "22": {"3 33": {}}
+        }
+      });
     });
 
     ns.add('ensureDirs (failed)', (h) async {
@@ -571,7 +591,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             "a": "61626364656620f09f8d89f09f8c8f",
             "file2": "61626364656620f09f8d89f09f8c8f",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
-            "a (2)": {
+            "a $_dupFileSuffix": {
               "file1": "61626364656620f09f8d89f09f8c8f",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
@@ -608,7 +628,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             "file2": "61626364656620f09f8d89f09f8c8f",
             "a": {"z": "61626364656620f09f8d89f09f8c8f"},
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
-            "a (2)": {
+            "a $_dupFileSuffix": {
               "file1": "61626364656620f09f8d89f09f8c8f",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
@@ -665,7 +685,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
           "b": {
-            "a (2)": "61626364656620f09f8d89f09f8c8f",
+            "a $_dupFileSuffix": "61626364656620f09f8d89f09f8c8f",
             "file2": "61626364656620f09f8d89f09f8c8f",
             "a": {"z": "61626364656620f09f8d89f09f8c8f"},
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
@@ -696,7 +716,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         "move": {
           "b": {
             "a": "61626364656620f09f8d89f09f8c8f",
-            "a (2)": "61626364656620f09f8d89f09f8c8f",
+            "a $_dupFileSuffix": "61626364656620f09f8d89f09f8c8f",
             "file2": "61626364656620f09f8d89f09f8c8f",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
           }
