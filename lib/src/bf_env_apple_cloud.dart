@@ -1,7 +1,6 @@
 import 'package:darwin_url/darwin_url.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'bf_env.dart';
-import 'extensions.dart';
 import 'internal.dart';
 import 'types.dart';
 import 'package:ns_file_coordinator_util/ns_file_coordinator_util_platform_interface.dart';
@@ -53,14 +52,14 @@ class BFEnvAppleCloud extends BFEnv {
   }
 
   @override
-  Future<BFPath> mkdir(BFPath dir, String name) async {
+  Future<BFPath> ensureDir(BFPath dir, String name) async {
     final newDirUri = await dir.iosJoinRelPath([name].lock, true);
     await _icloudPlugin.mkdir(newDirUri.scopedID());
     return newDirUri;
   }
 
   @override
-  Future<BFPath> mkdirp(BFPath dir, IList<String> path) async {
+  Future<BFPath> ensureDirs(BFPath dir, IList<String> path) async {
     final finalPath = await dir.iosJoinRelPath(path, true);
     await _icloudPlugin.mkdir(finalPath.scopedID());
     return finalPath;
@@ -76,17 +75,17 @@ class BFEnvAppleCloud extends BFEnv {
   }
 
   @override
-  Future<BFPath> move(
-      BFPath root, IList<String> src, IList<String> dest, bool isDir) async {
-    final srcPath = (await stat(root, relPath: src))?.path;
-    if (srcPath == null) {
-      throw Exception('$src is not found');
-    }
-    // Create dest dir.
-    final destDir = await mkdirpForFile(root, dest);
-    final destPath = await destDir.iosJoinRelPath([dest.last].lock, isDir);
-    await _icloudPlugin.move(srcPath.scopedID(), destPath.scopedID());
-    return destPath;
+  Future<BFPath> moveToDir(
+      BFPath root, IList<String> src, IList<String> destDir, bool isDir) async {
+    final srcStat = await ZBFInternal.mustGetStat(this, root, src);
+    final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
+
+    final destItemFileName = await ZBFInternal.nonSAFNextAvailableFileName(
+        this, destDirStat.path, srcStat.name, isDir);
+    final destItemPath =
+        await destDirStat.path.iosJoinRelPath([destItemFileName].lock, isDir);
+    await _icloudPlugin.move(srcStat.path.scopedID(), destItemPath.scopedID());
+    return destItemPath;
   }
 
   @override
@@ -107,8 +106,8 @@ class BFEnvAppleCloud extends BFEnv {
   @override
   Future<BFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName) async {
-    final safeName =
-        await zBFNonSAFNextAvailableFileName(this, dir, unsafeName, false);
+    final safeName = await ZBFInternal.nonSAFNextAvailableFileName(
+        this, dir, unsafeName, false);
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);
     await _icloudPlugin.copy(srcUrl, destPath.scopedID());

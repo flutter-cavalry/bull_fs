@@ -3,7 +3,7 @@ library bull_fs;
 export 'src/types.dart';
 export 'src/internal.dart';
 export 'src/extensions.dart';
-export 'src/bf_ui.dart';
+export 'src/bf_ui_util.dart';
 export 'src/bf_env.dart';
 export 'src/bf_env_util.dart';
 export 'src/bf_env_local.dart';

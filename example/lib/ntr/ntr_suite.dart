@@ -1,3 +1,8 @@
+import 'dart:convert';
+
+import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
+
 class NTRHandle {
   final dynamic data;
 
@@ -12,6 +17,12 @@ class NTRHandle {
   void equals(dynamic actual, dynamic expected) {
     if (expected != actual) {
       throw Exception('Expected: $expected, Actual: $actual');
+    }
+  }
+
+  void mapEquals<T, U>(Map<T, U>? a, Map<T, U>? b) {
+    if (!const DeepCollectionEquality().equals(a, b)) {
+      throw Exception('Expected: ${jsonEncode(b)}, Actual: ${jsonEncode(a)}');
     }
   }
 
@@ -52,6 +63,9 @@ class NTRSuite {
         h = NTRHandle(data);
         onLog?.call(name);
         await fn(h);
+      } catch (err) {
+        debugPrint('❌ $name\n$err\n');
+        rethrow;
       } finally {
         if (h != null) {
           // `afterAll` only gets called when `beforeAll` is called (i.e. NTRHandle is created).

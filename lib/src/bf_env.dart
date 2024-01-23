@@ -16,13 +16,16 @@ abstract class BFEnv {
 
   Future<BFEntity?> stat(BFPath path, {IList<String>? relPath});
 
-  Future<BFPath> mkdir(BFPath dir, String name);
-  Future<BFPath> mkdirp(BFPath dir, IList<String> path);
+  Future<BFPath> ensureDir(
+    BFPath dir,
+    String name,
+  );
+  Future<BFPath> ensureDirs(BFPath dir, IList<String> path);
 
   Future<BFPath> rename(BFPath path, String newName, bool isDir);
 
-  Future<BFPath> move(
-      BFPath root, IList<String> src, IList<String> dest, bool isDir);
+  Future<BFPath> moveToDir(
+      BFPath root, IList<String> src, IList<String> destDir, bool isDir);
 
   bool hasStreamSupport();
 

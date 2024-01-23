@@ -10,13 +10,13 @@ import 'package:fc_material_alert/fc_material_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:tmp_path/tmp_path.dart';
 import 'package:path/path.dart' as p;
-import 'package:collection/collection.dart';
 
 import '../../util/ke_bf_env.dart';
 
 const bool appMacOSScoped = true;
 const defFolderContentFile = 'content.bin';
 const defStringContents = 'abcdef 🍉🌏';
+final defStringContentsBytes = utf8.encode(defStringContents);
 final ignoredFiles = {'.DS_Store'};
 
 extension BFEntityExtension on BFEntity {
@@ -58,49 +58,38 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
   Future<void> _start() async {
     final icloudVault = IcloudVault.create(macOSScoped: appMacOSScoped);
-    try {
-      final rootRaw = Platform.isWindows
-          ? FcFilePickerXResult.fromStringOrUri(tmpPath(), null)
-          : (await FcFilePickerUtil.pickFolder(macOSScoped: appMacOSScoped));
-      if (rootRaw == null) {
-        return;
-      }
-      if (!mounted) {
-        return;
-      }
-      final root = rootRaw.toBFPath(macOSScoped: appMacOSScoped);
-      await icloudVault?.requestAccess(root);
-      setState(() {
-        _output = 'Running...';
-      });
 
-      // Local env.
-      final localDir = tmpPath();
-      await Directory(localDir).create(recursive: true);
-      await _runEnvTests('Local', BFEnvLocal(), BFLocalPath(localDir));
-      final env = newUnsafeKeBFEnv(macOSScoped: appMacOSScoped);
-      if (env.envType() != BFEnvType.local) {
-        // Native env.
-        await _runEnvTests('Native', env, await env.mkdir(root, 'native'));
-        // Clean up.
-        await env.deletePathIfExists(root);
-      }
-
-      setState(() {
-        _output = 'Done';
-      });
-    } catch (err) {
-      if (!mounted) {
-        return;
-      }
-      await showErrorAlert(context, err);
-
-      setState(() {
-        _output = 'Failed';
-      });
-    } finally {
-      await icloudVault?.release();
+    final rootRaw = Platform.isWindows
+        ? FcFilePickerXResult.fromStringOrUri(tmpPath(), null)
+        : (await FcFilePickerUtil.pickFolder(macOSScoped: appMacOSScoped));
+    if (rootRaw == null) {
+      return;
     }
+    if (!mounted) {
+      return;
+    }
+    final root = rootRaw.toBFPath(macOSScoped: appMacOSScoped);
+    await icloudVault?.requestAccess(root);
+    setState(() {
+      _output = 'Running...';
+    });
+
+    // Local env.
+    final localDir = tmpPath();
+    await Directory(localDir).create(recursive: true);
+    await _runEnvTests('Local', BFEnvLocal(), BFLocalPath(localDir));
+    final env = newUnsafeKeBFEnv(macOSScoped: appMacOSScoped);
+    if (env.envType() != BFEnvType.local) {
+      // Native env.
+      await _runEnvTests('Native', env, await env.ensureDir(root, 'native'));
+      // Clean up.
+      await env.deletePathIfExists(root);
+    }
+
+    setState(() {
+      _output = 'Done';
+    });
+    await icloudVault?.release();
   }
 
   String _appendCounterToFileName(BFEnv env, String fileName, int c) {
@@ -114,14 +103,14 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {
-    final subDir1 = await env.mkdir(r, '一');
+    final subDir1 = await env.ensureDir(r, '一');
     await env.slowWriteFileBytes(subDir1, 'a.txt', Uint8List.fromList([1]));
     await env.slowWriteFileBytes(subDir1, 'b.txt', Uint8List.fromList([2]));
 
     // b is empty.
-    await env.mkdir(r, 'b');
+    await env.ensureDir(r, 'b');
 
-    final subDir11 = await env.mkdir(subDir1, 'deep');
+    final subDir11 = await env.ensureDir(subDir1, 'deep');
     await env.slowWriteFileBytes(subDir11, 'c.txt', Uint8List.fromList([3]));
 
     await env.slowWriteFileBytes(r, 'root.txt', Uint8List.fromList([4]));
@@ -148,7 +137,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.beforeAll = () async {
       testCount++;
       // Create a new folder for each test.
-      final dirUri = await env.mkdir(root, 'test_$testCount');
+      final dirUri = await env.ensureDir(root, 'test_$testCount');
       return dirUri;
     };
     ns.afterAll = (h) async {
@@ -156,19 +145,43 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await env.deletePathIfExists(r);
     };
 
-    ns.add('mkdir', (h) async {
+    ns.add('ensureDir', (h) async {
       final r = h.data as BFPath;
-      final newDir = await env.mkdir(r, 'space 一 二 三');
-      final st = await env.stat(newDir);
+      var newDir = await env.ensureDir(r, 'space 一 二 三');
+      var st = await env.stat(newDir);
+
+      h.notNull(st);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, 'space 一 二 三');
+
+      // Do it twice and there should be no error.
+      newDir = await env.ensureDir(r, 'space 一 二 三');
+      st = await env.stat(newDir);
 
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, 'space 一 二 三');
     });
 
-    ns.add('mkdirp', (h) async {
+    ns.add('ensureDir (failed)', (h) async {
       final r = h.data as BFPath;
-      final newDir = await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
+      try {
+        await env.slowWriteFileBytes(r, 'space 一 二 三', Uint8List.fromList([1]));
+        await env.ensureDir(r, 'space 一 二 三');
+        throw Error();
+      } on Exception catch (_) {
+        final st = await env.stat(r, relPath: ['space 一 二 三'].lock);
+        h.notNull(st);
+        h.equals(st!.isDir, false);
+        h.equals(st.name, 'space 一 二 三');
+        h.equals(st.length, 1);
+      }
+    });
+
+    ns.add('ensureDirs', (h) async {
+      final r = h.data as BFPath;
+      final newDir =
+          await env.ensureDirs(r, ['space 一 二 三', '22', '3 33'].lock);
 
       h.notNull(await env.directoryExists(r, relPath: ['space 一 二 三'].lock));
       h.notNull(
@@ -186,14 +199,33 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(st.name, '3 33');
     });
 
+    ns.add('ensureDirs (failed)', (h) async {
+      final r = h.data as BFPath;
+      try {
+        await env.ensureDirs(r, ['space 一 二 三', '22', '3 33'].lock);
+        await env.slowWriteFileBytes(
+            (await env.statPath(r, relPath: ['space 一 二 三', '22'].lock))!,
+            'file',
+            Uint8List.fromList([1]));
+        await env.ensureDirs(r, ['space 一 二 三', '22', 'file', 'another'].lock);
+        throw Error();
+      } on Exception catch (_) {
+        final st =
+            await env.stat(r, relPath: ['space 一 二 三', '22', 'file'].lock);
+        h.notNull(st);
+        h.equals(st!.isDir, false);
+        h.equals(st.name, 'file');
+        h.equals(st.length, 1);
+      }
+    });
+
     if (env.hasStreamSupport()) {
       void testWriteFileStream(String fileName, bool multiple) {
         ns.add('writeFileStream $fileName multiple: $multiple', (h) async {
           final r = h.data as BFPath;
           var outStream = await env.writeFileStream(r, fileName);
           await outStream.write(Uint8List.fromList(utf8.encode('abc1')));
-          await outStream
-              .write(Uint8List.fromList(utf8.encode(defStringContents)));
+          await outStream.write(defStringContentsBytes);
           await outStream.flush();
           await outStream.close();
 
@@ -203,15 +235,14 @@ class _BFTestRouteState extends State<BFTestRoute> {
           h.notNull(destUriStat);
           h.equals(destUriStat!.isDir, false);
           h.equals(destUriStat.name, fileName);
-          h.equals(utf8.decode(await env.slowReadFileBytes(destUri)),
+          h.equals(utf8.decode(await env.internalReadFileBytes(destUri)),
               'abc1$defStringContents');
 
           if (multiple) {
             // Write to the same file again.
             outStream = await env.writeFileStream(r, fileName);
             await outStream.write(Uint8List.fromList(utf8.encode('abc2')));
-            await outStream
-                .write(Uint8List.fromList(utf8.encode(defStringContents)));
+            await outStream.write(defStringContentsBytes);
             await outStream.flush();
             await outStream.close();
 
@@ -222,14 +253,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
             h.equals(destUriStat!.isDir, false);
             h.equals(
                 destUriStat.name, _appendCounterToFileName(env, fileName, 2));
-            h.equals(utf8.decode(await env.slowReadFileBytes(destUri)),
+            h.equals(utf8.decode(await env.internalReadFileBytes(destUri)),
                 'abc2$defStringContents');
 
             // Write to the same file again.
             outStream = await env.writeFileStream(r, fileName);
             await outStream.write(Uint8List.fromList(utf8.encode('abc3')));
-            await outStream
-                .write(Uint8List.fromList(utf8.encode(defStringContents)));
+            await outStream.write(defStringContentsBytes);
             await outStream.flush();
             await outStream.close();
 
@@ -239,13 +269,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
             h.equals(destUriStat!.isDir, false);
             h.equals(
                 destUriStat.name, _appendCounterToFileName(env, fileName, 3));
-            h.equals(utf8.decode(await env.slowReadFileBytes(destUri)),
+            h.equals(utf8.decode(await env.internalReadFileBytes(destUri)),
                 'abc3$defStringContents');
 
             // Check previous files were not overwritten.
-            h.equals(utf8.decode(await env.slowReadFileBytes(destUri1)),
+            h.equals(utf8.decode(await env.internalReadFileBytes(destUri1)),
                 'abc1$defStringContents');
-            h.equals(utf8.decode(await env.slowReadFileBytes(destUri2)),
+            h.equals(utf8.decode(await env.internalReadFileBytes(destUri2)),
                 'abc2$defStringContents');
           }
         });
@@ -297,7 +327,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         h.notNull(st);
         h.equals(st!.isDir, false);
         h.equals(st.name, fileName);
-        h.equals(utf8.decode(await env.slowReadFileBytes(fileUri)),
+        h.equals(utf8.decode(await env.internalReadFileBytes(fileUri)),
             '$defStringContents 1');
 
         if (multiple) {
@@ -310,7 +340,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           h.notNull(st);
           h.equals(st!.isDir, false);
           h.equals(st.name, _appendCounterToFileName(env, fileName, 2));
-          h.equals(utf8.decode(await env.slowReadFileBytes(fileUri)),
+          h.equals(utf8.decode(await env.internalReadFileBytes(fileUri)),
               '$defStringContents 2');
 
           // Add third test.txt
@@ -321,13 +351,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
           h.notNull(st);
           h.equals(st!.isDir, false);
           h.equals(st.name, _appendCounterToFileName(env, fileName, 3));
-          h.equals(utf8.decode(await env.slowReadFileBytes(fileUri)),
+          h.equals(utf8.decode(await env.internalReadFileBytes(fileUri)),
               '$defStringContents 3');
 
           // Test previous files were not overwritten.
-          h.equals(utf8.decode(await env.slowReadFileBytes(fileUri1)),
+          h.equals(utf8.decode(await env.internalReadFileBytes(fileUri1)),
               '$defStringContents 1');
-          h.equals(utf8.decode(await env.slowReadFileBytes(fileUri2)),
+          h.equals(utf8.decode(await env.internalReadFileBytes(fileUri2)),
               '$defStringContents 2');
         }
       });
@@ -342,7 +372,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('stat (folder)', (h) async {
       final r = h.data as BFPath;
-      final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
+      final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
       final st = await env.stat(newDir);
 
       h.notNull(st);
@@ -360,9 +390,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('stat (file)', (h) async {
       final r = h.data as BFPath;
-      final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
-      final fileUri = await env.slowWriteFileBytes(newDir, 'test 仨.txt',
-          Uint8List.fromList(utf8.encode(defStringContents)));
+      final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
+      final fileUri = await env.slowWriteFileBytes(
+          newDir, 'test 仨.txt', defStringContentsBytes);
       final st = await env.stat(fileUri);
 
       h.notNull(st);
@@ -407,7 +437,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('rename (folder)', (h) async {
       final r = h.data as BFPath;
-      final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
+      final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
       final st = await env.stat(newDir);
 
       h.notNull(st);
@@ -427,9 +457,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('rename (folder) (filed)', (h) async {
       try {
         final r = h.data as BFPath;
-        final newDir = await env.mkdirp(r, ['一 二'].lock);
-        await env.slowWriteFileBytes(r, 'test 仨.txt',
-            Uint8List.fromList(utf8.encode(defStringContents)));
+        final newDir = await env.ensureDirs(r, ['一 二'].lock);
+        await env.slowWriteFileBytes(r, 'test 仨.txt', defStringContentsBytes);
 
         await env.rename(newDir, 'test 仨.txt', true);
         throw Error();
@@ -445,9 +474,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('rename (file)', (h) async {
       final r = h.data as BFPath;
-      final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
-      final fileUri = await env.slowWriteFileBytes(newDir, 'test 仨.txt',
-          Uint8List.fromList(utf8.encode(defStringContents)));
+      final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
+      final fileUri = await env.slowWriteFileBytes(
+          newDir, 'test 仨.txt', defStringContentsBytes);
       final st = await env.stat(fileUri);
 
       h.notNull(st);
@@ -467,10 +496,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('rename (file) (failed)', (h) async {
       try {
         final r = h.data as BFPath;
-        await env.mkdirp(r, ['test 仨 2.txt'].lock);
+        await env.ensureDirs(r, ['test 仨 2.txt'].lock);
 
-        final fileUri = await env.slowWriteFileBytes(r, 'test 仨.txt',
-            Uint8List.fromList(utf8.encode(defStringContents)));
+        final fileUri = await env.slowWriteFileBytes(
+            r, 'test 仨.txt', defStringContentsBytes);
 
         await env.rename(fileUri, 'test 仨 2.txt', false);
         throw Error();
@@ -484,131 +513,199 @@ class _BFTestRouteState extends State<BFTestRoute> {
       }
     });
 
-    ns.add('Move and replace and delete', (h) async {
+    ns.add('Move folder', (h) async {
       final e = env;
       final r = h.data as BFPath;
 
-      // --- move to ---
-      await e.mkdirp(r, ['move', 'a'].lock);
+      // Move move/a to move/b
+      await e.ensureDirs(r, ['move', 'a'].lock);
+      await e.ensureDirs(r, ['move', 'b'].lock);
       final srcDir = await _getPath(e, r, 'move/a');
-      final destDir = await _getPath(e, r, 'move');
-      await _createFile(e, srcDir, 'move.file1', 'FILE_1');
-      await _createFile(e, srcDir, 'move.file2', 'FILE_2');
-      await _createFolderWithDefFile(e, srcDir, 'move_dir1');
-      await _createFolderWithDefFile(e, srcDir, 'move_dir2');
+      final destDir = await _getPath(e, r, 'move/b');
 
-      // move file to local dir (unsafe).
-      var entName = 'move.file1';
-      var src = ['move', 'a', entName].lock;
-      var dest = ['move', entName].lock;
-      var movedPath = await e.move(r, src, dest, false);
-      assert(movedPath == await _getPath(e, destDir, entName));
-      _testEntity(await _getStat(e, movedPath, ''), entName, false);
-      await _testFileContents(e, movedPath, 'FILE_1');
+      // Create some files and dirs for each dir.
+      await _createFile(e, srcDir, 'file1', 'FILE_1');
+      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFolderWithDefFile(e, srcDir, 'a_sub');
+      await _createFolderWithDefFile(e, destDir, 'b_sub');
 
-      // move dir to local dir (unsafe).
-      entName = 'move_dir1';
-      src = ['move', 'a', entName].lock;
-      dest = ['move', entName].lock;
-      movedPath = await e.move(r, src, dest, true);
-      final expectedMovedPath = await _getPath(e, destDir, entName);
-      assert(movedPath == expectedMovedPath);
-      _testEntity(await _getStat(e, movedPath, ''), entName, true);
-      await _testFolderWithDefFile(e, movedPath);
+      await e.moveToDir(r, _genRelPath('move/a'), _genRelPath('move/b'), true);
 
-      // move file to root dir (unsafe).
-      entName = 'move.file2';
-      src = ['move', 'a', entName].lock;
-      dest = [entName].lock;
-      movedPath = await e.move(r, src, dest, false);
-      assert(movedPath == await _getPath(e, r, entName));
-      _testEntity(await _getStat(e, movedPath, ''), entName, false);
-      await _testFileContents(e, movedPath, 'FILE_2');
+      h.mapEquals(await e.directoryToMap(r), {
+        "move": {
+          "b": {
+            "file2": "61626364656620f09f8d89f09f8c8f",
+            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
+            "a": {
+              "file1": "61626364656620f09f8d89f09f8c8f",
+              "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
+            }
+          }
+        }
+      });
+    });
 
-      // move dir to root dir (unsafe).
-      entName = 'move_dir2';
-      src = ['move', 'a', entName].lock;
-      dest = [entName].lock;
-      movedPath = await e.move(r, src, dest, true);
-      assert(movedPath == await _getPath(e, r, entName));
-      _testEntity(await _getStat(e, movedPath, ''), entName, true);
-      await _testFolderWithDefFile(e, movedPath);
+    ns.add('Move folder (file conflict)', (h) async {
+      final e = env;
+      final r = h.data as BFPath;
 
-      // move and replace (file)
-      entName = 'same.file';
-      src = ['move', 'a', entName].lock;
-      dest = ['move', entName].lock;
-      await _createFile(e, srcDir, entName, 'same_new');
-      await _createFile(e, destDir, entName, 'same_old');
-      movedPath = await e.moveAndReplace(r, src, dest, false);
-      assert(movedPath == await _getPath(e, destDir, entName));
-      _testEntity(await _getStat(e, movedPath, ''), entName, false);
-      await _testFileContents(e, movedPath, 'same_new');
+      // Move move/a to move/b
+      await e.ensureDirs(r, ['move', 'a'].lock);
+      await e.ensureDirs(r, ['move', 'b'].lock);
+      final srcDir = await _getPath(e, r, 'move/a');
+      final destDir = await _getPath(e, r, 'move/b');
 
-      // move and replace (dir)
-      entName = 'same.dir';
-      src = ['move', 'a', entName].lock;
-      dest = ['move', entName].lock;
-      await _createFolderWithDefFile(e, srcDir, entName);
-      await _createFolderWithDefFile(e, destDir, entName);
-      movedPath = await e.moveAndReplace(r, src, dest, true);
-      assert(movedPath == await _getPath(e, destDir, entName));
-      _testEntity(await _getStat(e, movedPath, ''), entName, true);
-      await _testFolderWithDefFile(e, movedPath);
+      // Create some files and dirs for each dir.
+      await _createFile(e, srcDir, 'file1', 'FILE_1');
+      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFolderWithDefFile(e, srcDir, 'a_sub');
+      await _createFolderWithDefFile(e, destDir, 'b_sub');
 
-      // move and keep both (file)
-      entName = 'both.file';
-      src = ['move', 'a', entName].lock;
-      dest = ['move', entName].lock;
-      var newEntName = 'both (2).file';
-      await _createFile(e, srcDir, entName, 'same_new');
-      await _createFile(e, destDir, entName, 'same_old');
-      var moveRes = await e.moveAndKeepBoth(r, src, dest, false);
-      _testEntity(await _getStat(e, moveRes.path, ''), newEntName, false);
-      assert(moveRes.name == newEntName);
-      await _testFileContents(e, moveRes.path, 'same_new');
-      // old entity is not deleted.
-      await _testFileContents(
-          e, await _getPath(e, destDir, entName), 'same_old');
+      // Create a conflict.
+      await _createFile(e, destDir, 'a', 'zzz');
 
-      // move and keep both (dir)
-      entName = 'both.dir';
-      src = ['move', 'a', entName].lock;
-      dest = ['move', entName].lock;
-      newEntName = 'both.dir (2)';
-      await _createFolderWithDefFile(e, srcDir, entName);
-      await _createFolderWithDefFile(e, destDir, entName);
-      moveRes = await e.moveAndKeepBoth(r, src, dest, true);
-      assert(moveRes.name == newEntName);
-      _testEntity(await _getStat(e, moveRes.path, ''), newEntName, true);
-      await _testFolderWithDefFile(e, moveRes.path);
-      // old entity is not deleted.
-      await _testFolderWithDefFile(e, await _getPath(e, destDir, entName));
+      await e.moveToDir(r, _genRelPath('move/a'), _genRelPath('move/b'), true);
 
-      // delete
-      await e.delete((await e.child(r, relPath: _genRelPath('move')))!, true);
-      await e.deletePathIfExists(r, relPath: _genRelPath('___.txt'));
-      await e.deletePathIfExists(r, relPath: _genRelPath('move.file2'));
-      await e.deletePathIfExists(r, relPath: _genRelPath('move_dir2'));
-      await e.deletePathIfExists(r, relPath: _genRelPath('nextAvailableName'));
-      final contents = _refineContents(await e.listDir(r));
-      assert(contents.isEmpty);
+      h.mapEquals(await e.directoryToMap(r), {
+        "move": {
+          "b": {
+            "a": "61626364656620f09f8d89f09f8c8f",
+            "file2": "61626364656620f09f8d89f09f8c8f",
+            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
+            "a (2)": {
+              "file1": "61626364656620f09f8d89f09f8c8f",
+              "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
+            }
+          }
+        }
+      });
+    });
+
+    ns.add('Move folder (folder conflict)', (h) async {
+      final e = env;
+      final r = h.data as BFPath;
+
+      // Move move/a to move/b
+      await e.ensureDirs(r, ['move', 'a'].lock);
+      await e.ensureDirs(r, ['move', 'b'].lock);
+      final srcDir = await _getPath(e, r, 'move/a');
+      final destDir = await _getPath(e, r, 'move/b');
+
+      // Create some files and dirs for each dir.
+      await _createFile(e, srcDir, 'file1', 'FILE_1');
+      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFolderWithDefFile(e, srcDir, 'a_sub');
+      await _createFolderWithDefFile(e, destDir, 'b_sub');
+
+      // Create a conflict.
+      await e.ensureDirs(r, ['move', 'b', 'a'].lock);
+      await _createFile(e, await _getPath(e, r, 'move/b/a'), 'z', '!!');
+
+      await e.moveToDir(r, _genRelPath('move/a'), _genRelPath('move/b'), true);
+
+      h.mapEquals(await e.directoryToMap(r), {
+        "move": {
+          "b": {
+            "file2": "61626364656620f09f8d89f09f8c8f",
+            "a": {"z": "61626364656620f09f8d89f09f8c8f"},
+            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
+            "a (2)": {
+              "file1": "61626364656620f09f8d89f09f8c8f",
+              "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
+            }
+          }
+        }
+      });
+    });
+
+    ns.add('Move file', (h) async {
+      final e = env;
+      final r = h.data as BFPath;
+
+      // Move move/a to move/b
+      await e.ensureDirs(r, ['move', 'b'].lock);
+      await _createFile(e, await _getPath(e, r, 'move'), 'a', 'A');
+      final destDir = await _getPath(e, r, 'move/b');
+
+      // Create some files and dirs for each dir.
+      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFolderWithDefFile(e, destDir, 'b_sub');
+
+      await e.moveToDir(r, _genRelPath('move/a'), _genRelPath('move/b'), false);
+
+      h.mapEquals(await e.directoryToMap(r), {
+        "move": {
+          "b": {
+            "file2": "61626364656620f09f8d89f09f8c8f",
+            "a": "61626364656620f09f8d89f09f8c8f",
+            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
+          }
+        }
+      });
+    });
+
+    ns.add('Move file (folder conflict)', (h) async {
+      final e = env;
+      final r = h.data as BFPath;
+
+      // Move move/a to move/b
+      await e.ensureDirs(r, ['move', 'b'].lock);
+      await _createFile(e, await _getPath(e, r, 'move'), 'a', 'A');
+      final destDir = await _getPath(e, r, 'move/b');
+
+      // Create some files and dirs for each dir.
+      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFolderWithDefFile(e, destDir, 'b_sub');
+
+      // Create a conflict.
+      await e.ensureDirs(r, ['move', 'b', 'a'].lock);
+      await _createFile(e, await _getPath(e, r, 'move/b/a'), 'z', '!!');
+
+      await e.moveToDir(r, _genRelPath('move/a'), _genRelPath('move/b'), false);
+
+      h.mapEquals(await e.directoryToMap(r), {
+        "move": {
+          "b": {
+            "a (2)": "61626364656620f09f8d89f09f8c8f",
+            "file2": "61626364656620f09f8d89f09f8c8f",
+            "a": {"z": "61626364656620f09f8d89f09f8c8f"},
+            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
+          }
+        }
+      });
+    });
+
+    ns.add('Move file (file conflict)', (h) async {
+      final e = env;
+      final r = h.data as BFPath;
+
+      // Move move/a to move/b
+      await e.ensureDirs(r, ['move', 'b'].lock);
+      await _createFile(e, await _getPath(e, r, 'move'), 'a', 'A');
+      final destDir = await _getPath(e, r, 'move/b');
+
+      // Create some files and dirs for each dir.
+      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFolderWithDefFile(e, destDir, 'b_sub');
+
+      // Create a conflict.
+      await _createFile(e, destDir, 'a', 'zzz');
+
+      await e.moveToDir(r, _genRelPath('move/a'), _genRelPath('move/b'), false);
+
+      h.mapEquals(await e.directoryToMap(r), {
+        "move": {
+          "b": {
+            "a": "61626364656620f09f8d89f09f8c8f",
+            "a (2)": "61626364656620f09f8d89f09f8c8f",
+            "file2": "61626364656620f09f8d89f09f8c8f",
+            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
+          }
+        }
+      });
     });
 
     await ns.run();
-  }
-
-  void _testEntity(BFEntity? ent, String name, bool isDir) {
-    if (ent == null) {
-      assert(false);
-      return;
-    }
-    assert(ent.isDir == isDir);
-    assert(ent.name == name);
-    if (!isDir) {
-      assert(ent.lastMod != null);
-      assert(ent.length > 0);
-    }
   }
 
   void _statEquals(BFEntity st, BFEntity st2) {
@@ -622,7 +719,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   Future<BFEntity> _getStat(BFEnv e, BFPath root, String relPath) async {
     final stat = await e.stat(root, relPath: _genRelPath(relPath));
     if (stat == null) {
-      throw Exception('stat is null');
+      throw Exception('stat is null for "$relPath"');
     }
     return stat;
   }
@@ -634,33 +731,14 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
   Future<BFPath> _createFile(
       BFEnv e, BFPath dir, String fileName, String content) async {
-    final bytes = Uint8List.fromList(utf8.encode(content));
-    return await e.slowWriteFileBytes(dir, fileName, bytes);
+    return await e.slowWriteFileBytes(dir, fileName, defStringContentsBytes);
   }
 
   Future<BFPath> _createFolderWithDefFile(
       BFEnv e, BFPath root, String folderName) async {
-    final dirPath = await e.mkdir(root, folderName);
+    final dirPath = await e.ensureDir(root, folderName);
     await _createFile(e, dirPath, defFolderContentFile, defStringContents);
     return dirPath;
-  }
-
-  Future<void> _testFileContents(BFEnv e, BFPath file, String expected) async {
-    final actual = utf8.decode(await e.slowReadFileBytes(file));
-    assert(actual == expected);
-  }
-
-  Future<void> _testFolderWithDefFile(BFEnv e, BFPath dirPath) async {
-    final files = await e.listDir(dirPath);
-    assert(files.length == 1);
-    _testEntity(files[0], defFolderContentFile, false);
-    await _testFileContents(e, files[0].path, defStringContents);
-  }
-
-  List<BFEntity> _refineContents(List<BFEntity> entities) {
-    final filtered =
-        entities.where((e) => !ignoredFiles.contains(e.name)).toList();
-    return filtered.sorted((a, b) => a.name.compareTo(b.name));
   }
 
   IList<String> _genRelPath(String relPath) {
@@ -679,20 +757,6 @@ extension BFTestExtension on BFEnv {
       throw Exception('Item not found');
     }
     return st;
-  }
-
-  Future<Uint8List> slowReadFileBytes(BFPath file) async {
-    if (hasStreamSupport()) {
-      final List<int> result = [];
-      final stream = await readFileStream(file);
-      await for (var chunk in stream) {
-        result.addAll(chunk);
-      }
-      return Uint8List.fromList(result);
-    }
-    final tmp = tmpPath();
-    await copyToLocalFile(file, tmp);
-    return File(tmp).readAsBytes();
   }
 
   Future<BFPath> slowWriteFileBytes(

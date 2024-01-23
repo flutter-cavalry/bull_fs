@@ -1,13 +1,10 @@
 import 'dart:io';
+import 'package:bull_fs/bull_fs.dart';
 import 'package:io/io.dart';
-import 'extensions.dart';
 import 'package:path/path.dart' as p;
 import 'package:collection/collection.dart';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'bf_env.dart';
-import 'internal.dart';
-import 'types.dart';
 
 class BFEnvLocal extends BFEnv {
   @override
@@ -62,14 +59,22 @@ class BFEnvLocal extends BFEnv {
   }
 
   @override
-  Future<BFPath> mkdir(BFPath dir, String name) async {
+  Future<BFPath> ensureDir(BFPath dir, String name) async {
     final path = p.join(dir.localPath(), name);
+    final pathStat = await stat(BFLocalPath(path));
+    if (pathStat != null) {
+      if (pathStat.isDir) {
+        return BFLocalPath(path);
+      }
+      throw Exception('$path is not a directory');
+    }
+
     await Directory(path).create(recursive: true);
     return BFLocalPath(path);
   }
 
   @override
-  Future<BFPath> mkdirp(BFPath dir, IList<String> path) async {
+  Future<BFPath> ensureDirs(BFPath dir, IList<String> path) async {
     final finalPath = p.joinAll([dir.localPath(), ...path]);
     await Directory(finalPath).create(recursive: true);
     return BFLocalPath(finalPath);
@@ -88,17 +93,17 @@ class BFEnvLocal extends BFEnv {
   }
 
   @override
-  Future<BFPath> move(
-      BFPath root, IList<String> src, IList<String> dest, bool isDir) async {
-    final srcPath = (await stat(root, relPath: src))?.path;
-    if (srcPath == null) {
-      throw Exception('$src is not found');
-    }
-    // Create dest dir.
-    final destDir = await mkdirpForFile(root, dest);
-    final destPathString = p.join(destDir.localPath(), dest.last);
-    await _move(srcPath.localPath(), destPathString, isDir);
-    return BFLocalPath(destPathString);
+  Future<BFPath> moveToDir(
+      BFPath root, IList<String> src, IList<String> destDir, bool isDir) async {
+    final srcStat = await ZBFInternal.mustGetStat(this, root, src);
+    final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
+
+    final destItemFileName = await ZBFInternal.nonSAFNextAvailableFileName(
+        this, destDirStat.path, srcStat.name, isDir);
+    final destItemPath = p.join(destDirStat.path.toString(), destItemFileName);
+
+    await _move(srcStat.path.localPath(), destItemPath, isDir);
+    return BFLocalPath(destItemPath);
   }
 
   Future<void> _move(String src, String dest, bool isDir) async {
@@ -122,8 +127,8 @@ class BFEnvLocal extends BFEnv {
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName) async {
     final dirPath = dir.localPath();
-    final safeName =
-        await zBFNonSAFNextAvailableFileName(this, dir, unsafeName, false);
+    final safeName = await ZBFInternal.nonSAFNextAvailableFileName(
+        this, dir, unsafeName, false);
     final destPath = p.join(dirPath, safeName);
     return writeFileStreamFromPath(destPath);
   }
@@ -131,8 +136,8 @@ class BFEnvLocal extends BFEnv {
   @override
   Future<BFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName) async {
-    final safeName =
-        await zBFNonSAFNextAvailableFileName(this, dir, unsafeName, false);
+    final safeName = await ZBFInternal.nonSAFNextAvailableFileName(
+        this, dir, unsafeName, false);
     final dirPath = dir.localPath();
     final destPath = p.join(dirPath, safeName);
     final destBFPath = BFLocalPath(destPath);

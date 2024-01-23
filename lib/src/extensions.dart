@@ -1,8 +1,11 @@
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:convert/convert.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:tmp_path/tmp_path.dart';
 import 'bf_env.dart';
-import 'internal.dart';
 import 'types.dart';
+import 'package:path/path.dart' as p;
 
 extension IListStringExtension on IList<String> {
   IList<String> parentDir() {
@@ -38,11 +41,13 @@ extension BFEnvExtension on BFEnv {
     await delete(st.path, st.isDir);
   }
 
-  Future<BFPath> mkdirpForFile(BFPath dir, IList<String> relFilePath) async {
+  Future<BFPath> ensureDirsForFile(
+      BFPath dir, IList<String> relFilePath) async {
     if (relFilePath.length == 1) {
       return dir;
     }
-    return mkdirp(dir, relFilePath.take(relFilePath.length - 1).toIList());
+    return ensureDirsForFile(
+        dir, relFilePath.take(relFilePath.length - 1).toIList());
   }
 
   Future<void> _listRecursiveFat(BFPath path, IList<String> dirRelPath,
@@ -89,46 +94,61 @@ extension BFEnvExtension on BFEnv {
     return st;
   }
 
-  Future<BFPath> moveAndReplace(
-      BFPath root, IList<String> src, IList<String> dest, bool isDir) async {
-    final srcPath = (await stat(root, relPath: src))?.path;
-    if (srcPath == null) {
-      throw Exception('$src is not found');
+  Future<Uint8List> internalReadFileBytes(BFPath file) async {
+    if (hasStreamSupport()) {
+      final List<int> result = [];
+      final stream = await readFileStream(file);
+      await for (var chunk in stream) {
+        result.addAll(chunk);
+      }
+      return Uint8List.fromList(result);
     }
-    final destPath = (await stat(root, relPath: dest))?.path;
-    if (destPath == null) {
-      return move(root, src, dest, isDir);
-    }
-
-    final tmpDestName = tmpFileName();
-    final tmpDestUri = await rename(destPath, tmpDestName, isDir);
-    final movedPath = await move(root, src, dest, isDir);
-    // Remove the renamed dest Uri after moving.
-    await delete(tmpDestUri, isDir);
-    return movedPath;
+    final tmp = await _tmpFile();
+    await copyToLocalFile(file, tmp);
+    return File(tmp).readAsBytes();
   }
 
-  Future<BFPathAndName> moveAndKeepBoth(
-      BFPath root, IList<String> src, IList<String> dest, bool isDir) async {
-    final srcPath = (await stat(root, relPath: src))?.path;
-    if (srcPath == null) {
-      throw Exception('$src is not found');
-    }
-    final destPath = (await stat(root, relPath: dest))?.path;
-    if (destPath == null) {
-      final movedPath = await move(root, src, dest, isDir);
-      return BFPathAndName(movedPath, dest.last);
-    }
+  Future<Map<String, dynamic>> directoryToMap(BFPath dir,
+      {bool Function(String name, BFEntity entity)? filter,
+      bool? hideFileContents}) async {
+    final Map<String, dynamic> map = <String, dynamic>{};
+    await _directoryToMapInternal(map, dir, hideFileContents ?? false, filter);
+    return map;
+  }
 
-    final destDirPath = (await stat(root, relPath: dest.parentDir()))?.path;
-    if (destDirPath == null) {
-      throw Exception('Unexpected null stat at dest dir ${dest.parentDir()}');
-    }
+  Future<void> _directoryToMapInternal(
+      Map<String, dynamic> map,
+      BFPath dir,
+      bool hideFileContents,
+      bool Function(String name, BFEntity entity)? filter) async {
+    final entities = await listDir(dir);
+    await Future.wait(entities
+        .map((e) => _entityToMapInternal(map, e, hideFileContents, filter)));
+  }
 
-    final safeName = await zBFNonSAFNextAvailableFileName(
-        this, destDirPath, dest.last, isDir);
-    dest = [...dest.parentDir(), safeName].lock;
-    final movedPath = await move(root, src, dest, isDir);
-    return BFPathAndName(movedPath, safeName);
+  Future<void> _entityToMapInternal(
+      Map<String, dynamic> map,
+      BFEntity ent,
+      bool hideFileContents,
+      bool Function(String name, BFEntity entity)? filter) async {
+    final name = ent.name;
+    if (filter != null && !filter(name, ent)) {
+      return;
+    }
+    if (ent.isDir) {
+      map[name] = await directoryToMap(ent.path, filter: filter);
+    } else {
+      if (hideFileContents) {
+        map[name] = null;
+      } else {
+        final bytes = await internalReadFileBytes(ent.path);
+        map[name] = hex.encode(bytes);
+      }
+    }
+  }
+
+  Future<String> _tmpFile() async {
+    final dir = await Directory.systemTemp.createTemp('bf_');
+    return p.join(dir.path, DateTime.now().millisecondsSinceEpoch.toString());
   }
 }

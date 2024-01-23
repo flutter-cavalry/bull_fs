@@ -1,13 +1,9 @@
+import 'package:bull_fs/bull_fs.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
-import 'bf_env.dart';
-import 'types.dart';
-import 'extensions.dart';
 import 'package:mime/mime.dart';
 import 'package:saf_stream/saf_stream.dart';
 import 'package:mg_shared_storage/shared_storage.dart' as saf;
-import 'package:path/path.dart' as p;
-import 'package:tmp_path/tmp_path.dart';
 
 class BFEnvAndroidSAF extends BFEnv {
   final _plugin = SafStream();
@@ -73,53 +69,17 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
-  Future<BFPath> move(
-      BFPath root, IList<String> src, IList<String> dest, bool isDir) async {
-    final srcPath = (await stat(root, relPath: src))?.path;
-    if (srcPath == null) {
-      throw Exception('$src is not found');
-    }
-    final srcDirPath = (await stat(root, relPath: src.parentDir()))?.path;
-    if (srcDirPath == null) {
-      throw Exception('$src.parentDir() is not found');
-    }
-
-    // Create dest dir.
-    final destDir = await mkdirpForFile(root, dest);
-
-    // If file name is not changed. Call SAF directly.
-    if (src.last == dest.last) {
-      return _safMove(srcPath, srcDirPath, destDir);
+  Future<BFPath> moveToDir(
+      BFPath root, IList<String> src, IList<String> destDir, bool isDir) async {
+    final srcStat = await ZBFInternal.mustGetStat(this, root, src);
+    final srcParentStat =
+        await ZBFInternal.mustGetStat(this, root, src.parentDir());
+    final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
+    if (!destDirStat.isDir) {
+      throw Exception('$destDir is not a directory');
     }
 
-    // Src and dest have different file names.
-    // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
-    // Then move the file to dest and rename it back to the desired name.
-    BFPath? srcTmpUri;
-    try {
-      final srcTmpName = tmpFileName() + (isDir ? '' : p.extension(src.last));
-      srcTmpUri = await rename(srcPath, srcTmpName, isDir);
-
-      final desiredName = dest.last;
-      var destUri = await _safMove(srcTmpUri, srcDirPath, destDir);
-
-      // Rename it back to desired name.
-      destUri = await rename(destUri, desiredName, isDir);
-      return destUri;
-    } catch (err) {
-      // Try reverting changes if exception happened.
-      if (srcTmpUri != null && await stat(srcTmpUri) != null) {
-        try {
-          await rename(srcTmpUri, src.last, isDir);
-        } catch (_) {
-          // Ignore exceptions during reverting.
-          if (kDebugMode) {
-            rethrow;
-          }
-        }
-      }
-      rethrow;
-    }
+    return _safMove(srcStat.path, srcParentStat.path, destDirStat.path);
   }
 
   Future<BFEntity?> _locate(BFPath path, IList<String>? relPath) async {
@@ -132,7 +92,7 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
-  Future<BFPath> mkdir(BFPath dir, String name) async {
+  Future<BFPath> ensureDir(BFPath dir, String name) async {
     // If `name` exists, Android SAF creates a `name (1)`. We will return the existing URI in that case.
     final st = await stat(dir, relPath: [name].lock);
     if (st != null) {
@@ -146,7 +106,7 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
-  Future<BFPath> mkdirp(BFPath dir, IList<String> path) async {
+  Future<BFPath> ensureDirs(BFPath dir, IList<String> path) async {
     final stat = await saf.mkdirp(dir.scopedSafUri(), path.unlock);
     if (stat == null) {
       throw Exception('mkdirp of $dir + $path has failed');
