@@ -17,7 +17,6 @@ const bool _appMacOSScoped = true;
 const _defFolderContentFile = 'content.bin';
 const _defStringContents = 'abcdef 🍉🌏';
 final _defStringContentsBytes = utf8.encode(_defStringContents);
-const _dupFileSuffix = '(2)';
 
 extension BFEntityExtension on BFEntity {
   BFPathAndName toMini() {
@@ -150,7 +149,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await env.ensureDir(r, 'space 一 二 三');
 
       // Do it twice and there should be no error.
-      await env.ensureDir(r, 'space 一 二 三');
+      final newDir = await env.ensureDir(r, 'space 一 二 三');
+
+      // Test return value.
+      final st = await env.stat(newDir);
+      h.notNull(st);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, 'space 一 二 三');
 
       h.mapEquals(await env.directoryToMap(r), {"space 一 二 三": {}});
     });
@@ -168,7 +173,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('ensureDirs', (h) async {
       final r = h.data as BFPath;
-      await env.ensureDirs(r, ['space 一 二 三', '22'].lock);
+      final newDir = await env.ensureDirs(r, ['space 一 二 三', '22'].lock);
+      // Test return value.
+      var st = await env.stat(newDir);
+      h.notNull(st);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, '22');
 
       // Do it again with a new subdir.
       await env.ensureDirs(r, ['space 一 二 三', '22', '3 33'].lock);
@@ -228,9 +238,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
             await outStream.close();
 
             // Test `getPath`.
+            destUri = outStream.getPath();
             destUriStat = await env.stat(destUri);
             h.notNull(destUriStat);
             h.equals(destUriStat!.isDir, false);
+            h.equals(
+                destUriStat.name, _appendCounterToFileName(env, fileName, 2));
+
             // Write to the same file again.
             outStream = await env.writeFileStream(r, fileName);
             await outStream.write(Uint8List.fromList(utf8.encode('abc3')));
@@ -252,23 +266,29 @@ class _BFTestRouteState extends State<BFTestRoute> {
       testWriteFileStream('test 三.txt', false,
           {"test 三.txt": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三.txt', true, {
-        "test 三 (2).txt": "6162633261626364656620f09f8d89f09f8c8f",
+        _appendCounterToFileName(env, 'test 三.txt', 2):
+            "6162633261626364656620f09f8d89f09f8c8f",
         "test 三.txt": "6162633161626364656620f09f8d89f09f8c8f",
-        "test 三 (3).txt": "6162633361626364656620f09f8d89f09f8c8f"
+        _appendCounterToFileName(env, 'test 三.txt', 3):
+            "6162633361626364656620f09f8d89f09f8c8f"
       });
       testWriteFileStream('test 三.elephant', false,
           {"test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三.elephant', true, {
-        "test 三 (2).elephant": "6162633261626364656620f09f8d89f09f8c8f",
+        _appendCounterToFileName(env, 'test 三.elephant', 2):
+            "6162633261626364656620f09f8d89f09f8c8f",
         "test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f",
-        "test 三 (3).elephant": "6162633361626364656620f09f8d89f09f8c8f"
+        _appendCounterToFileName(env, 'test 三.elephant', 3):
+            "6162633361626364656620f09f8d89f09f8c8f"
       });
       testWriteFileStream('test 三', false,
           {"test 三": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三', true, {
         "test 三": "6162633161626364656620f09f8d89f09f8c8f",
-        "test 三 (2)": "6162633261626364656620f09f8d89f09f8c8f",
-        "test 三 (3)": "6162633361626364656620f09f8d89f09f8c8f"
+        _appendCounterToFileName(env, 'test 三', 2):
+            "6162633261626364656620f09f8d89f09f8c8f",
+        _appendCounterToFileName(env, 'test 三', 3):
+            "6162633361626364656620f09f8d89f09f8c8f"
       });
 
       ns.add('readFileStream', (h) async {
@@ -329,23 +349,29 @@ class _BFTestRouteState extends State<BFTestRoute> {
     testPasteToLocalFile('test 三.txt', false,
         {"test 三.txt": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三.txt', true, {
-      "test 三 (2).txt": "61626364656620f09f8d89f09f8c8f2032",
-      "test 三 (3).txt": "61626364656620f09f8d89f09f8c8f2033",
+      _appendCounterToFileName(env, 'test 三.txt', 2):
+          "61626364656620f09f8d89f09f8c8f2032",
+      _appendCounterToFileName(env, 'test 三.txt', 3):
+          "61626364656620f09f8d89f09f8c8f2033",
       "test 三.txt": "61626364656620f09f8d89f09f8c8f2031"
     });
     testPasteToLocalFile('test 三.elephant', false,
         {"test 三.elephant": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三.elephant', true, {
-      "test 三 (3).elephant": "61626364656620f09f8d89f09f8c8f2033",
+      _appendCounterToFileName(env, 'test 三.elephant', 2):
+          "61626364656620f09f8d89f09f8c8f2032",
       "test 三.elephant": "61626364656620f09f8d89f09f8c8f2031",
-      "test 三 (2).elephant": "61626364656620f09f8d89f09f8c8f2032"
+      _appendCounterToFileName(env, 'test 三.elephant', 3):
+          "61626364656620f09f8d89f09f8c8f2033"
     });
     testPasteToLocalFile(
         'test 三', false, {"test 三": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三', true, {
       "test 三": "61626364656620f09f8d89f09f8c8f2031",
-      "test 三 (2)": "61626364656620f09f8d89f09f8c8f2032",
-      "test 三 (3)": "61626364656620f09f8d89f09f8c8f2033"
+      _appendCounterToFileName(env, 'test 三', 2):
+          "61626364656620f09f8d89f09f8c8f2032",
+      _appendCounterToFileName(env, 'test 三', 3):
+          "61626364656620f09f8d89f09f8c8f2033"
     });
 
     ns.add('stat (folder)', (h) async {
@@ -528,7 +554,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             "a": "61626364656620f09f8d89f09f8c8f",
             "file2": "61626364656620f09f8d89f09f8c8f",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
-            "a $_dupFileSuffix": {
+            "a (2)": {
               "file1": "61626364656620f09f8d89f09f8c8f",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
@@ -565,7 +591,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             "file2": "61626364656620f09f8d89f09f8c8f",
             "a": {"z": "61626364656620f09f8d89f09f8c8f"},
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
-            "a $_dupFileSuffix": {
+            "a (2)": {
               "file1": "61626364656620f09f8d89f09f8c8f",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
@@ -622,7 +648,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
           "b": {
-            "a $_dupFileSuffix": "61626364656620f09f8d89f09f8c8f",
+            "a (2)": "61626364656620f09f8d89f09f8c8f",
             "file2": "61626364656620f09f8d89f09f8c8f",
             "a": {"z": "61626364656620f09f8d89f09f8c8f"},
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
@@ -653,7 +679,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         "move": {
           "b": {
             "a": "61626364656620f09f8d89f09f8c8f",
-            "a $_dupFileSuffix": "61626364656620f09f8d89f09f8c8f",
+            "a (2)": "61626364656620f09f8d89f09f8c8f",
             "file2": "61626364656620f09f8d89f09f8c8f",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
           }
