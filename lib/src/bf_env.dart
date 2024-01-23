@@ -34,7 +34,19 @@ abstract class BFEnv {
     return ensureDirCore(dir, name);
   }
 
-  Future<BFPath> rename(BFPath path, String newName, bool isDir);
+  Future<BFPath> renameCore(BFPath path, String newName, bool isDir);
+
+  Future<BFPath> rename(BFPath path, String newName, bool isDir) async {
+    final st = await stat(path);
+    if (st == null) {
+      throw Exception('Path does not exist: $path');
+    }
+    final newSt = await stat(path, relPath: [newName].lock);
+    if (newSt != null) {
+      throw Exception('Path already exists: ${newSt.path}');
+    }
+    return renameCore(path, newName, isDir);
+  }
 
   Future<BFPath> moveToDir(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir);

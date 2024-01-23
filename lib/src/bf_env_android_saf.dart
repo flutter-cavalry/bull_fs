@@ -151,7 +151,7 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
-  Future<BFPath> rename(BFPath path, String newName, bool isDir) async {
+  Future<BFPath> renameCore(BFPath path, String newName, bool isDir) async {
     final newDF = await saf.renameTo(path.scopedSafUri(), newName);
     if (newDF == null) {
       throw Exception('Renaming failed at $path');

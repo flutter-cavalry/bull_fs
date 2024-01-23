@@ -73,13 +73,9 @@ class BFEnvLocal extends BFEnv {
   }
 
   @override
-  Future<BFPath> rename(BFPath path, String newName, bool isDir) async {
+  Future<BFPath> renameCore(BFPath path, String newName, bool isDir) async {
     final filePath = path.localPath();
     final newPath = p.join(p.dirname(filePath), newName);
-    if (await stat(BFLocalPath(newPath)) != null) {
-      throw Exception('$newPath already exists');
-    }
-
     await _move(filePath, newPath, isDir);
     return BFLocalPath(newPath);
   }
