@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:mime/mime.dart';
 import 'package:saf_stream/saf_stream.dart';
 import 'package:mg_shared_storage/shared_storage.dart' as saf;
+import 'package:path/path.dart' as p;
+import 'package:tmp_path/tmp_path.dart';
 
 class BFEnvAndroidSAF extends BFEnv {
   final _plugin = SafStream();
@@ -79,7 +81,39 @@ class BFEnvAndroidSAF extends BFEnv {
       throw Exception('$destDir is not a directory');
     }
 
-    return _safMove(srcStat.path, srcParentStat.path, destDirStat.path);
+    // TODO: SAF move not working.
+    // Ideally, SAF move can handle conflicts automatically, but it doesn't work.
+    // return _safMove(srcStat.path, srcParentStat.path, destDirStat.path);
+
+    // Src and dest have different file names.
+    // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
+    // Then move the file to dest and rename it back to the desired name.
+    BFPath? srcTmpUri;
+    try {
+      final srcTmpName = tmpFileName() + (isDir ? '' : p.extension(src.last));
+      srcTmpUri = await rename(srcStat.path, srcTmpName, isDir);
+
+      final desiredName = src.last;
+      var destUri =
+          await _safMove(srcTmpUri, srcParentStat.path, destDirStat.path);
+
+      // Rename it back to desired name.
+      destUri = await rename(destUri, desiredName, isDir);
+      return destUri;
+    } catch (err) {
+      // Try reverting changes if exception happened.
+      if (srcTmpUri != null && await stat(srcTmpUri) != null) {
+        try {
+          await rename(srcTmpUri, src.last, isDir);
+        } catch (_) {
+          // Ignore exceptions during reverting.
+          if (kDebugMode) {
+            rethrow;
+          }
+        }
+      }
+      rethrow;
+    }
   }
 
   Future<BFEntity?> _locate(BFPath path, IList<String>? relPath) async {

@@ -13,11 +13,10 @@ import 'package:path/path.dart' as p;
 
 import '../../util/ke_bf_env.dart';
 
-const bool appMacOSScoped = true;
-const defFolderContentFile = 'content.bin';
-const defStringContents = 'abcdef 🍉🌏';
-final defStringContentsBytes = utf8.encode(defStringContents);
-final ignoredFiles = {'.DS_Store'};
+const bool _appMacOSScoped = true;
+const _defFolderContentFile = 'content.bin';
+const _defStringContents = 'abcdef 🍉🌏';
+final _defStringContentsBytes = utf8.encode(_defStringContents);
 
 extension BFEntityExtension on BFEntity {
   BFPathAndName toMini() {
@@ -57,18 +56,18 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _start() async {
-    final icloudVault = IcloudVault.create(macOSScoped: appMacOSScoped);
+    final icloudVault = IcloudVault.create(macOSScoped: _appMacOSScoped);
 
     final rootRaw = Platform.isWindows
         ? FcFilePickerXResult.fromStringOrUri(tmpPath(), null)
-        : (await FcFilePickerUtil.pickFolder(macOSScoped: appMacOSScoped));
+        : (await FcFilePickerUtil.pickFolder(macOSScoped: _appMacOSScoped));
     if (rootRaw == null) {
       return;
     }
     if (!mounted) {
       return;
     }
-    final root = rootRaw.toBFPath(macOSScoped: appMacOSScoped);
+    final root = rootRaw.toBFPath(macOSScoped: _appMacOSScoped);
     await icloudVault?.requestAccess(root);
     setState(() {
       _output = 'Running...';
@@ -78,7 +77,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     final localDir = tmpPath();
     await Directory(localDir).create(recursive: true);
     await _runEnvTests('Local', BFEnvLocal(), BFLocalPath(localDir));
-    final env = newUnsafeKeBFEnv(macOSScoped: appMacOSScoped);
+    final env = newUnsafeKeBFEnv(macOSScoped: _appMacOSScoped);
     if (env.envType() != BFEnvType.local) {
       // Native env.
       await _runEnvTests('Native', env, await env.ensureDir(root, 'native'));
@@ -225,7 +224,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           final r = h.data as BFPath;
           var outStream = await env.writeFileStream(r, fileName);
           await outStream.write(Uint8List.fromList(utf8.encode('abc1')));
-          await outStream.write(defStringContentsBytes);
+          await outStream.write(_defStringContentsBytes);
           await outStream.flush();
           await outStream.close();
 
@@ -236,13 +235,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
           h.equals(destUriStat!.isDir, false);
           h.equals(destUriStat.name, fileName);
           h.equals(utf8.decode(await env.internalReadFileBytes(destUri)),
-              'abc1$defStringContents');
+              'abc1$_defStringContents');
 
           if (multiple) {
             // Write to the same file again.
             outStream = await env.writeFileStream(r, fileName);
             await outStream.write(Uint8List.fromList(utf8.encode('abc2')));
-            await outStream.write(defStringContentsBytes);
+            await outStream.write(_defStringContentsBytes);
             await outStream.flush();
             await outStream.close();
 
@@ -254,12 +253,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
             h.equals(
                 destUriStat.name, _appendCounterToFileName(env, fileName, 2));
             h.equals(utf8.decode(await env.internalReadFileBytes(destUri)),
-                'abc2$defStringContents');
+                'abc2$_defStringContents');
 
             // Write to the same file again.
             outStream = await env.writeFileStream(r, fileName);
             await outStream.write(Uint8List.fromList(utf8.encode('abc3')));
-            await outStream.write(defStringContentsBytes);
+            await outStream.write(_defStringContentsBytes);
             await outStream.flush();
             await outStream.close();
 
@@ -270,13 +269,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
             h.equals(
                 destUriStat.name, _appendCounterToFileName(env, fileName, 3));
             h.equals(utf8.decode(await env.internalReadFileBytes(destUri)),
-                'abc3$defStringContents');
+                'abc3$_defStringContents');
 
             // Check previous files were not overwritten.
             h.equals(utf8.decode(await env.internalReadFileBytes(destUri1)),
-                'abc1$defStringContents');
+                'abc1$_defStringContents');
             h.equals(utf8.decode(await env.internalReadFileBytes(destUri2)),
-                'abc2$defStringContents');
+                'abc2$_defStringContents');
           }
         });
       }
@@ -291,7 +290,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       ns.add('readFileStream', (h) async {
         final r = h.data as BFPath;
         final tmpFile = tmpPath();
-        await File(tmpFile).writeAsString(defStringContents);
+        await File(tmpFile).writeAsString(_defStringContents);
         final fileUri = await env.pasteLocalFile(tmpFile, r, 'test.txt');
 
         final stream = await env.readFileStream(fileUri);
@@ -299,26 +298,26 @@ class _BFTestRouteState extends State<BFTestRoute> {
           prev.addAll(element);
           return prev;
         });
-        h.equals(utf8.decode(bytes), defStringContents);
+        h.equals(utf8.decode(bytes), _defStringContents);
       });
     }
 
     ns.add('copyToLocalFile', (h) async {
       final r = h.data as BFPath;
       final tmpFile = tmpPath();
-      await File(tmpFile).writeAsString(defStringContents);
+      await File(tmpFile).writeAsString(_defStringContents);
       final fileUri = await env.pasteLocalFile(tmpFile, r, 'test.txt');
 
       final tmpFile2 = tmpPath();
       await env.copyToLocalFile(fileUri, tmpFile2);
-      h.equals(await File(tmpFile2).readAsString(), defStringContents);
+      h.equals(await File(tmpFile2).readAsString(), _defStringContents);
     });
 
     void testPasteToLocalFile(String fileName, bool multiple) {
       ns.add('pasteLocalFile  $fileName multiple: $multiple', (h) async {
         final r = h.data as BFPath;
         final tmpFile = tmpPath();
-        await File(tmpFile).writeAsString('$defStringContents 1');
+        await File(tmpFile).writeAsString('$_defStringContents 1');
         // Add first test.txt
         var fileUri = await env.pasteLocalFile(tmpFile, r, fileName);
         final fileUri1 = fileUri;
@@ -328,11 +327,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
         h.equals(st!.isDir, false);
         h.equals(st.name, fileName);
         h.equals(utf8.decode(await env.internalReadFileBytes(fileUri)),
-            '$defStringContents 1');
+            '$_defStringContents 1');
 
         if (multiple) {
           // Add second test.txt
-          await File(tmpFile).writeAsString('$defStringContents 2');
+          await File(tmpFile).writeAsString('$_defStringContents 2');
           fileUri = await env.pasteLocalFile(tmpFile, r, fileName);
           final fileUri2 = fileUri;
 
@@ -341,10 +340,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
           h.equals(st!.isDir, false);
           h.equals(st.name, _appendCounterToFileName(env, fileName, 2));
           h.equals(utf8.decode(await env.internalReadFileBytes(fileUri)),
-              '$defStringContents 2');
+              '$_defStringContents 2');
 
           // Add third test.txt
-          await File(tmpFile).writeAsString('$defStringContents 3');
+          await File(tmpFile).writeAsString('$_defStringContents 3');
           fileUri = await env.pasteLocalFile(tmpFile, r, fileName);
 
           st = await env.stat(fileUri);
@@ -352,13 +351,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
           h.equals(st!.isDir, false);
           h.equals(st.name, _appendCounterToFileName(env, fileName, 3));
           h.equals(utf8.decode(await env.internalReadFileBytes(fileUri)),
-              '$defStringContents 3');
+              '$_defStringContents 3');
 
           // Test previous files were not overwritten.
           h.equals(utf8.decode(await env.internalReadFileBytes(fileUri1)),
-              '$defStringContents 1');
+              '$_defStringContents 1');
           h.equals(utf8.decode(await env.internalReadFileBytes(fileUri2)),
-              '$defStringContents 2');
+              '$_defStringContents 2');
         }
       });
     }
@@ -392,7 +391,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
       final fileUri = await env.slowWriteFileBytes(
-          newDir, 'test 仨.txt', defStringContentsBytes);
+          newDir, 'test 仨.txt', _defStringContentsBytes);
       final st = await env.stat(fileUri);
 
       h.notNull(st);
@@ -458,7 +457,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       try {
         final r = h.data as BFPath;
         final newDir = await env.ensureDirs(r, ['一 二'].lock);
-        await env.slowWriteFileBytes(r, 'test 仨.txt', defStringContentsBytes);
+        await env.slowWriteFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
 
         await env.rename(newDir, 'test 仨.txt', true);
         throw Error();
@@ -476,7 +475,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
       final fileUri = await env.slowWriteFileBytes(
-          newDir, 'test 仨.txt', defStringContentsBytes);
+          newDir, 'test 仨.txt', _defStringContentsBytes);
       final st = await env.stat(fileUri);
 
       h.notNull(st);
@@ -499,7 +498,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         await env.ensureDirs(r, ['test 仨 2.txt'].lock);
 
         final fileUri = await env.slowWriteFileBytes(
-            r, 'test 仨.txt', defStringContentsBytes);
+            r, 'test 仨.txt', _defStringContentsBytes);
 
         await env.rename(fileUri, 'test 仨 2.txt', false);
         throw Error();
@@ -731,13 +730,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
   Future<BFPath> _createFile(
       BFEnv e, BFPath dir, String fileName, String content) async {
-    return await e.slowWriteFileBytes(dir, fileName, defStringContentsBytes);
+    return await e.slowWriteFileBytes(dir, fileName, _defStringContentsBytes);
   }
 
   Future<BFPath> _createFolderWithDefFile(
       BFEnv e, BFPath root, String folderName) async {
     final dirPath = await e.ensureDir(root, folderName);
-    await _createFile(e, dirPath, defFolderContentFile, defStringContents);
+    await _createFile(e, dirPath, _defFolderContentFile, _defStringContents);
     return dirPath;
   }
 
