@@ -91,7 +91,8 @@ class BFEnvAndroidSAF extends BFEnv {
     BFPath? srcTmpUri;
     try {
       final srcTmpName = tmpFileName() + (isDir ? '' : p.extension(src.last));
-      srcTmpUri = await rename(srcStat.path, srcTmpName, isDir);
+      srcTmpUri =
+          await rename(srcParentStat.path, srcStat.path, srcTmpName, isDir);
 
       final unsafeDestName = src.last;
       final safeDestName = await ZBFInternal.nonSAFNextAvailableFileName(
@@ -100,13 +101,13 @@ class BFEnvAndroidSAF extends BFEnv {
           await _safMove(srcTmpUri, srcParentStat.path, destDirStat.path);
 
       // Rename it back to desired name.
-      destUri = await rename(destUri, safeDestName, isDir);
+      destUri = await rename(destDirStat.path, destUri, safeDestName, isDir);
       return destUri;
     } catch (err) {
       // Try reverting changes if exception happened.
       if (srcTmpUri != null && await stat(srcTmpUri) != null) {
         try {
-          await rename(srcTmpUri, src.last, isDir);
+          await rename(srcParentStat.path, srcTmpUri, src.last, isDir);
         } catch (_) {
           // Ignore exceptions during reverting.
           if (kDebugMode) {
@@ -151,10 +152,11 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
-  Future<BFPath> renameCore(BFPath path, String newName, bool isDir) async {
-    final newDF = await saf.renameTo(path.scopedSafUri(), newName);
+  Future<BFPath> renameCore(
+      BFPath parent, BFPath item, String newName, bool isDir) async {
+    final newDF = await saf.renameTo(item.scopedSafUri(), newName);
     if (newDF == null) {
-      throw Exception('Renaming failed at $path');
+      throw Exception('rename failed at $item');
     }
     return BFScopedPath(newDF.uri.toString());
   }

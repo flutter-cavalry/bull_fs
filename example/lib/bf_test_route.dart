@@ -442,7 +442,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('rename (folder)', (h) async {
       final r = h.data as BFPath;
       final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
-      await env.rename(newDir, 'test 仨 2.txt', true);
+      await env.rename(
+          await _getPath(env, r, 'a'), newDir, 'test 仨 2.txt', true);
 
       h.mapEquals(await env.directoryToMap(r), {
         "a": {"test 仨 2.txt": {}}
@@ -455,7 +456,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         final newDir = await env.ensureDirs(r, ['一 二'].lock);
         await env.slowWriteFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
 
-        await env.rename(newDir, 'test 仨.txt', true);
+        await env.rename(r, newDir, 'test 仨.txt', true);
         throw Error();
       } on Exception catch (_) {
         h.mapEquals(await env.directoryToMap(r),
@@ -468,7 +469,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
       final fileUri = await env.slowWriteFileBytes(
           newDir, 'test 仨.txt', _defStringContentsBytes);
-      await env.rename(fileUri, 'test 仨 2.txt', false);
+      await env.rename(newDir, fileUri, 'test 仨 2.txt', false);
 
       h.mapEquals(await env.directoryToMap(r), {
         "a": {
@@ -485,7 +486,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         final fileUri = await env.slowWriteFileBytes(
             r, 'test 仨.txt', _defStringContentsBytes);
 
-        await env.rename(fileUri, 'test 仨 2.txt', false);
+        await env.rename(r, fileUri, 'test 仨 2.txt', false);
         throw Error();
       } on Exception catch (_) {
         h.mapEquals(await env.directoryToMap(r), {
