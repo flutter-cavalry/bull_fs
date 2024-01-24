@@ -14,7 +14,7 @@ class NTRHandle {
     }
   }
 
-  void equals(dynamic actual, dynamic expected) {
+  void equals<T>(T actual, T expected) {
     if (expected != actual) {
       throw Exception('Expected: $expected, Actual: $actual');
     }
