@@ -1,7 +1,7 @@
 import 'package:darwin_url/darwin_url.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'bf_env.dart';
-import 'internal.dart';
+import 'zbf_internal.dart';
 import 'types.dart';
 import 'package:ns_file_coordinator_util/ns_file_coordinator_util_platform_interface.dart';
 import 'package:ns_file_coordinator_util/ns_file_coordinator_util.dart';
