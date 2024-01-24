@@ -66,12 +66,13 @@ class BFEnvAppleCloud extends BFEnv {
   }
 
   @override
-  Future<BFPath> renameCore(
-      BFPath parent, BFPath item, String newName, bool isDir) async {
-    final dirUrl = await _darwinUrlPlugin.dirUrl(item.scopedID());
+  Future<BFPath> renameInternal(BFPath root, IList<String> src, String newName,
+      bool isDir, BFEntity srcStat) async {
+    final path = srcStat.path;
+    final dirUrl = await _darwinUrlPlugin.dirUrl(path.scopedID());
     final destUrl =
         await _darwinUrlPlugin.append(dirUrl, [newName], isDir: isDir);
-    await _icloudPlugin.move(item.scopedID(), destUrl);
+    await _icloudPlugin.move(path.scopedID(), destUrl);
     return BFScopedPath(destUrl);
   }
 

@@ -1,6 +1,7 @@
+import 'package:bull_fs/bull_fs.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:flutter/foundation.dart';
 import 'package:tmp_path/tmp_path.dart';
-import 'types.dart';
 
 enum BFEnvType { local, saf, icloud }
 
@@ -35,20 +36,21 @@ abstract class BFEnv {
     return ensureDirCore(dir, name);
   }
 
-  Future<BFPath> renameCore(
-      BFPath parent, BFPath item, String newName, bool isDir);
+  @protected
+  Future<BFPath> renameInternal(BFPath root, IList<String> src, String newName,
+      bool isDir, BFEntity srcStat);
 
   Future<BFPath> rename(
-      BFPath parent, BFPath item, String newName, bool isDir) async {
-    final st = await stat(item);
+      BFPath root, IList<String> src, String newName, bool isDir) async {
+    final st = await stat(root, relPath: src);
     if (st == null) {
-      throw Exception('Path does not exist: $item');
+      throw Exception('Path does not exist: ${src.join('/')}');
     }
-    final newSt = await stat(parent, relPath: [newName].lock);
+    final newSt = await stat(root, relPath: [...src.parentDir(), newName].lock);
     if (newSt != null) {
       throw Exception('Path already exists: ${newSt.path}');
     }
-    return renameCore(parent, item, newName, isDir);
+    return renameInternal(root, src, newName, isDir, st);
   }
 
   Future<BFPath> moveToDir(
@@ -57,8 +59,11 @@ abstract class BFEnv {
   Future<BFPath> moveToDirOverwrite(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir) async {
     final fileName = src.last;
-    final destStat = (await stat(root, relPath: [...destDir, fileName].lock));
-    if (destStat == null) {
+    final destItemStat =
+        (await stat(root, relPath: [...destDir, fileName].lock));
+
+    // Call `moveToDir` if the destination item does not exist.
+    if (destItemStat == null) {
       return moveToDir(root, src, destDir, isDir);
     }
 
@@ -69,7 +74,7 @@ abstract class BFEnv {
     final tmpDestName = tmpFileName();
     // Rename the destination item to a temporary name.
     final tmpDestUri = await rename(
-        destDirStat.path, destStat.path, tmpDestName, destStat.isDir);
+        root, [...destDir, fileName].lock, tmpDestName, destItemStat.isDir);
     // Move the source item to the destination.
     final movedPath = await moveToDir(root, src, destDir, isDir);
     // Remove the tmp item.
