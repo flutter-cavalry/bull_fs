@@ -46,8 +46,7 @@ extension BFEnvExtension on BFEnv {
     if (relFilePath.length == 1) {
       return dir;
     }
-    return ensureDirsForFile(
-        dir, relFilePath.take(relFilePath.length - 1).toIList());
+    return ensureDirs(dir, relFilePath.take(relFilePath.length - 1).toIList());
   }
 
   Future<void> _listRecursiveFat(BFPath path, IList<String> dirRelPath,

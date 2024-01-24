@@ -212,6 +212,37 @@ class _BFTestRouteState extends State<BFTestRoute> {
       }
     });
 
+    ns.add('ensureDirsForFile', (h) async {
+      final r = h.data as BFPath;
+      final newDir =
+          await env.ensureDirsForFile(r, ['space 一 二 三', '22', 'a.txt'].lock);
+      // Test return value.
+      var st = await env.stat(newDir);
+      h.notNull(st);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, '22');
+
+      h.mapEquals(await env.directoryToMap(r), {
+        "space 一 二 三": {"22": {}}
+      });
+    });
+
+    ns.add('ensureDirsForFile (just return)', (h) async {
+      final r = h.data as BFPath;
+      final dir1 = await env.ensureDirs(r, ['space 一 二 三', '22'].lock);
+      final dir2 = await env.ensureDirsForFile(dir1, ['a.txt'].lock);
+
+      // Test return value.
+      var st = await env.stat(dir2);
+      h.notNull(st);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, '22');
+
+      h.mapEquals(await env.directoryToMap(r), {
+        "space 一 二 三": {"22": {}}
+      });
+    });
+
     if (env.hasStreamSupport()) {
       void testWriteFileStream(
           String fileName, bool multiple, Map<String, dynamic> fs) {
