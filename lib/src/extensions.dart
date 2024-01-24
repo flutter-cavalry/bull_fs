@@ -136,7 +136,8 @@ extension BFEnvExtension on BFEnv {
       return;
     }
     if (ent.isDir) {
-      map[name] = await directoryToMap(ent.path, filter: filter);
+      map[name] = await directoryToMap(ent.path,
+          filter: filter, hideFileContents: hideFileContents);
     } else {
       if (hideFileContents) {
         map[name] = null;
