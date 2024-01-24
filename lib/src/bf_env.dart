@@ -1,4 +1,5 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+import 'package:tmp_path/tmp_path.dart';
 import 'types.dart';
 
 enum BFEnvType { local, saf, icloud }
@@ -52,6 +53,29 @@ abstract class BFEnv {
 
   Future<BFPath> moveToDir(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir);
+
+  Future<BFPath> moveToDirOverwrite(
+      BFPath root, IList<String> src, IList<String> destDir, bool isDir) async {
+    final fileName = src.last;
+    final destStat = (await stat(root, relPath: [...destDir, fileName].lock));
+    if (destStat == null) {
+      return moveToDir(root, src, destDir, isDir);
+    }
+
+    final destDirStat = await stat(root, relPath: destDir);
+    if (destDirStat == null) {
+      throw Exception('Destination directory does not exist: $destDir');
+    }
+    final tmpDestName = tmpFileName();
+    // Rename the destination item to a temporary name.
+    final tmpDestUri = await rename(
+        destDirStat.path, destStat.path, tmpDestName, destStat.isDir);
+    // Move the source item to the destination.
+    final movedPath = await moveToDir(root, src, destDir, isDir);
+    // Remove the tmp item.
+    await delete(tmpDestUri, isDir);
+    return movedPath;
+  }
 
   bool hasStreamSupport();
 

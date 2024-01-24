@@ -517,8 +517,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final destDir = await _getPath(e, r, 'move/b');
 
       // Create some files and dirs for each dir.
-      await _createFile(e, srcDir, 'file1', 'FILE_1');
-      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFile(e, srcDir, 'file1', [1]);
+      await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, srcDir, 'a_sub');
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
@@ -530,10 +530,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
           "b": {
-            "file2": "61626364656620f09f8d89f09f8c8f",
+            "file2": "02",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
             "a": {
-              "file1": "61626364656620f09f8d89f09f8c8f",
+              "file1": "01",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
           }
@@ -552,13 +552,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final destDir = await _getPath(e, r, 'move/b');
 
       // Create some files and dirs for each dir.
-      await _createFile(e, srcDir, 'file1', 'FILE_1');
-      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFile(e, srcDir, 'file1', [1]);
+      await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, srcDir, 'a_sub');
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
       // Create a conflict.
-      await _createFile(e, destDir, 'a', 'zzz');
+      await _createFile(e, destDir, 'a', [1, 2, 3]);
 
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), true);
@@ -568,11 +568,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
           "b": {
-            "a": "61626364656620f09f8d89f09f8c8f",
-            "file2": "61626364656620f09f8d89f09f8c8f",
+            "a": "010203",
+            "file2": "02",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
             "a (2)": {
-              "file1": "61626364656620f09f8d89f09f8c8f",
+              "file1": "01",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
           }
@@ -591,14 +591,14 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final destDir = await _getPath(e, r, 'move/b');
 
       // Create some files and dirs for each dir.
-      await _createFile(e, srcDir, 'file1', 'FILE_1');
-      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFile(e, srcDir, 'file1', [1]);
+      await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, srcDir, 'a_sub');
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
       // Create a conflict.
       await e.ensureDirs(r, ['move', 'b', 'a'].lock);
-      await _createFile(e, await _getPath(e, r, 'move/b/a'), 'z', '!!');
+      await _createFile(e, await _getPath(e, r, 'move/b/a'), 'z', [4, 5]);
 
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), true);
@@ -608,11 +608,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
           "b": {
-            "file2": "61626364656620f09f8d89f09f8c8f",
-            "a": {"z": "61626364656620f09f8d89f09f8c8f"},
+            "file2": "02",
+            "a": {"z": "0405"},
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
             "a (2)": {
-              "file1": "61626364656620f09f8d89f09f8c8f",
+              "file1": "01",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
           }
@@ -626,11 +626,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       // Move move/a to move/b
       await e.ensureDirs(r, ['move', 'b'].lock);
-      await _createFile(e, await _getPath(e, r, 'move'), 'a', 'A');
+      await _createFile(e, await _getPath(e, r, 'move'), 'a', [100]);
       final destDir = await _getPath(e, r, 'move/b');
 
       // Create some files and dirs for each dir.
-      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
       final newPath = await e.moveToDir(
@@ -641,8 +641,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
           "b": {
-            "file2": "61626364656620f09f8d89f09f8c8f",
-            "a": "61626364656620f09f8d89f09f8c8f",
+            "a": "64",
+            "file2": "02",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
           }
         }
@@ -655,16 +655,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       // Move move/a to move/b
       await e.ensureDirs(r, ['move', 'b'].lock);
-      await _createFile(e, await _getPath(e, r, 'move'), 'a', 'A');
+      await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
       // Create some files and dirs for each dir.
-      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
       // Create a conflict.
       await e.ensureDirs(r, ['move', 'b', 'a'].lock);
-      await _createFile(e, await _getPath(e, r, 'move/b/a'), 'z', '!!');
+      await _createFile(e, await _getPath(e, r, 'move/b/a'), 'z', [4, 5]);
 
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false);
@@ -674,9 +674,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
           "b": {
-            "a (2)": "61626364656620f09f8d89f09f8c8f",
-            "file2": "61626364656620f09f8d89f09f8c8f",
-            "a": {"z": "61626364656620f09f8d89f09f8c8f"},
+            "file2": "02",
+            "a (2)": "41",
+            "a": {"z": "0405"},
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
           }
         }
@@ -689,15 +689,15 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       // Move move/a to move/b
       await e.ensureDirs(r, ['move', 'b'].lock);
-      await _createFile(e, await _getPath(e, r, 'move'), 'a', 'A');
+      await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
       // Create some files and dirs for each dir.
-      await _createFile(e, destDir, 'file2', 'FILE_2');
+      await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
       // Create a conflict.
-      await _createFile(e, destDir, 'a', 'zzz');
+      await _createFile(e, destDir, 'a', [4, 5, 6]);
 
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false);
@@ -707,9 +707,70 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
           "b": {
-            "a": "61626364656620f09f8d89f09f8c8f",
-            "a (2)": "61626364656620f09f8d89f09f8c8f",
-            "file2": "61626364656620f09f8d89f09f8c8f",
+            "a": "040506",
+            "a (2)": "41",
+            "file2": "02",
+            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
+          }
+        }
+      });
+    });
+
+    ns.add('Move and replace file (no conflict)', (h) async {
+      final e = env;
+      final r = h.data as BFPath;
+
+      // Move move/a to move/b
+      await e.ensureDirs(r, ['move', 'b'].lock);
+      await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
+      final destDir = await _getPath(e, r, 'move/b');
+
+      // Create some files and dirs for each dir.
+      await _createFile(e, destDir, 'file2', [2]);
+      await _createFolderWithDefFile(e, destDir, 'b_sub');
+
+      final newPath = await e.moveToDirOverwrite(
+          r, _genRelPath('move/a'), _genRelPath('move/b'), false);
+      final st = await e.stat(newPath);
+      h.equals(st!.name, 'a');
+
+      h.mapEquals(await e.directoryToMap(r), {
+        "move": {
+          "b": {
+            "a": "41",
+            "file2": "02",
+            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
+          }
+        }
+      });
+    });
+
+    ns.add('Move and replace file (with conflict)', (h) async {
+      final e = env;
+      final r = h.data as BFPath;
+
+      // Move move/a to move/b
+      await e.ensureDirs(r, ['move', 'b'].lock);
+      await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
+      final destDir = await _getPath(e, r, 'move/b');
+
+      // Create some files and dirs for each dir.
+      await _createFile(e, destDir, 'file2', [2]);
+      await _createFolderWithDefFile(e, destDir, 'b_sub');
+
+      // Create a conflict.
+      await _createFile(e, destDir, 'a', [1, 2, 3]);
+
+      final newPath = await e.moveToDirOverwrite(
+          r, _genRelPath('move/a'), _genRelPath('move/b'), false);
+      final st = await e.stat(newPath);
+      h.equals(st!.name, 'a');
+
+      h.mapEquals(await e.directoryToMap(r), {
+        "move": {
+          "b": {
+            "a": "41",
+            "file2": "02",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
           }
         }
@@ -741,14 +802,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<BFPath> _createFile(
-      BFEnv e, BFPath dir, String fileName, String content) async {
-    return await e.slowWriteFileBytes(dir, fileName, _defStringContentsBytes);
+      BFEnv e, BFPath dir, String fileName, List<int> content) async {
+    return await e.slowWriteFileBytes(
+        dir, fileName, Uint8List.fromList(content));
   }
 
   Future<BFPath> _createFolderWithDefFile(
       BFEnv e, BFPath root, String folderName) async {
     final dirPath = await e.ensureDir(root, folderName);
-    await _createFile(e, dirPath, _defFolderContentFile, _defStringContents);
+    await _createFile(
+        e, dirPath, _defFolderContentFile, _defStringContentsBytes);
     return dirPath;
   }
 
