@@ -1012,6 +1012,55 @@ class _BFTestRouteState extends State<BFTestRoute> {
       });
     });
 
+    ns.add('nextAvailableFile', (h) async {
+      final r = h.data as BFPath;
+      await _createFile(env, r, 'a 二', [1]);
+      var name =
+          await ZBFInternal.nonSAFNextAvailableFileName(env, r, 'a 二', false);
+      h.equals(name, 'a 二 (2)');
+
+      name = await ZBFInternal.nonSAFNextAvailableFileName(env, r, 'b', false);
+      h.equals(name, 'b');
+      await _createFile(env, r, 'b', [2]);
+
+      name = await ZBFInternal.nonSAFNextAvailableFileName(env, r, 'b', false);
+      h.equals(name, 'b (2)');
+    });
+
+    ns.add('nextAvailableFile (extension)', (h) async {
+      final r = h.data as BFPath;
+      await _createFile(env, r, 'a 二.zz', [1]);
+      var name = await ZBFInternal.nonSAFNextAvailableFileName(
+          env, r, 'a 二.zz', false);
+      h.equals(name, 'a 二 (2).zz');
+
+      name =
+          await ZBFInternal.nonSAFNextAvailableFileName(env, r, 'b.zz', false);
+      h.equals(name, 'b.zz');
+      await _createFile(env, r, 'b.zz', [2]);
+
+      name =
+          await ZBFInternal.nonSAFNextAvailableFileName(env, r, 'b.zz', false);
+      h.equals(name, 'b (2).zz');
+    });
+
+    ns.add('nextAvailableFile (multiple extensions)', (h) async {
+      final r = h.data as BFPath;
+      await _createFile(env, r, 'a 二.zz.abc', [1]);
+      var name = await ZBFInternal.nonSAFNextAvailableFileName(
+          env, r, 'a 二.zz.abc', false);
+      h.equals(name, 'a 二 (2).zz.abc');
+
+      name = await ZBFInternal.nonSAFNextAvailableFileName(
+          env, r, 'b.zz.abc', false);
+      h.equals(name, 'b.zz.abc');
+      await _createFile(env, r, 'b.zz.abc', [2]);
+
+      name = await ZBFInternal.nonSAFNextAvailableFileName(
+          env, r, 'b.zz.abc', false);
+      h.equals(name, 'b (2).zz.abc');
+    });
+
     await ns.run();
   }
 
