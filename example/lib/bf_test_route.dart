@@ -91,7 +91,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     await icloudVault?.release();
   }
 
-  String _appendCounterToFileName(BFEnv env, String fileName, int c) {
+  String _platformDupSuffix(BFEnv env, String fileName, int c) {
     final ext = p.extension(fileName);
     final name = p.basenameWithoutExtension(fileName);
     // Android starts with 1 instead of 2.
@@ -273,8 +273,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             destUriStat = await env.stat(destUri);
             h.notNull(destUriStat);
             h.equals(destUriStat!.isDir, false);
-            h.equals(
-                destUriStat.name, _appendCounterToFileName(env, fileName, 2));
+            h.equals(destUriStat.name, _platformDupSuffix(env, fileName, 2));
 
             // Write to the same file again.
             outStream = await env.writeFileStream(r, fileName);
@@ -297,28 +296,28 @@ class _BFTestRouteState extends State<BFTestRoute> {
       testWriteFileStream('test 三.txt', false,
           {"test 三.txt": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三.txt', true, {
-        _appendCounterToFileName(env, 'test 三.txt', 2):
+        _platformDupSuffix(env, 'test 三.txt', 2):
             "6162633261626364656620f09f8d89f09f8c8f",
         "test 三.txt": "6162633161626364656620f09f8d89f09f8c8f",
-        _appendCounterToFileName(env, 'test 三.txt', 3):
+        _platformDupSuffix(env, 'test 三.txt', 3):
             "6162633361626364656620f09f8d89f09f8c8f"
       });
       testWriteFileStream('test 三.elephant', false,
           {"test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三.elephant', true, {
-        _appendCounterToFileName(env, 'test 三.elephant', 2):
+        _platformDupSuffix(env, 'test 三.elephant', 2):
             "6162633261626364656620f09f8d89f09f8c8f",
         "test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f",
-        _appendCounterToFileName(env, 'test 三.elephant', 3):
+        _platformDupSuffix(env, 'test 三.elephant', 3):
             "6162633361626364656620f09f8d89f09f8c8f"
       });
       testWriteFileStream('test 三', false,
           {"test 三": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三', true, {
         "test 三": "6162633161626364656620f09f8d89f09f8c8f",
-        _appendCounterToFileName(env, 'test 三', 2):
+        _platformDupSuffix(env, 'test 三', 2):
             "6162633261626364656620f09f8d89f09f8c8f",
-        _appendCounterToFileName(env, 'test 三', 3):
+        _platformDupSuffix(env, 'test 三', 3):
             "6162633361626364656620f09f8d89f09f8c8f"
       });
 
@@ -370,13 +369,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await File(tmpFile).writeAsString('$_defStringContents 2');
           path = await env.pasteLocalFile(tmpFile, r, fileName);
           st = await env.stat(path);
-          h.equals(st!.name, _appendCounterToFileName(env, fileName, 2));
+          h.equals(st!.name, _platformDupSuffix(env, fileName, 2));
 
           // Add third test.txt
           await File(tmpFile).writeAsString('$_defStringContents 3');
           path = await env.pasteLocalFile(tmpFile, r, fileName);
           st = await env.stat(path);
-          h.equals(st!.name, _appendCounterToFileName(env, fileName, 3));
+          h.equals(st!.name, _platformDupSuffix(env, fileName, 3));
         }
 
         h.mapEquals(await env.directoryToMap(r), fs);
@@ -386,29 +385,28 @@ class _BFTestRouteState extends State<BFTestRoute> {
     testPasteToLocalFile('test 三.txt', false,
         {"test 三.txt": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三.txt', true, {
-      _appendCounterToFileName(env, 'test 三.txt', 2):
+      _platformDupSuffix(env, 'test 三.txt', 2):
           "61626364656620f09f8d89f09f8c8f2032",
-      _appendCounterToFileName(env, 'test 三.txt', 3):
+      _platformDupSuffix(env, 'test 三.txt', 3):
           "61626364656620f09f8d89f09f8c8f2033",
       "test 三.txt": "61626364656620f09f8d89f09f8c8f2031"
     });
     testPasteToLocalFile('test 三.elephant', false,
         {"test 三.elephant": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三.elephant', true, {
-      _appendCounterToFileName(env, 'test 三.elephant', 2):
+      _platformDupSuffix(env, 'test 三.elephant', 2):
           "61626364656620f09f8d89f09f8c8f2032",
       "test 三.elephant": "61626364656620f09f8d89f09f8c8f2031",
-      _appendCounterToFileName(env, 'test 三.elephant', 3):
+      _platformDupSuffix(env, 'test 三.elephant', 3):
           "61626364656620f09f8d89f09f8c8f2033"
     });
     testPasteToLocalFile(
         'test 三', false, {"test 三": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三', true, {
       "test 三": "61626364656620f09f8d89f09f8c8f2031",
-      _appendCounterToFileName(env, 'test 三', 2):
+      _platformDupSuffix(env, 'test 三', 2):
           "61626364656620f09f8d89f09f8c8f2032",
-      _appendCounterToFileName(env, 'test 三', 3):
-          "61626364656620f09f8d89f09f8c8f2033"
+      _platformDupSuffix(env, 'test 三', 3): "61626364656620f09f8d89f09f8c8f2033"
     });
 
     ns.add('stat (folder)', (h) async {
