@@ -56,14 +56,20 @@ abstract class BFEnv {
   Future<BFPath> moveToDir(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir);
 
-  Future<BFPath> moveToDirOverwrite(
-      BFPath root, IList<String> src, IList<String> destDir, bool isDir) async {
-    final fileName = src.last;
-    final destItemStat =
-        (await stat(root, relPath: [...destDir, fileName].lock));
+  Future<BFPath> forceMoveToDir(
+      BFPath root, IList<String> src, IList<String> destDir, bool isDir,
+      {String? newName}) async {
+    // Normalize `newName`.
+    if (newName != null && newName == src.last) {
+      newName = null;
+    }
 
-    // Call `moveToDir` if the destination item does not exist.
-    if (destItemStat == null) {
+    final fileName = newName ?? src.last;
+    final destItemRelPath = [...destDir, fileName].lock;
+    final destItemStat = (await stat(root, relPath: destItemRelPath));
+
+    // Call `moveToDir` if the destination item does not exist and no new name assigned.
+    if (destItemStat == null && newName == null) {
       return moveToDir(root, src, destDir, isDir);
     }
 
@@ -72,14 +78,30 @@ abstract class BFEnv {
       throw Exception('Destination directory does not exist: $destDir');
     }
     final tmpDestName = tmpFileName();
-    // Rename the destination item to a temporary name.
-    final tmpDestUri = await rename(
-        root, [...destDir, fileName].lock, tmpDestName, destItemStat.isDir);
+
+    // Rename the destination item to a temporary name if it exists.
+    BFPath? tmpDestUri;
+    if (destItemStat != null) {
+      tmpDestUri =
+          await rename(root, destItemRelPath, tmpDestName, destItemStat.isDir);
+    }
     // Move the source item to the destination.
-    final movedPath = await moveToDir(root, src, destDir, isDir);
-    // Remove the tmp item.
-    await delete(tmpDestUri, isDir);
-    return movedPath;
+    var newPath = await moveToDir(root, src, destDir, isDir);
+    // Rename the moved item to desired name if needed.
+    final newStat = await stat(newPath);
+    if (newStat == null) {
+      throw Exception('Moved item does not exist: $newPath');
+    }
+    if (newStat.name != fileName) {
+      newPath =
+          await rename(root, [...destDir, newStat.name].lock, fileName, isDir);
+    }
+
+    // Remove the overwritten destination item if needed.
+    if (tmpDestUri != null) {
+      await delete(tmpDestUri, destItemStat!.isDir);
+    }
+    return newPath;
   }
 
   bool hasStreamSupport();
