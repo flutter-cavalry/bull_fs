@@ -78,12 +78,17 @@ class BFEnvAppleCloud extends BFEnv {
 
   @override
   Future<BFPath> moveToDir(
-      BFPath root, IList<String> src, IList<String> destDir, bool isDir) async {
+      BFPath root, IList<String> src, IList<String> destDir, bool isDir,
+      {String Function(String fileName, int attempt)? nameUpdater}) async {
     final srcStat = await ZBFInternal.mustGetStat(this, root, src);
     final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
 
     final destItemFileName = await ZBFInternal.nextAvailableFileName(
-        this, destDirStat.path, srcStat.name, isDir);
+        this,
+        destDirStat.path,
+        srcStat.name,
+        isDir,
+        nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destItemPath =
         await destDirStat.path.iosJoinRelPath([destItemFileName].lock, isDir);
     await _icloudPlugin.move(srcStat.path.scopedID(), destItemPath.scopedID());
@@ -101,15 +106,16 @@ class BFEnvAppleCloud extends BFEnv {
   }
 
   @override
-  Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName) async {
+  Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
+      {String Function(String fileName, int attempt)? nameUpdater}) async {
     throw Exception('Not supported');
   }
 
   @override
-  Future<BFPath> pasteLocalFile(
-      String localSrc, BFPath dir, String unsafeName) async {
-    final safeName =
-        await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false);
+  Future<BFPath> pasteLocalFile(String localSrc, BFPath dir, String unsafeName,
+      {String Function(String fileName, int attempt)? nameUpdater}) async {
+    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
+        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);
     await _icloudPlugin.copy(srcUrl, destPath.scopedID());

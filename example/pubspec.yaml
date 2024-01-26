@@ -43,7 +43,6 @@ dependencies:
   fc_file_picker_util: ^0.0.2
   fc_material_alert: ^0.0.2
   collection: ^1.18.0
-  fc_path_util: ^1.0.2
 
 dev_dependencies:
   flutter_test:

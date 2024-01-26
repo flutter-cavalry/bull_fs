@@ -12,12 +12,10 @@ dependencies:
   collection: ^1.18.0
   darwin_url: ^0.3.0
   fast_immutable_collections: ^10.0.0
-  fc_path_util: ^1.0.2
   flutter:
     sdk: flutter
   io: ^1.0.4
   mime: ^1.0.4
-  next_available_name: ^1.1.0
   ns_file_coordinator_util: ^0.13.0
   path: ^1.8.3
   saf_stream: ^0.4.0

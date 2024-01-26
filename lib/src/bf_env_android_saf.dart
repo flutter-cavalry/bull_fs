@@ -72,7 +72,8 @@ class BFEnvAndroidSAF extends BFEnv {
 
   @override
   Future<BFPath> moveToDir(
-      BFPath root, IList<String> src, IList<String> destDir, bool isDir) async {
+      BFPath root, IList<String> src, IList<String> destDir, bool isDir,
+      {String Function(String fileName, int attempt)? nameUpdater}) async {
     final srcParentStat =
         await ZBFInternal.mustGetStat(this, root, src.parentDir());
     final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
@@ -93,7 +94,11 @@ class BFEnvAndroidSAF extends BFEnv {
 
       final unsafeDestName = src.last;
       final safeDestName = await ZBFInternal.nextAvailableFileName(
-          this, destDirStat.path, unsafeDestName, isDir);
+          this,
+          destDirStat.path,
+          unsafeDestName,
+          isDir,
+          nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
       var destUri =
           await _safMove(srcTmpUri, srcParentStat.path, destDirStat.path);
 
@@ -172,11 +177,12 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
-  Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName) async {
+  Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
+      {String Function(String fileName, int attempt)? nameUpdater}) async {
     // Android SAF can handle file name conflicts automatically. But has naming issues when dealing with multiple extensions.
     // Example: `a.abc.xyz` would be renamed to `a.abc (1).xyz` instead of `a (1).abc.xyz`.
-    final safeName =
-        await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false);
+    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
+        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _plugin.startWriteStream(
         dir.scopedSafUri(), safeName, _getMime(safeName));
     return BFSafOutStream(
@@ -188,12 +194,12 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
-  Future<BFPath> pasteLocalFile(
-      String localSrc, BFPath dir, String unsafeName) async {
+  Future<BFPath> pasteLocalFile(String localSrc, BFPath dir, String unsafeName,
+      {String Function(String fileName, int attempt)? nameUpdater}) async {
     // Android SAF can handle file name conflicts automatically. But has naming issues when dealing with multiple extensions.
     // Example: `a.abc.xyz` would be renamed to `a.abc (1).xyz` instead of `a (1).abc.xyz`.
-    final safeName =
-        await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false);
+    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
+        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
 
     final res = await _plugin.writeFileFromLocal(
         localSrc, dir.scopedSafUri(), safeName, _getMime(safeName));

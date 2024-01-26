@@ -128,14 +128,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.3"
-  fc_path_util:
-    dependency: "direct main"
-    description:
-      name: fc_path_util
-      sha256: fea5fd80ff98efcb7045ff62489d2151379f1cad7b4a20e5c279b3cf0ca373ea
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0"
   ffi:
     dependency: transitive
     description:
@@ -343,14 +335,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
-  next_available_name:
-    dependency: transitive
-    description:
-      name: next_available_name
-      sha256: a7dde3e4e45f8bc8532a190d801631db6ac95e305c414ce5c65719fc058356b9
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0"
   ns_file_coordinator_util:
     dependency: transitive
     description:

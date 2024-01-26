@@ -9,7 +9,7 @@ import 'package:bull_fs/bull_fs.dart';
 import 'package:fc_material_alert/fc_material_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:tmp_path/tmp_path.dart';
-import 'package:fc_path_util/fc_path_util.dart';
+import 'package:path/path.dart' as p;
 
 import '../../util/ke_bf_env.dart';
 
@@ -103,8 +103,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   String _platformDupSuffix(BFEnv env, String fileName, int c) {
-    final res = FCPathUtil.basenameAndExtensions(fileName);
-    return '${res.name} ($c)${res.extensions}';
+    final ext = p.extension(fileName);
+    final name = p.basenameWithoutExtension(fileName);
+    return '${name} (${c - 1})${ext}';
   }
 
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {
@@ -625,7 +626,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), true);
       final st = await e.stat(newPath);
-      h.equals(st!.name, 'a (2)');
+      h.equals(st!.name, 'a (1)');
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -633,7 +634,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             "a": "010203",
             "file2": "02",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
-            "a (2)": {
+            "a (1)": {
               "file1": "01",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
@@ -665,7 +666,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), true);
       final st = await e.stat(newPath);
-      h.equals(st!.name, 'a (2)');
+      h.equals(st!.name, 'a (1)');
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -673,7 +674,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             "file2": "02",
             "a": {"z": "0405"},
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
-            "a (2)": {
+            "a (1)": {
               "file1": "01",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
@@ -731,13 +732,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false);
       final st = await e.stat(newPath);
-      h.equals(st!.name, 'a (2)');
+      h.equals(st!.name, 'a (1)');
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
           "b": {
             "file2": "02",
-            "a (2)": "41",
+            "a (1)": "41",
             "a": {"z": "0405"},
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
           }
@@ -764,13 +765,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false);
       final st = await e.stat(newPath);
-      h.equals(st!.name, 'a (2)');
+      h.equals(st!.name, 'a (1)');
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
           "b": {
             "a": "040506",
-            "a (2)": "41",
+            "a (1)": "41",
             "file2": "02",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
           }
@@ -1045,45 +1046,54 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('nextAvailableFile', (h) async {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二', [1]);
-      var name = await ZBFInternal.nextAvailableFileName(env, r, 'a 二', false);
-      h.equals(name, 'a 二 (2)');
+      var name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'a 二', false, ZBFInternal.defaultFileNameUpdater);
+      h.equals(name, 'a 二 (1)');
 
-      name = await ZBFInternal.nextAvailableFileName(env, r, 'b', false);
+      name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'b', false, ZBFInternal.defaultFileNameUpdater);
       h.equals(name, 'b');
       await _createFile(env, r, 'b', [2]);
 
-      name = await ZBFInternal.nextAvailableFileName(env, r, 'b', false);
-      h.equals(name, 'b (2)');
+      name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'b', false, ZBFInternal.defaultFileNameUpdater);
+      h.equals(name, 'b (1)');
     });
 
     ns.add('nextAvailableFile (extension)', (h) async {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二.zz', [1]);
-      var name =
-          await ZBFInternal.nextAvailableFileName(env, r, 'a 二.zz', false);
-      h.equals(name, 'a 二 (2).zz');
+      var name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'a 二.zz', false, ZBFInternal.defaultFileNameUpdater);
+      h.equals(name, 'a 二 (1).zz');
 
-      name = await ZBFInternal.nextAvailableFileName(env, r, 'b.zz', false);
+      name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'b.zz', false, ZBFInternal.defaultFileNameUpdater);
       h.equals(name, 'b.zz');
       await _createFile(env, r, 'b.zz', [2]);
 
-      name = await ZBFInternal.nextAvailableFileName(env, r, 'b.zz', false);
-      h.equals(name, 'b (2).zz');
+      name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'b.zz', false, ZBFInternal.defaultFileNameUpdater);
+      h.equals(name, 'b (1).zz');
     });
 
-    ns.add('nextAvailableFile (multiple extensions)', (h) async {
+    ns.add('nextAvailableFile (custom name updater)', (h) async {
+      // ignore: prefer_function_declarations_over_variables
+      final nameUpdater = (String name, int count) => '$name -> $count';
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二.zz.abc', [1]);
-      var name =
-          await ZBFInternal.nextAvailableFileName(env, r, 'a 二.zz.abc', false);
-      h.equals(name, 'a 二 (2).zz.abc');
+      var name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'a 二.zz.abc', false, nameUpdater);
+      h.equals(name, 'a 二.zz.abc -> 1');
 
-      name = await ZBFInternal.nextAvailableFileName(env, r, 'b.zz.abc', false);
+      name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'b.zz.abc', false, nameUpdater);
       h.equals(name, 'b.zz.abc');
       await _createFile(env, r, 'b.zz.abc', [2]);
 
-      name = await ZBFInternal.nextAvailableFileName(env, r, 'b.zz.abc', false);
-      h.equals(name, 'b (2).zz.abc');
+      name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'b.zz.abc', false, nameUpdater);
+      h.equals(name, 'b.zz.abc -> 1');
     });
 
     await ns.run();

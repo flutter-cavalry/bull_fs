@@ -1,27 +1,30 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:fc_path_util/fc_path_util.dart';
-import 'package:next_available_name/next_available_name.dart';
+import 'package:path/path.dart' as p;
 
 import 'bf_env.dart';
 import 'types.dart';
 
+const _maxNameAttempts = 200;
+
 class ZBFInternal {
   static Future<String> nextAvailableFileName(
-      BFEnv env, BFPath dir, String unsafeFileName, bool isDir) async {
-    final nameAndExts = isDir
-        ? FCPathNameAndExtensions(unsafeFileName, '')
-        : FCPathUtil.basenameAndExtensions(unsafeFileName);
-    final newNameWithoutExt = await nextAvailableName(
-        nameAndExts.name,
-        200,
-        (nameWithoutExt) async =>
-            await env.stat(dir,
-                relPath: [nameWithoutExt + nameAndExts.extensions].lock) ==
-            null);
-    if (newNameWithoutExt == null) {
-      throw BFTooManyDuplicateFilenamesExp();
+      BFEnv env,
+      BFPath dir,
+      String unsafeFileName,
+      bool isDir,
+      String Function(String fileName, int attempt) nameUpdater) async {
+    // First attempt.
+    if (await env.stat(dir, relPath: [unsafeFileName].lock) == null) {
+      return unsafeFileName;
     }
-    return newNameWithoutExt + nameAndExts.extensions;
+
+    for (var i = 1; i <= _maxNameAttempts; i++) {
+      final newName = nameUpdater(unsafeFileName, i);
+      if (await env.stat(dir, relPath: [newName].lock) == null) {
+        return newName;
+      }
+    }
+    throw BFTooManyDuplicateFilenamesExp();
   }
 
   static Future<BFEntity> mustGetStat(
@@ -31,5 +34,11 @@ class ZBFInternal {
       throw Exception('${relPath.join('/')} is not found in $root');
     }
     return stat;
+  }
+
+  static String defaultFileNameUpdater(String fileName, int attempt) {
+    final basename = p.basenameWithoutExtension(fileName);
+    final ext = p.extension(fileName);
+    return '$basename ($attempt)$ext';
   }
 }

@@ -12,7 +12,8 @@ abstract class BFEnv {
   Future<List<BFEntity>> listDir(BFPath path, {bool? recursive});
 
   Future<void> copyToLocalFile(BFPath src, String dest);
-  Future<BFPath> pasteLocalFile(String localSrc, BFPath dir, String unsafeName);
+  Future<BFPath> pasteLocalFile(String localSrc, BFPath dir, String unsafeName,
+      {String Function(String fileName, int attempt)? nameUpdater});
 
   Future<void> delete(BFPath path, bool isDir);
 
@@ -54,7 +55,8 @@ abstract class BFEnv {
   }
 
   Future<BFPath> moveToDir(
-      BFPath root, IList<String> src, IList<String> destDir, bool isDir);
+      BFPath root, IList<String> src, IList<String> destDir, bool isDir,
+      {String Function(String fileName, int attempt)? nameUpdater});
 
   Future<BFPath> forceMoveToDir(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir,
@@ -107,5 +109,6 @@ abstract class BFEnv {
   bool hasStreamSupport();
 
   Future<Stream<List<int>>> readFileStream(BFPath path);
-  Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName);
+  Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
+      {String Function(String fileName, int attempt)? nameUpdater});
 }
