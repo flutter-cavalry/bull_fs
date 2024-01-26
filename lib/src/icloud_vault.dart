@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:accessing_security_scoped_resource/accessing_security_scoped_resource.dart';
-import 'package:bull_fs/bull_fs.dart';
+import '../bull_fs.dart';
 
 final _plugin = AccessingSecurityScopedResource();
 

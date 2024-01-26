@@ -1,4 +1,4 @@
-import 'package:bull_fs/bull_fs.dart';
+import '../bull_fs.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tmp_path/tmp_path.dart';
@@ -68,7 +68,7 @@ abstract class BFEnv {
 
     final fileName = newName ?? src.last;
     final destItemRelPath = [...destDir, fileName].lock;
-    final destItemStat = (await stat(root, relPath: destItemRelPath));
+    final destItemStat = await stat(root, relPath: destItemRelPath);
 
     // Call `moveToDir` if the destination item does not exist and no new name assigned.
     if (destItemStat == null && newName == null) {

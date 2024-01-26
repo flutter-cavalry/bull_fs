@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:bull_fs/bull_fs.dart';
+import '../bull_fs.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:collection/collection.dart';

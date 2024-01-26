@@ -105,7 +105,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   String _platformDupSuffix(BFEnv env, String fileName, int c) {
     final ext = p.extension(fileName);
     final name = p.basenameWithoutExtension(fileName);
-    return '${name} (${c - 1})${ext}';
+    return '$name (${c - 1})$ext';
   }
 
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {

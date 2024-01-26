@@ -1,4 +1,4 @@
-import 'package:bull_fs/bull_fs.dart';
+import '../bull_fs.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mime/mime.dart';
