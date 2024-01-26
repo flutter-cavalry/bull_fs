@@ -129,7 +129,7 @@ packages:
     source: hosted
     version: "0.0.3"
   fc_path_util:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: fc_path_util
       sha256: "14864f730eb88607d37673ca0490945f7f4348d1338594f58faff05e0cfba604"

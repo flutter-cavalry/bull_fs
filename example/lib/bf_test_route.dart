@@ -9,7 +9,7 @@ import 'package:bull_fs/bull_fs.dart';
 import 'package:fc_material_alert/fc_material_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:tmp_path/tmp_path.dart';
-import 'package:path/path.dart' as p;
+import 'package:fc_path_util/fc_path_util.dart';
 
 import '../../util/ke_bf_env.dart';
 
@@ -68,37 +68,43 @@ class _BFTestRouteState extends State<BFTestRoute> {
       return;
     }
     final root = rootRaw.toBFPath(macOSScoped: _appMacOSScoped);
-    await icloudVault?.requestAccess(root);
     setState(() {
       _output = 'Running...';
     });
 
-    // Local env.
-    final localDir = tmpPath();
-    await Directory(localDir).create(recursive: true);
-    await _runEnvTests('Local', BFEnvLocal(), BFLocalPath(localDir));
     final env = newUnsafeKeBFEnv(macOSScoped: _appMacOSScoped);
-    if (env.envType() != BFEnvType.local) {
-      // Native env.
-      await _runEnvTests('Native', env, await env.ensureDir(root, 'native'));
-      // Clean up.
-      await env.deletePathIfExists(root);
-    }
+    BFPath? cleanUpPath;
+    try {
+      await icloudVault?.requestAccess(root);
+      // Local env.
+      final localDir = tmpPath();
+      await Directory(localDir).create(recursive: true);
+      await _runEnvTests('Local', BFEnvLocal(), BFLocalPath(localDir));
+      if (env.envType() != BFEnvType.local) {
+        // Native env.
+        cleanUpPath = await env.ensureDir(root, 'native');
+        await _runEnvTests('Native', env, cleanUpPath);
+      }
 
-    setState(() {
-      _output = 'Done';
-    });
-    await icloudVault?.release();
+      setState(() {
+        _output = 'Done';
+      });
+    } catch (_) {
+      setState(() {
+        _output = 'Failed';
+      });
+    } finally {
+      // Clean up.
+      if (cleanUpPath != null) {
+        await env.deletePathIfExists(root);
+      }
+      await icloudVault?.release();
+    }
   }
 
   String _platformDupSuffix(BFEnv env, String fileName, int c) {
-    final ext = p.extension(fileName);
-    final name = p.basenameWithoutExtension(fileName);
-    // Android starts with 1 instead of 2.
-    if (Platform.isAndroid && env.envType() == BFEnvType.saf) {
-      c--;
-    }
-    return '$name ($c)$ext';
+    final res = FCPathUtil.basenameAndExtensions(fileName);
+    return '${res.name} ($c)${res.extensions}';
   }
 
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {
@@ -127,7 +133,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _runEnvTests(String name, BFEnv env, BFPath root) async {
-    final ns = NTRSuite(name: name);
+    final ns = NTRSuite(suiteName: name);
 
     int testCount = 0;
     ns.onLog = (s) => setState(() {
@@ -293,6 +299,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         });
       }
 
+      // Known extension.
       testWriteFileStream('test 三.txt', false,
           {"test 三.txt": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三.txt', true, {
@@ -302,6 +309,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         _platformDupSuffix(env, 'test 三.txt', 3):
             "6162633361626364656620f09f8d89f09f8c8f"
       });
+      // Unknown extension.
       testWriteFileStream('test 三.elephant', false,
           {"test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三.elephant', true, {
@@ -311,6 +319,17 @@ class _BFTestRouteState extends State<BFTestRoute> {
         _platformDupSuffix(env, 'test 三.elephant', 3):
             "6162633361626364656620f09f8d89f09f8c8f"
       });
+      // Multiple extensions.
+      testWriteFileStream('test 三.elephant.xyz', false,
+          {"test 三.elephant.xyz": "6162633161626364656620f09f8d89f09f8c8f"});
+      testWriteFileStream('test 三.elephant.xyz', true, {
+        _platformDupSuffix(env, 'test 三.elephant.xyz', 2):
+            "6162633261626364656620f09f8d89f09f8c8f",
+        "test 三.elephant.xyz": "6162633161626364656620f09f8d89f09f8c8f",
+        _platformDupSuffix(env, 'test 三.elephant.xyz', 3):
+            "6162633361626364656620f09f8d89f09f8c8f"
+      });
+      // No extension.
       testWriteFileStream('test 三', false,
           {"test 三": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三', true, {
@@ -382,6 +401,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       });
     }
 
+    // Known extension.
     testPasteToLocalFile('test 三.txt', false,
         {"test 三.txt": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三.txt', true, {
@@ -391,6 +411,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           "61626364656620f09f8d89f09f8c8f2033",
       "test 三.txt": "61626364656620f09f8d89f09f8c8f2031"
     });
+    // Unknown extension.
     testPasteToLocalFile('test 三.elephant', false,
         {"test 三.elephant": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三.elephant', true, {
@@ -400,6 +421,17 @@ class _BFTestRouteState extends State<BFTestRoute> {
       _platformDupSuffix(env, 'test 三.elephant', 3):
           "61626364656620f09f8d89f09f8c8f2033"
     });
+    // Multiple extensions.
+    testPasteToLocalFile('test 三.elephant.xyz', false,
+        {"test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2031"});
+    testPasteToLocalFile('test 三.elephant.xyz', true, {
+      _platformDupSuffix(env, 'test 三.elephant.xyz', 2):
+          "61626364656620f09f8d89f09f8c8f2032",
+      "test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2031",
+      _platformDupSuffix(env, 'test 三.elephant.xyz', 3):
+          "61626364656620f09f8d89f09f8c8f2033"
+    });
+    // No extension.
     testPasteToLocalFile(
         'test 三', false, {"test 三": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三', true, {
@@ -1013,49 +1045,44 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('nextAvailableFile', (h) async {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二', [1]);
-      var name =
-          await ZBFInternal.nonSAFNextAvailableFileName(env, r, 'a 二', false);
+      var name = await ZBFInternal.nextAvailableFileName(env, r, 'a 二', false);
       h.equals(name, 'a 二 (2)');
 
-      name = await ZBFInternal.nonSAFNextAvailableFileName(env, r, 'b', false);
+      name = await ZBFInternal.nextAvailableFileName(env, r, 'b', false);
       h.equals(name, 'b');
       await _createFile(env, r, 'b', [2]);
 
-      name = await ZBFInternal.nonSAFNextAvailableFileName(env, r, 'b', false);
+      name = await ZBFInternal.nextAvailableFileName(env, r, 'b', false);
       h.equals(name, 'b (2)');
     });
 
     ns.add('nextAvailableFile (extension)', (h) async {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二.zz', [1]);
-      var name = await ZBFInternal.nonSAFNextAvailableFileName(
-          env, r, 'a 二.zz', false);
+      var name =
+          await ZBFInternal.nextAvailableFileName(env, r, 'a 二.zz', false);
       h.equals(name, 'a 二 (2).zz');
 
-      name =
-          await ZBFInternal.nonSAFNextAvailableFileName(env, r, 'b.zz', false);
+      name = await ZBFInternal.nextAvailableFileName(env, r, 'b.zz', false);
       h.equals(name, 'b.zz');
       await _createFile(env, r, 'b.zz', [2]);
 
-      name =
-          await ZBFInternal.nonSAFNextAvailableFileName(env, r, 'b.zz', false);
+      name = await ZBFInternal.nextAvailableFileName(env, r, 'b.zz', false);
       h.equals(name, 'b (2).zz');
     });
 
     ns.add('nextAvailableFile (multiple extensions)', (h) async {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二.zz.abc', [1]);
-      var name = await ZBFInternal.nonSAFNextAvailableFileName(
-          env, r, 'a 二.zz.abc', false);
+      var name =
+          await ZBFInternal.nextAvailableFileName(env, r, 'a 二.zz.abc', false);
       h.equals(name, 'a 二 (2).zz.abc');
 
-      name = await ZBFInternal.nonSAFNextAvailableFileName(
-          env, r, 'b.zz.abc', false);
+      name = await ZBFInternal.nextAvailableFileName(env, r, 'b.zz.abc', false);
       h.equals(name, 'b.zz.abc');
       await _createFile(env, r, 'b.zz.abc', [2]);
 
-      name = await ZBFInternal.nonSAFNextAvailableFileName(
-          env, r, 'b.zz.abc', false);
+      name = await ZBFInternal.nextAvailableFileName(env, r, 'b.zz.abc', false);
       h.equals(name, 'b (2).zz.abc');
     });
 

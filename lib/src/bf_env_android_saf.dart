@@ -92,7 +92,7 @@ class BFEnvAndroidSAF extends BFEnv {
       srcTmpUri = await rename(root, src, srcTmpName, isDir);
 
       final unsafeDestName = src.last;
-      final safeDestName = await ZBFInternal.nonSAFNextAvailableFileName(
+      final safeDestName = await ZBFInternal.nextAvailableFileName(
           this, destDirStat.path, unsafeDestName, isDir);
       var destUri =
           await _safMove(srcTmpUri, srcParentStat.path, destDirStat.path);
@@ -173,8 +173,12 @@ class BFEnvAndroidSAF extends BFEnv {
 
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName) async {
+    // Android SAF can handle file name conflicts automatically. But has naming issues when dealing with multiple extensions.
+    // Example: `a.abc.xyz` would be renamed to `a.abc (1).xyz` instead of `a (1).abc.xyz`.
+    final safeName =
+        await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false);
     final res = await _plugin.startWriteStream(
-        dir.scopedSafUri(), unsafeName, _getMime(unsafeName));
+        dir.scopedSafUri(), safeName, _getMime(safeName));
     return BFSafOutStream(
         res.session, _plugin, BFScopedPath(res.uri.toString()));
   }
@@ -186,8 +190,13 @@ class BFEnvAndroidSAF extends BFEnv {
   @override
   Future<BFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName) async {
+    // Android SAF can handle file name conflicts automatically. But has naming issues when dealing with multiple extensions.
+    // Example: `a.abc.xyz` would be renamed to `a.abc (1).xyz` instead of `a (1).abc.xyz`.
+    final safeName =
+        await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false);
+
     final res = await _plugin.writeFileFromLocal(
-        localSrc, dir.scopedSafUri(), unsafeName, _getMime(unsafeName));
+        localSrc, dir.scopedSafUri(), safeName, _getMime(safeName));
     return BFScopedPath(res.toString());
   }
 

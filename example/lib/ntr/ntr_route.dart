@@ -18,7 +18,7 @@ class _NTRRouteState extends State<NTRRoute> {
     final Widget scaffold = Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text('${widget.suite.name} NTests'),
+        title: Text('${widget.suite.suiteName} NTests'),
       ),
       body: Center(
         child: Text(_msg),

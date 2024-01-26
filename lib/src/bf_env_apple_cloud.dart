@@ -82,7 +82,7 @@ class BFEnvAppleCloud extends BFEnv {
     final srcStat = await ZBFInternal.mustGetStat(this, root, src);
     final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
 
-    final destItemFileName = await ZBFInternal.nonSAFNextAvailableFileName(
+    final destItemFileName = await ZBFInternal.nextAvailableFileName(
         this, destDirStat.path, srcStat.name, isDir);
     final destItemPath =
         await destDirStat.path.iosJoinRelPath([destItemFileName].lock, isDir);
@@ -108,8 +108,8 @@ class BFEnvAppleCloud extends BFEnv {
   @override
   Future<BFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName) async {
-    final safeName = await ZBFInternal.nonSAFNextAvailableFileName(
-        this, dir, unsafeName, false);
+    final safeName =
+        await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false);
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);
     await _icloudPlugin.copy(srcUrl, destPath.scopedID());

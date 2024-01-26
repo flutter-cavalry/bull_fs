@@ -6,7 +6,7 @@ import 'bf_env.dart';
 import 'types.dart';
 
 class ZBFInternal {
-  static Future<String> nonSAFNextAvailableFileName(
+  static Future<String> nextAvailableFileName(
       BFEnv env, BFPath dir, String unsafeFileName, bool isDir) async {
     final nameAndExts = isDir
         ? FCPathNameAndExtensions(unsafeFileName, '')

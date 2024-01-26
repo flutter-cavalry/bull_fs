@@ -88,7 +88,7 @@ class BFEnvLocal extends BFEnv {
     final srcStat = await ZBFInternal.mustGetStat(this, root, src);
     final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
 
-    final destItemFileName = await ZBFInternal.nonSAFNextAvailableFileName(
+    final destItemFileName = await ZBFInternal.nextAvailableFileName(
         this, destDirStat.path, srcStat.name, isDir);
     final destItemPath = p.join(destDirStat.path.toString(), destItemFileName);
 
@@ -117,8 +117,8 @@ class BFEnvLocal extends BFEnv {
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName) async {
     final dirPath = dir.localPath();
-    final safeName = await ZBFInternal.nonSAFNextAvailableFileName(
-        this, dir, unsafeName, false);
+    final safeName =
+        await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false);
     final destPath = p.join(dirPath, safeName);
     return writeFileStreamFromPath(destPath);
   }
@@ -126,8 +126,8 @@ class BFEnvLocal extends BFEnv {
   @override
   Future<BFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName) async {
-    final safeName = await ZBFInternal.nonSAFNextAvailableFileName(
-        this, dir, unsafeName, false);
+    final safeName =
+        await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false);
     final dirPath = dir.localPath();
     final destPath = p.join(dirPath, safeName);
     final destBFPath = BFLocalPath(destPath);

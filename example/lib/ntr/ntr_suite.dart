@@ -46,16 +46,18 @@ class NTRHandle {
 }
 
 class NTRSuite {
-  final String name;
+  final String suiteName;
+  final List<String> _caseNames = [];
   final List<Future<void> Function()> _cases = [];
 
   void Function(String s)? onLog;
   Future<dynamic> Function()? beforeAll;
   Future<void> Function(NTRHandle h)? afterAll;
 
-  NTRSuite({required this.name});
+  NTRSuite({required this.suiteName});
 
   void add(String name, Future<void> Function(NTRHandle h) fn) {
+    _caseNames.add(name.toLowerCase());
     _cases.add(() async {
       NTRHandle? h;
       try {
@@ -75,7 +77,13 @@ class NTRSuite {
     });
   }
 
-  Future<void> run() async {
-    await Future.wait(_cases.map((e) => e.call()));
+  Future<void> run({String? debugName}) async {
+    List<Future<void>> futures = [];
+    for (var i = 0; i < _caseNames.length; i++) {
+      if (debugName == null || _caseNames[i].contains(debugName)) {
+        futures.add(_cases[i].call());
+      }
+    }
+    await Future.wait(futures);
   }
 }
