@@ -1077,9 +1077,27 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(name, 'b (1).zz');
     });
 
+    ns.add('nextAvailableFile (folder with extension)', (h) async {
+      final r = h.data as BFPath;
+      await env.ensureDir(r, 'a 二.zz');
+      var name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'a 二.zz', true, ZBFInternal.defaultFileNameUpdater);
+      h.equals(name, 'a 二.zz (1)');
+
+      name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'b.zz', true, ZBFInternal.defaultFileNameUpdater);
+      h.equals(name, 'b.zz');
+      await env.ensureDir(r, 'b.zz');
+
+      name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'b.zz', true, ZBFInternal.defaultFileNameUpdater);
+      h.equals(name, 'b.zz (1)');
+    });
+
     ns.add('nextAvailableFile (custom name updater)', (h) async {
       // ignore: prefer_function_declarations_over_variables
-      final nameUpdater = (String name, int count) => '$name -> $count';
+      final nameUpdater =
+          (String name, bool isDir, int count) => '$name -> $count';
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二.zz.abc', [1]);
       var name = await ZBFInternal.nextAvailableFileName(

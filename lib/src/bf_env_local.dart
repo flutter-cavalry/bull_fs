@@ -85,7 +85,7 @@ class BFEnvLocal extends BFEnv {
   @override
   Future<BFPath> moveToDir(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir,
-      {String Function(String fileName, int attempt)? nameUpdater}) async {
+      {BFNameUpdaterFunc? nameUpdater}) async {
     final srcStat = await ZBFInternal.mustGetStat(this, root, src);
     final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
 
@@ -121,7 +121,7 @@ class BFEnvLocal extends BFEnv {
 
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
-      {String Function(String fileName, int attempt)? nameUpdater}) async {
+      {BFNameUpdaterFunc? nameUpdater}) async {
     final dirPath = dir.localPath();
     final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
         unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
@@ -131,7 +131,7 @@ class BFEnvLocal extends BFEnv {
 
   @override
   Future<BFPath> pasteLocalFile(String localSrc, BFPath dir, String unsafeName,
-      {String Function(String fileName, int attempt)? nameUpdater}) async {
+      {BFNameUpdaterFunc? nameUpdater}) async {
     final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
         unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final dirPath = dir.localPath();

@@ -5,6 +5,9 @@ import 'package:tmp_path/tmp_path.dart';
 
 enum BFEnvType { local, saf, icloud }
 
+typedef BFNameUpdaterFunc = String Function(
+    String fileName, bool isDir, int attempt);
+
 abstract class BFEnv {
   BFEnvType envType();
   bool isScoped();
@@ -13,7 +16,7 @@ abstract class BFEnv {
 
   Future<void> copyToLocalFile(BFPath src, String dest);
   Future<BFPath> pasteLocalFile(String localSrc, BFPath dir, String unsafeName,
-      {String Function(String fileName, int attempt)? nameUpdater});
+      {BFNameUpdaterFunc? nameUpdater});
 
   Future<void> delete(BFPath path, bool isDir);
 
@@ -56,7 +59,7 @@ abstract class BFEnv {
 
   Future<BFPath> moveToDir(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir,
-      {String Function(String fileName, int attempt)? nameUpdater});
+      {BFNameUpdaterFunc? nameUpdater});
 
   Future<BFPath> forceMoveToDir(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir,
@@ -110,5 +113,5 @@ abstract class BFEnv {
 
   Future<Stream<List<int>>> readFileStream(BFPath path);
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
-      {String Function(String fileName, int attempt)? nameUpdater});
+      {BFNameUpdaterFunc? nameUpdater});
 }

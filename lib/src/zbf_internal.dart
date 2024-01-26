@@ -7,19 +7,15 @@ import 'types.dart';
 const _maxNameAttempts = 200;
 
 class ZBFInternal {
-  static Future<String> nextAvailableFileName(
-      BFEnv env,
-      BFPath dir,
-      String unsafeFileName,
-      bool isDir,
-      String Function(String fileName, int attempt) nameUpdater) async {
+  static Future<String> nextAvailableFileName(BFEnv env, BFPath dir,
+      String unsafeFileName, bool isDir, BFNameUpdaterFunc nameUpdater) async {
     // First attempt.
     if (await env.stat(dir, relPath: [unsafeFileName].lock) == null) {
       return unsafeFileName;
     }
 
     for (var i = 1; i <= _maxNameAttempts; i++) {
-      final newName = nameUpdater(unsafeFileName, i);
+      final newName = nameUpdater(unsafeFileName, isDir, i);
       if (await env.stat(dir, relPath: [newName].lock) == null) {
         return newName;
       }
@@ -36,7 +32,11 @@ class ZBFInternal {
     return stat;
   }
 
-  static String defaultFileNameUpdater(String fileName, int attempt) {
+  static String defaultFileNameUpdater(
+      String fileName, bool isDir, int attempt) {
+    if (isDir) {
+      return '$fileName ($attempt)';
+    }
     final basename = p.basenameWithoutExtension(fileName);
     final ext = p.extension(fileName);
     return '$basename ($attempt)$ext';
