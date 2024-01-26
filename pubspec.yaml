@@ -11,7 +11,7 @@ environment:
 dependencies:
   collection: ^1.18.0
   darwin_url: ^0.3.0
-  fast_immutable_collections: ^9.2.0
+  fast_immutable_collections: ^10.0.0
   fc_path_util: ^1.0.2
   flutter:
     sdk: flutter
