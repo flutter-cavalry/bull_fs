@@ -81,10 +81,6 @@ class BFEnvAndroidSAF extends BFEnv {
       throw Exception('$destDir is not a directory');
     }
 
-    // TODO: SAF move not working.
-    // Ideally, SAF move can handle conflicts automatically, but it doesn't work.
-    // return _safMove(srcStat.path, srcParentStat.path, destDirStat.path);
-
     // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
     // Then move the file to dest and rename it back to the desired name.
     BFPath? srcTmpUri;
@@ -179,8 +175,6 @@ class BFEnvAndroidSAF extends BFEnv {
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    // Android SAF can handle file name conflicts automatically. But has naming issues when dealing with multiple extensions.
-    // Example: `a.abc.xyz` would be renamed to `a.abc (1).xyz` instead of `a (1).abc.xyz`.
     final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
         unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _plugin.startWriteStream(
@@ -196,8 +190,6 @@ class BFEnvAndroidSAF extends BFEnv {
   @override
   Future<BFPath> pasteLocalFile(String localSrc, BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    // Android SAF can handle file name conflicts automatically. But has naming issues when dealing with multiple extensions.
-    // Example: `a.abc.xyz` would be renamed to `a.abc (1).xyz` instead of `a (1).abc.xyz`.
     final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
         unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
 
