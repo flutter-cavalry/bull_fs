@@ -97,7 +97,7 @@ extension BFEnvExtension on BFEnv {
     if (hasStreamSupport()) {
       final List<int> result = [];
       final stream = await readFileStream(file);
-      await for (var chunk in stream) {
+      await for (final chunk in stream) {
         result.addAll(chunk);
       }
       return Uint8List.fromList(result);
