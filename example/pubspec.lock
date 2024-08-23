@@ -92,10 +92,10 @@ packages:
     dependency: transitive
     description:
       name: darwin_url
-      sha256: "3800cea593cb75ec359619ed02893cbadf88b178d8f4592da7befaaafd0ee10d"
+      sha256: f9a335186fcbd5c5b8e2a55f24a513d2dedf3ae31550cf51d22187186530c122
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.0"
+    version: "0.4.0"
   fake_async:
     dependency: transitive
     description:
@@ -156,10 +156,10 @@ packages:
     dependency: transitive
     description:
       name: file_selector_android
-      sha256: "77f23eb5916fd0875946720d1f286f809a28a867d4882db6ac2cf053e2d5f7c6"
+      sha256: b8c9717a0177ca6fa035554b82cd6c83b838ddc66b7704eb6df0f77f027ecc90
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.1+6"
+    version: "0.5.1+7"
   file_selector_ios:
     dependency: transitive
     description:
@@ -488,10 +488,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: f652077d0bdf60abe4c1f6377448e8655008eef28f128bc023f7b5e8dfeb48fc
+      sha256: "5c5f338a667b4c644744b661f309fb8080bb94b18a7e91ef1dbd343bed00ed6d"
       url: "https://pub.dev"
     source: hosted
-    version: "14.2.4"
+    version: "14.2.5"
   web:
     dependency: transitive
     description:
@@ -509,5 +509,5 @@ packages:
     source: hosted
     version: "5.5.4"
 sdks:
-  dart: ">=3.4.0 <4.0.0"
-  flutter: ">=3.22.0"
+  dart: ">=3.5.0 <4.0.0"
+  flutter: ">=3.24.0"
