@@ -1,27 +1,22 @@
-import 'dart:io';
-
 import 'package:accessing_security_scoped_resource/accessing_security_scoped_resource.dart';
 import '../bull_fs.dart';
 
 final _plugin = AccessingSecurityScopedResource();
 
-// Makes sure icloud resources are correctly released.
-class IcloudVault {
+// Makes sure Apple resources are correctly released.
+class AppleResScope {
   BFPath? _path;
   bool _granted = false;
 
   BFPath? get path => _path;
+  final BFEnv env;
 
-  IcloudVault._();
-
-  static IcloudVault? create({required bool macOSScoped}) {
-    if (Platform.isIOS || (Platform.isMacOS && macOSScoped)) {
-      return IcloudVault._();
-    }
-    return null;
-  }
+  AppleResScope(this.env);
 
   Future<void> requestAccess(BFPath path) async {
+    if (env is! BFEnvAppleCloud) {
+      return;
+    }
     if (path is BFLocalPath) {
       throw Exception('Local path not supported.');
     }
@@ -39,6 +34,9 @@ class IcloudVault {
   }
 
   Future<void> release() async {
+    if (env is! BFEnvAppleCloud) {
+      return;
+    }
     // Release previous one if needed.
     if (_granted && _path != null) {
       await _plugin

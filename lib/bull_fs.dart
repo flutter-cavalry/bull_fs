@@ -9,4 +9,4 @@ export 'src/bf_env_util.dart';
 export 'src/bf_env_local.dart';
 export 'src/bf_env_apple_cloud.dart';
 export 'src/bf_env_android_saf.dart';
-export 'src/icloud_vault.dart';
+export 'src/apple_res_scope.dart';

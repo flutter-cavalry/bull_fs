@@ -56,7 +56,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _start() async {
-    final icloudVault = IcloudVault.create(macOSScoped: _appMacOSScoped);
+    final env = newUnsafeKeBFEnv(macOSScoped: _appMacOSScoped);
+    final appleResScope = AppleResScope(env);
 
     final rootRaw = Platform.isWindows
         ? FcFilePickerXResult.fromStringOrUri(tmpPath(), null)
@@ -72,10 +73,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
       _output = 'Running...';
     });
 
-    final env = newUnsafeKeBFEnv(macOSScoped: _appMacOSScoped);
     BFPath? cleanUpPath;
     try {
-      await icloudVault?.requestAccess(root);
+      await appleResScope.requestAccess(root);
       // Local env.
       final localDir = tmpPath();
       await Directory(localDir).create(recursive: true);
@@ -98,7 +98,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       if (cleanUpPath != null) {
         await env.deletePathIfExists(root);
       }
-      await icloudVault?.release();
+      await appleResScope.release();
     }
   }
 
