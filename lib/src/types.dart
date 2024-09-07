@@ -129,12 +129,13 @@ class BFEntity {
 
   BFEntity(this.path, this.name, this.isDir, int length, this.lastMod,
       this.notDownloaded,
-      {this.dirRelPath}) {
+      {List<String>? dirRelPath}) {
     if (isDir) {
       this.length = -1;
     } else {
       this.length = length;
     }
+    this.dirRelPath = dirRelPath;
   }
 
   @override
