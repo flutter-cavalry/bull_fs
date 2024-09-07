@@ -184,34 +184,6 @@ class BFEntity {
   }
 }
 
-// BFEntity + dir rel path.
-class BFFatEntity {
-  final IList<String> dirRelPath;
-  final BFEntity entity;
-
-  BFFatEntity(this.entity, this.dirRelPath);
-
-  @override
-  String toString() {
-    var res = entity.isDir ? 'D' : 'F';
-    res += '|${p.posix.joinAll([...dirRelPath, entity.name])}';
-    if (!entity.isDir) {
-      res += '|${entity.length > 0 ? '+' : '0'}';
-    }
-    return res;
-  }
-
-  // Used to BF tests.
-  String toString2() {
-    var res = entity.isDir ? 'D' : 'F';
-    res += '|${p.posix.joinAll([...dirRelPath, entity.name])}';
-    if (!entity.isDir) {
-      res += '|${entity.length}';
-    }
-    return '[$res]';
-  }
-}
-
 abstract class BFOutStream {
   BFPath getPath();
   Future<void> write(Uint8List data);
