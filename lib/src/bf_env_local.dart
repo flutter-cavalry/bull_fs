@@ -18,13 +18,25 @@ class BFEnvLocal extends BFEnv {
   }
 
   @override
-  Future<List<BFEntity>> listDir(BFPath path, {bool? recursive}) async {
-    final dirObj = Directory(path.localPath());
+  Future<List<BFEntity>> listDir(BFPath path,
+      {bool? recursive, bool? relativePathInfo}) async {
+    final rootPath = path.localPath();
+    final dirObj = Directory(rootPath);
     final entities = await dirObj.list(recursive: recursive ?? false).toList();
-    final res =
-        (await Future.wait(entities.map((e) => BFEntity.fromLocalEntityNE(e))))
-            .whereNotNull()
-            .toList();
+    final res = (await Future.wait(entities.map((e) {
+      List<String>? dirRelPath;
+      if (relativePathInfo == true) {
+        final relPath = p.relative(e.path, from: rootPath).split(p.separator);
+        if (relPath.length == 1) {
+          dirRelPath = [];
+        } else if (relPath.length > 1) {
+          dirRelPath = relPath.sublist(0, relPath.length - 1);
+        }
+      }
+      return BFEntity.fromLocalEntityNE(e, dirRelPath: dirRelPath);
+    })))
+        .whereNotNull()
+        .toList();
     return res;
   }
 
@@ -53,9 +65,9 @@ class BFEnvLocal extends BFEnv {
     }
 
     if (ioType == FileSystemEntityType.directory) {
-      return BFEntity.fromLocalEntity(Directory(filePath));
+      return BFEntity.fromLocalEntity(Directory(filePath), dirRelPath: null);
     }
-    return BFEntity.fromLocalEntity(File(filePath));
+    return BFEntity.fromLocalEntity(File(filePath), dirRelPath: null);
   }
 
   @override

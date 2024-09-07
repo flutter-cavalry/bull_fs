@@ -31,7 +31,8 @@ abstract class BFEnv {
   ///
   /// [path] is the directory to list.
   /// [recursive] is whether to list recursively.
-  Future<List<BFEntity>> listDir(BFPath path, {bool? recursive});
+  Future<List<BFEntity>> listDir(BFPath path,
+      {bool? recursive, bool? relativePathInfo});
 
   /// Copies a [BFPath] to a local file.
   ///

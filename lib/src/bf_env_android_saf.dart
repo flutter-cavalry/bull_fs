@@ -20,32 +20,36 @@ class BFEnvAndroidSAF extends BFEnv {
     return true;
   }
 
-  Future<void> listDirectChildren(BFPath path, List<BFEntity> collector) async {
+  Future<void> _listDirectChildren(
+      BFPath path, List<BFEntity> collector, List<String>? dirRelPath) async {
     final objs = await saf.listFiles2(path.scopedSafUri());
     if (objs != null) {
-      collector
-          .addAll(objs.map((e) => _fromSAFEntity(e)).whereType<BFEntity>());
+      collector.addAll(objs
+          .map((e) => _fromSAFEntity(e, dirRelPath: dirRelPath))
+          .whereType<BFEntity>());
     }
   }
 
-  Future<void> listRecursiveChildren(
-      BFPath path, List<BFEntity> collector) async {
+  Future<void> _listRecursiveChildren(
+      BFPath path, List<BFEntity> collector, List<String>? dirRelPath) async {
     final List<BFEntity> firstLevel = [];
-    await listDirectChildren(path, firstLevel);
+    await _listDirectChildren(path, firstLevel, dirRelPath);
 
     collector.addAll(firstLevel);
     final subDirs = firstLevel.where((e) => e.isDir);
-    await Future.wait(
-        subDirs.map((e) => listRecursiveChildren(e.path, collector)));
+    await Future.wait(subDirs.map((e) => _listRecursiveChildren(e.path,
+        collector, dirRelPath == null ? null : [...dirRelPath, e.name])));
   }
 
   @override
-  Future<List<BFEntity>> listDir(BFPath path, {bool? recursive}) async {
+  Future<List<BFEntity>> listDir(BFPath path,
+      {bool? recursive, bool? relativePathInfo}) async {
     final res = <BFEntity>[];
     if (recursive == true) {
-      await listRecursiveChildren(path, res);
+      await _listRecursiveChildren(
+          path, res, relativePathInfo == true ? [] : null);
     } else {
-      await listDirectChildren(path, res);
+      await _listDirectChildren(path, res, null);
     }
     return res;
   }
@@ -125,7 +129,7 @@ class BFEnvAndroidSAF extends BFEnv {
     if (df == null) {
       return null;
     }
-    return _fromSAFEntity(df);
+    return _fromSAFEntity(df, dirRelPath: null);
   }
 
   @override
@@ -203,13 +207,15 @@ class BFEnvAndroidSAF extends BFEnv {
     await _plugin.readFileToLocal(src.scopedSafUri(), dest);
   }
 
-  BFEntity? _fromSAFEntity(saf.DocumentFile e) {
+  BFEntity? _fromSAFEntity(saf.DocumentFile e,
+      {required List<String>? dirRelPath}) {
     final eName = e.name;
     if (eName == null) {
       return null;
     }
     return BFEntity(BFScopedPath(e.uri.toString()), eName,
-        e.isDirectory ?? false, e.size ?? 0, e.lastModified, false);
+        e.isDirectory ?? false, e.size ?? 0, e.lastModified, false,
+        dirRelPath: dirRelPath);
   }
 }
 

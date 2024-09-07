@@ -22,10 +22,24 @@ class BFEnvAppleCloud extends BFEnv {
   }
 
   @override
-  Future<List<BFEntity>> listDir(BFPath path, {bool? recursive}) async {
+  Future<List<BFEntity>> listDir(BFPath path,
+      {bool? recursive, bool? relativePathInfo}) async {
     final icloudEntities = await _icloudPlugin.listContents(path.scopedID(),
-        recursive: recursive, filesOnly: false);
-    final futures = icloudEntities.map((e) => _fromIcloudEntity(e)).toList();
+        recursive: recursive,
+        filesOnly: false,
+        relativePathInfo: relativePathInfo);
+    final futures = icloudEntities.map((e) {
+      List<String>? dirRelPath;
+      if (e.relativePath != null) {
+        final relPath = e.relativePath!.split('/');
+        if (relPath.length == 1) {
+          dirRelPath = [];
+        } else if (relPath.length > 1) {
+          dirRelPath = relPath.sublist(0, relPath.length - 1);
+        }
+      }
+      return _fromIcloudEntity(e, dirRelPath: dirRelPath);
+    }).toList();
     return await Future.wait(futures);
   }
 
@@ -45,7 +59,7 @@ class BFEnvAppleCloud extends BFEnv {
       if (e == null) {
         return null;
       }
-      return _fromIcloudEntity(e);
+      return _fromIcloudEntity(e, dirRelPath: null);
     } catch (_) {
       return null;
     }
@@ -128,7 +142,8 @@ class BFEnvAppleCloud extends BFEnv {
     await _icloudPlugin.readFile(src.scopedID(), destUrl);
   }
 
-  Future<BFEntity> _fromIcloudEntity(NsFileCoordinatorEntity entity) async {
+  Future<BFEntity> _fromIcloudEntity(NsFileCoordinatorEntity entity,
+      {required List<String>? dirRelPath}) async {
     const icloudExt = '.icloud';
     final eName = entity.name;
     final eUrl = entity.url;
@@ -144,6 +159,7 @@ class BFEnvAppleCloud extends BFEnv {
             isDir: entity.isDir)
         : eUrl;
     return BFEntity(BFScopedPath(eRealUrl), realName, entity.isDir,
-        entity.length, entity.lastMod, isOnCloud);
+        entity.length, entity.lastMod, isOnCloud,
+        dirRelPath: dirRelPath);
   }
 }

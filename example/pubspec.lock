@@ -363,10 +363,10 @@ packages:
     dependency: transitive
     description:
       name: ns_file_coordinator_util
-      sha256: "038fc616b2c1fe8790dfef59a06bd6531b96e0b7959220c43785e56b26e32d85"
+      sha256: "2c821243fd2f333c981b548ce16fcd414e600d39c42e4f9132c0e57def252b5b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.13.0"
+    version: "0.14.1"
   path:
     dependency: "direct main"
     description:

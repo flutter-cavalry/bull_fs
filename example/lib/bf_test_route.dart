@@ -32,6 +32,7 @@ class BFTestRoute extends StatefulWidget {
 }
 
 class _BFTestRouteState extends State<BFTestRoute> {
+  var _env = '';
   var _output = '';
 
   @override
@@ -44,7 +45,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: <Widget>[
-              Text(_output),
+              Text(_env),
+              const SizedBox(
+                height: 10,
+              ),
+              SelectableText(_output),
               const SizedBox(
                 height: 10,
               ),
@@ -69,6 +74,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
       return;
     }
     final root = rootRaw.toBFPath(macOSScoped: _appMacOSScoped);
+    final isEmpty = (await env.listDir(root)).isEmpty;
+    if (!isEmpty) {
+      throw Exception('Folder must be empty');
+    }
+
     setState(() {
       _output = 'Running...';
     });
@@ -79,19 +89,25 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Local env.
       final localDir = tmpPath();
       await Directory(localDir).create(recursive: true);
+      setState(() {
+        _env = 'Local';
+      });
       await _runEnvTests('Local', BFEnvLocal(), BFLocalPath(localDir));
       if (env.envType() != BFEnvType.local) {
         // Native env.
         cleanUpPath = await env.ensureDir(root, 'native');
+        setState(() {
+          _env = 'Native';
+        });
         await _runEnvTests('Native', env, cleanUpPath);
       }
 
       setState(() {
         _output = 'Done';
       });
-    } catch (_) {
+    } catch (e) {
       setState(() {
-        _output = 'Failed';
+        _output = 'Failed: $e';
       });
     } finally {
       // Clean up.
@@ -125,7 +141,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
   String _formatEntityList(List<BFEntity> list) {
     list.sort((a, b) => a.name.compareTo(b.name));
-    return list.map((e) => e.toString2()).join('|');
+    return list.map((e) => e.toStringWithLength()).join('|');
   }
 
   String _formatFatEntityList(List<BFFatEntity> list) {
@@ -489,7 +505,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           '[D|b]|[F|root.txt|1]|[F|root2.txt|1]|[D|一]');
     });
 
-    ns.add('listDir including children', (h) async {
+    ns.add('listDir recursively', (h) async {
       final r = h.data as BFPath;
       await _createNestedDir(env, r);
 
@@ -498,13 +514,14 @@ class _BFTestRouteState extends State<BFTestRoute> {
           '[F|a.txt|1]|[D|b]|[F|b.txt|1]|[F|c.txt|1]|[D|deep]|[F|root.txt|1]|[F|root2.txt|1]|[D|一]');
     });
 
-    ns.add('listDirFat', (h) async {
+    ns.add('listDir recursively with dirRelPath', (h) async {
       final r = h.data as BFPath;
       await _createNestedDir(env, r);
 
-      final contents = await env.listDirFat(r, null);
-      h.equals(_formatFatEntityList(contents),
-          '[F|一/a.txt|1]|[F|一/b.txt|1]|[F|一/deep/c.txt|1]|[F|root.txt|1]|[F|root2.txt|1]');
+      final contents =
+          await env.listDir(r, recursive: true, relativePathInfo: true);
+      h.equals(_formatEntityList(contents),
+          '[F|a.txt|1|dir_rel: 一]|[D|b|dir_rel: <root>]|[F|b.txt|1|dir_rel: 一]|[F|c.txt|1|dir_rel: 一/deep]|[D|deep|dir_rel: 一]|[F|root.txt|1|dir_rel: <root>]|[F|root2.txt|1|dir_rel: <root>]|[D|一|dir_rel: <root>]');
     });
 
     ns.add('rename (folder)', (h) async {

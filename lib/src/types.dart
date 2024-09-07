@@ -116,9 +116,12 @@ class BFEntity {
   late final int length;
   final DateTime? lastMod;
   final bool notDownloaded;
+  // Only set in when recursively listing a directory.
+  final List<String>? dirRelPath;
 
   BFEntity(this.path, this.name, this.isDir, int length, this.lastMod,
-      this.notDownloaded) {
+      this.notDownloaded,
+      {this.dirRelPath}) {
     if (isDir) {
       this.length = -1;
     } else {
@@ -133,20 +136,28 @@ class BFEntity {
     if (!isDir) {
       res += '|${length > 0 ? '+' : '0'}';
     }
+    if (dirRelPath != null) {
+      res +=
+          '|dir_rel: ${dirRelPath!.isEmpty ? '<root>' : dirRelPath!.join('/')}';
+    }
     return res;
   }
 
-  // Used by BF tests.
-  String toString2() {
+  String toStringWithLength() {
     var res = isDir ? 'D' : 'F';
     res += '|$name';
     if (!isDir) {
       res += '|$length';
     }
+    if (dirRelPath != null) {
+      res +=
+          '|dir_rel: ${dirRelPath!.isEmpty ? '<root>' : dirRelPath!.join('/')}';
+    }
     return '[$res]';
   }
 
-  static Future<BFEntity> fromLocalEntity(FileSystemEntity entity) async {
+  static Future<BFEntity> fromLocalEntity(FileSystemEntity entity,
+      {required List<String>? dirRelPath}) async {
     int length;
     bool isDir;
     DateTime? lastMod;
@@ -159,12 +170,14 @@ class BFEntity {
       length = 0;
     }
     return BFEntity(BFLocalPath(entity.path), p.basename(entity.path), isDir,
-        length, lastMod, false);
+        length, lastMod, false,
+        dirRelPath: dirRelPath);
   }
 
-  static Future<BFEntity?> fromLocalEntityNE(FileSystemEntity entity) async {
+  static Future<BFEntity?> fromLocalEntityNE(FileSystemEntity entity,
+      {required List<String>? dirRelPath}) async {
     try {
-      return await fromLocalEntity(entity);
+      return await fromLocalEntity(entity, dirRelPath: dirRelPath);
     } catch (_) {
       return null;
     }
