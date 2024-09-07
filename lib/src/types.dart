@@ -116,8 +116,16 @@ class BFEntity {
   late final int length;
   final DateTime? lastMod;
   final bool notDownloaded;
+
   // Automatically set when recursively listing a directory.
-  List<String>? dirRelPath;
+  List<String>? _dirRelPath;
+  List<String>? get dirRelPath => _dirRelPath;
+  set dirRelPath(List<String>? value) {
+    if (value != null && value.isEmpty) {
+      value = null;
+    }
+    _dirRelPath = value;
+  }
 
   BFEntity(this.path, this.name, this.isDir, int length, this.lastMod,
       this.notDownloaded,
