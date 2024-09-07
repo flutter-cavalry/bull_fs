@@ -1,30 +1,58 @@
+// v3: Update to latest `bull_fs`.
 // v2: Migrate to new `FilePickerXResult`.
 
 import 'dart:io';
 
 import 'package:bull_fs/bull_fs.dart';
+import 'package:darwin_url/darwin_url.dart';
 import 'package:fc_file_picker_util/fc_file_picker_util.dart';
 
+final DarwinUrl _darwinUrl = DarwinUrl();
+
+class ResolveBFPathResult {
+  final BFPath path;
+  final BFEnv env;
+  final bool isIcloud;
+
+  ResolveBFPathResult(this.path, this.env, this.isIcloud);
+}
+
 extension FilePickerUtilExtension on FcFilePickerXResult {
-  BFPath toBFPath({required bool macOSScoped}) {
-    var scoped = false;
-    if (Platform.isMacOS) {
-      scoped = macOSScoped;
-    } else if (Platform.isAndroid || Platform.isIOS) {
-      scoped = true;
-    }
-    if (!scoped) {
-      if (path == null) {
-        throw Exception('Unexpected null str from FilePickerXResult');
+  Future<ResolveBFPathResult> resolveBFPath({bool? macosIcloud}) async {
+    var isIcloud = false;
+
+    if (Platform.isAndroid) {
+      if (androidUri == null) {
+        throw Exception('Unexpected null androidUri from FilePickerXResult');
       }
-      return BFLocalPath(path!);
+      return ResolveBFPathResult(
+          BFScopedPath(androidUri!.toString()), BFEnvAndroidSAF(), false);
     }
-    if (path != null) {
-      return BFScopedPath(path!);
+    if (Platform.isIOS) {
+      if (iosUrl == null) {
+        throw Exception('Unexpected null iosUrl from FilePickerXResult');
+      }
+      isIcloud = await _darwinUrl.isUbiquitousUrlItem(iosUrl!);
+      return ResolveBFPathResult(
+          BFScopedPath(iosUrl!), BFEnvAppleCloud(), isIcloud);
     }
-    if (uri != null) {
-      return BFScopedPath(uri!.toString());
+    if (Platform.isMacOS) {
+      if (iosUrl != null) {
+        isIcloud = macosIcloud ?? await _darwinUrl.isUbiquitousUrlItem(iosUrl!);
+      } else if (path != null) {
+        isIcloud = macosIcloud ?? await _darwinUrl.isUbiquitousPathItem(path!);
+      } else {
+        throw Exception('iosUrl and path are both null');
+      }
+      if (isIcloud) {
+        return ResolveBFPathResult(
+            BFScopedPath(iosUrl!), BFEnvAppleCloud(), isIcloud);
+      }
+      return ResolveBFPathResult(BFLocalPath(path!), BFEnvLocal(), isIcloud);
     }
-    throw Exception('Unexpected null uri from FilePickerXResult');
+    if (path == null) {
+      throw Exception('Unexpected null path from FilePickerXResult');
+    }
+    return ResolveBFPathResult(BFLocalPath(path!), BFEnvLocal(), false);
   }
 }

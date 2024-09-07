@@ -11,9 +11,6 @@ import 'package:flutter/material.dart';
 import 'package:tmp_path/tmp_path.dart';
 import 'package:path/path.dart' as p;
 
-import '../../util/ke_bf_env.dart';
-
-const bool _appMacOSScoped = true;
 const _defFolderContentFile = 'content.bin';
 const _defStringContents = 'abcdef 🍉🌏';
 final _defStringContentsBytes = utf8.encode(_defStringContents);
@@ -45,6 +42,19 @@ class _BFTestRouteState extends State<BFTestRoute> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: <Widget>[
+              OutlinedButton(
+                  onPressed: _startLocal, child: const Text('Run local env')),
+              if (!Platform.isWindows) ...[
+                const SizedBox(
+                  height: 10,
+                ),
+                OutlinedButton(
+                    onPressed: _startNative,
+                    child: const Text('Run native env'))
+              ],
+              const SizedBox(
+                height: 10,
+              ),
               Text(_env),
               const SizedBox(
                 height: 10,
@@ -53,33 +63,34 @@ class _BFTestRouteState extends State<BFTestRoute> {
               const SizedBox(
                 height: 10,
               ),
-              OutlinedButton(
-                  onPressed: _start, child: const Text('Open a folder'))
             ],
           ),
         ));
   }
 
-  Future<void> _start() async {
-    final env = newUnsafeKeBFEnv(macOSScoped: _appMacOSScoped);
-    final appleResScope = AppleResScope(env);
+  Future<void> _startLocal() async {
+    final t = tmpPath();
+    await Directory(t).create(recursive: true);
+    await _runTests(BFEnvLocal(), BFLocalPath(t));
+  }
 
-    FcFilePickerXResult? rootRaw;
-    if (Platform.isWindows) {
-      final tDir = tmpPath();
-      await Directory(tDir).create();
-      rootRaw = FcFilePickerXResult.fromStringOrUri(tDir, null);
-    } else {
-      rootRaw =
-          (await FcFilePickerUtil.pickFolder(macOSScoped: _appMacOSScoped));
-    }
+  Future<void> _startNative() async {
+    FcFilePickerXResult? rootRaw = await FcFilePickerUtil.pickFolder();
     if (rootRaw == null) {
       return;
     }
     if (!mounted) {
       return;
     }
-    final root = rootRaw.toBFPath(macOSScoped: _appMacOSScoped);
+    final bfRes = await rootRaw.resolveBFPath(macosIcloud: true);
+    final env = bfRes.env;
+    final appleResScope = AppleResScope(env);
+    await appleResScope.requestAccess(bfRes.path);
+    await _runTests(env, bfRes.path);
+    await appleResScope.release();
+  }
+
+  Future<void> _runTests(BFEnv env, BFPath root) async {
     final isEmpty = (await env.listDir(root)).isEmpty;
     if (!isEmpty) {
       throw Exception('Folder must be empty');
@@ -91,7 +102,6 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     BFPath? cleanUpPath;
     try {
-      await appleResScope.requestAccess(root);
       // Local env.
       final localDir = tmpPath();
       await Directory(localDir).create(recursive: true);
@@ -120,7 +130,6 @@ class _BFTestRouteState extends State<BFTestRoute> {
       if (cleanUpPath != null) {
         await env.deletePathIfExists(root);
       }
-      await appleResScope.release();
     }
   }
 

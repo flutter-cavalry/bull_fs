@@ -89,7 +89,7 @@ packages:
     source: hosted
     version: "1.0.8"
   darwin_url:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: darwin_url
       sha256: f9a335186fcbd5c5b8e2a55f24a513d2dedf3ae31550cf51d22187186530c122
@@ -116,10 +116,10 @@ packages:
     dependency: "direct main"
     description:
       name: fc_file_picker_util
-      sha256: b0d51f56ffb8d24579e682aef936e7486145f6baedb3134899b5168ab8e84bb3
+      sha256: "5fb5c5eb132b1c743ae1ef607b9ce1292947aebb1c367201edd6253779ae86d2"
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.8"
+    version: "0.1.0"
   fc_material_alert:
     dependency: "direct main"
     description:
