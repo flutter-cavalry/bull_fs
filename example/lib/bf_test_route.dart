@@ -64,9 +64,15 @@ class _BFTestRouteState extends State<BFTestRoute> {
     final env = newUnsafeKeBFEnv(macOSScoped: _appMacOSScoped);
     final appleResScope = AppleResScope(env);
 
-    final rootRaw = Platform.isWindows
-        ? FcFilePickerXResult.fromStringOrUri(tmpPath(), null)
-        : (await FcFilePickerUtil.pickFolder(macOSScoped: _appMacOSScoped));
+    FcFilePickerXResult? rootRaw;
+    if (Platform.isWindows) {
+      final tDir = tmpPath();
+      await Directory(tDir).create();
+      rootRaw = FcFilePickerXResult.fromStringOrUri(tDir, null);
+    } else {
+      rootRaw =
+          (await FcFilePickerUtil.pickFolder(macOSScoped: _appMacOSScoped));
+    }
     if (rootRaw == null) {
       return;
     }
