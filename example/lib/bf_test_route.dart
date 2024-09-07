@@ -85,9 +85,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
     final bfRes = await rootRaw.resolveBFPath(macosIcloud: true);
     final env = bfRes.env;
     final appleResScope = AppleResScope(env);
-    await appleResScope.requestAccess(bfRes.path);
-    await _runTests(env, bfRes.path);
-    await appleResScope.release();
+    try {
+      await appleResScope.requestAccess(bfRes.path);
+      await _runTests(env, bfRes.path);
+    } finally {
+      await appleResScope.release();
+    }
   }
 
   Future<void> _runTests(BFEnv env, BFPath root) async {
