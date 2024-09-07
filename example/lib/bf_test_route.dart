@@ -144,11 +144,6 @@ class _BFTestRouteState extends State<BFTestRoute> {
     return list.map((e) => e.toStringWithLength()).join('|');
   }
 
-  String _formatFatEntityList(List<BFFatEntity> list) {
-    list.sort((a, b) => a.entity.name.compareTo(b.entity.name));
-    return list.map((e) => e.toString2()).join('|');
-  }
-
   Future<void> _runEnvTests(String name, BFEnv env, BFPath root) async {
     final ns = NTRSuite(suiteName: name);
 

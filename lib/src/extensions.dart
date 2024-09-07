@@ -49,27 +49,6 @@ extension BFEnvExtension on BFEnv {
     return ensureDirs(dir, relFilePath.take(relFilePath.length - 1).toIList());
   }
 
-  Future<void> _listRecursiveFat(BFPath path, IList<String> dirRelPath,
-      List<BFFatEntity> collector) async {
-    final directChildren = await listDir(path);
-    for (final child in directChildren) {
-      if (child.isDir) {
-        await _listRecursiveFat(
-            child.path, [...dirRelPath, child.name].lock, collector);
-      } else {
-        collector.add(BFFatEntity(child, dirRelPath));
-      }
-    }
-  }
-
-  // Compared to `listDir`, it returns a list of `BFFatEntity` which contains
-  // the dir rel path.
-  Future<List<BFFatEntity>> listDirFat(BFPath path, IList<String>? dirRelPath) {
-    final List<BFFatEntity> result = [];
-    return _listRecursiveFat(path, dirRelPath ?? <String>[].lock, result)
-        .then((_) => result);
-  }
-
   Future<BFEntity?> fileExists(BFPath path, {IList<String>? relPath}) async {
     final st = await stat(path, relPath: relPath);
     if (st == null) {
