@@ -97,7 +97,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       _output = 'Running...';
     });
 
-    BFPath? cleanUpPath;
+    UpdatedBFPath? cleanUpPath;
     try {
       // Local env.
       final localDir = tmpPath();
@@ -112,7 +112,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         setState(() {
           _env = 'Native';
         });
-        await _runEnvTests('Native', env, cleanUpPath);
+        await _runEnvTests('Native', env, cleanUpPath.path);
       }
 
       setState(() {
@@ -138,14 +138,17 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {
     final subDir1 = await env.ensureDir(r, '一 二');
-    await env.slowWriteFileBytes(subDir1, 'a.txt', Uint8List.fromList([1]));
-    await env.slowWriteFileBytes(subDir1, 'b.txt', Uint8List.fromList([2]));
+    await env.slowWriteFileBytes(
+        subDir1.path, 'a.txt', Uint8List.fromList([1]));
+    await env.slowWriteFileBytes(
+        subDir1.path, 'b.txt', Uint8List.fromList([2]));
 
     // b is empty.
     await env.ensureDir(r, 'b');
 
-    final subDir11 = await env.ensureDir(subDir1, 'deep');
-    await env.slowWriteFileBytes(subDir11, 'c.txt', Uint8List.fromList([3]));
+    final subDir11 = await env.ensureDir(subDir1.path, 'deep');
+    await env.slowWriteFileBytes(
+        subDir11.path, 'c.txt', Uint8List.fromList([3]));
 
     await env.slowWriteFileBytes(r, 'root.txt', Uint8List.fromList([4]));
     await env.slowWriteFileBytes(r, 'root2.txt', Uint8List.fromList([5]));
@@ -184,7 +187,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       testCount++;
       // Create a new folder for each test.
       final dirUri = await env.ensureDir(root, 'test_$testCount');
-      return dirUri;
+      return dirUri.path;
     };
     ns.afterAll = (h) async {
       final r = h.data as BFPath;
@@ -199,7 +202,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newDir = await env.ensureDir(r, 'space 一 二 三');
 
       // Test return value.
-      final st = await env.stat(newDir);
+      final st = await env.stat(newDir.path);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, 'space 一 二 三');
@@ -222,7 +225,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       final newDir = await env.ensureDirs(r, ['space 一 二 三', '22'].lock);
       // Test return value.
-      var st = await env.stat(newDir);
+      var st = await env.stat(newDir.path);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '22');
@@ -264,7 +267,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newDir =
           await env.ensureDirsForFile(r, ['space 一 二 三', '22', 'a.txt'].lock);
       // Test return value.
-      var st = await env.stat(newDir);
+      var st = await env.stat(newDir.path);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '22');
@@ -277,10 +280,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('ensureDirsForFile (just return)', (h) async {
       final r = h.data as BFPath;
       final dir1 = await env.ensureDirs(r, ['space 一 二 三', '22'].lock);
-      final dir2 = await env.ensureDirsForFile(dir1, ['a.txt'].lock);
+      final dir2 = await env.ensureDirsForFile(dir1.path, ['a.txt'].lock);
 
       // Test return value.
-      var st = await env.stat(dir2);
+      var st = await env.stat(dir2.path);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '22');
@@ -385,9 +388,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
         final r = h.data as BFPath;
         final tmpFile = tmpPath();
         await File(tmpFile).writeAsString(_defStringContents);
-        final fileUri = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+        final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
 
-        final stream = await env.readFileStream(fileUri);
+        final stream = await env.readFileStream(pasteRes.path);
         final bytes = await stream.fold<List<int>>([], (prev, element) {
           prev.addAll(element);
           return prev;
@@ -403,10 +406,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       final tmpFile = tmpPath();
       await File(tmpFile).writeAsString(_defStringContents);
-      final fileUri = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+      final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
 
       final tmpFile2 = tmpPath();
-      await env.copyToLocalFile(fileUri, tmpFile2);
+      await env.copyToLocalFile(pasteRes.path, tmpFile2);
       h.equals(await File(tmpFile2).readAsString(), _defStringContents);
 
       h.mapEquals(await env.directoryToMap(r),
@@ -420,21 +423,21 @@ class _BFTestRouteState extends State<BFTestRoute> {
         final tmpFile = tmpPath();
         await File(tmpFile).writeAsString('$_defStringContents 1');
         // Add first test.txt
-        var path = await env.pasteLocalFile(tmpFile, r, fileName);
-        var st = await env.stat(path);
+        var pasteRes = await env.pasteLocalFile(tmpFile, r, fileName);
+        var st = await env.stat(pasteRes.path);
         h.equals(st!.name, fileName);
 
         if (multiple) {
           // Add second test.txt
           await File(tmpFile).writeAsString('$_defStringContents 2');
-          path = await env.pasteLocalFile(tmpFile, r, fileName);
-          st = await env.stat(path);
+          pasteRes = await env.pasteLocalFile(tmpFile, r, fileName);
+          st = await env.stat(pasteRes.path);
           h.equals(st!.name, _platformDupSuffix(env, fileName, 2));
 
           // Add third test.txt
           await File(tmpFile).writeAsString('$_defStringContents 3');
-          path = await env.pasteLocalFile(tmpFile, r, fileName);
-          st = await env.stat(path);
+          pasteRes = await env.pasteLocalFile(tmpFile, r, fileName);
+          st = await env.stat(pasteRes.path);
           h.equals(st!.name, _platformDupSuffix(env, fileName, 3));
         }
 
@@ -485,7 +488,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('stat (folder)', (h) async {
       final r = h.data as BFPath;
       final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
-      final st = await env.stat(newDir);
+      final st = await env.stat(newDir.path);
 
       h.notNull(st);
       h.equals(st!.isDir, true);
@@ -504,7 +507,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
       final fileUri = await env.slowWriteFileBytes(
-          newDir, 'test 仨.txt', _defStringContentsBytes);
+          newDir.path, 'test 仨.txt', _defStringContentsBytes);
       final st = await env.stat(fileUri);
 
       h.notNull(st);
@@ -562,7 +565,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await env.ensureDirs(r, ['a', '一 二'].lock);
       final newPath =
           await env.rename(r, _genRelPath('a/一 二'), 'test 仨 2.txt', true);
-      final st = await env.stat(newPath);
+      final st = await env.stat(newPath.path);
       h.equals(st!.name, 'test 仨 2.txt');
 
       h.mapEquals(await env.directoryToMap(r), {
@@ -588,10 +591,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
       await env.slowWriteFileBytes(
-          newDir, 'test 仨.txt', _defStringContentsBytes);
+          newDir.path, 'test 仨.txt', _defStringContentsBytes);
       final newPath = await env.rename(
           r, _genRelPath('a/一 二/test 仨.txt'), 'test 仨 2.txt', false);
-      final st = await env.stat(newPath);
+      final st = await env.stat(newPath.path);
       h.equals(st!.name, 'test 仨 2.txt');
 
       h.mapEquals(await env.directoryToMap(r), {
@@ -637,7 +640,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), true);
-      final st = await e.stat(newPath);
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -675,8 +678,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), true);
-      final st = await e.stat(newPath);
-      h.equals(st!.name, 'a (1)');
+      final st = await e.stat(newPath.path);
+      h.equals(st!.name, _dupName('a', 1));
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -684,7 +687,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             "a": "010203",
             "file2": "02",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
-            "a (1)": {
+            _dupName('a', 1): {
               "file1": "01",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
@@ -715,7 +718,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), true);
-      final st = await e.stat(newPath);
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a (1)');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -748,7 +751,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false);
-      final st = await e.stat(newPath);
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -781,7 +784,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false);
-      final st = await e.stat(newPath);
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a (1)');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -814,7 +817,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false);
-      final st = await e.stat(newPath);
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a (1)');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -844,7 +847,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.forceMoveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false);
-      final st = await e.stat(newPath);
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -876,7 +879,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.forceMoveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false);
-      final st = await e.stat(newPath);
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -906,8 +909,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.forceMoveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false,
-          newName: 'a');
-      final st = await e.stat(newPath);
+          unsafeNewName: 'a');
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -940,8 +943,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.forceMoveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false,
-          newName: 'a');
-      final st = await e.stat(newPath);
+          unsafeNewName: 'a');
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -970,8 +973,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.forceMoveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false,
-          newName: 'zzz');
-      final st = await e.stat(newPath);
+          unsafeNewName: 'zzz');
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'zzz');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -1005,8 +1008,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Now `a` will be moved and assigned a new name `zzz`, so both `a` and `zzz` are kept.
       final newPath = await e.forceMoveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false,
-          newName: 'zzz');
-      final st = await e.stat(newPath);
+          unsafeNewName: 'zzz');
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'zzz');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -1041,8 +1044,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.forceMoveToDir(
           r, _genRelPath('move/zzz'), _genRelPath('move/b'), false,
-          newName: 'a');
-      final st = await e.stat(newPath);
+          unsafeNewName: 'a');
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -1077,8 +1080,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.forceMoveToDir(
           r, _genRelPath('move/zzz'), _genRelPath('move/b'), false,
-          newName: 'a');
-      final st = await e.stat(newPath);
+          unsafeNewName: 'a');
+      final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
 
       h.mapEquals(await e.directoryToMap(r), {
@@ -1198,8 +1201,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       BFEnv e, BFPath root, String folderName) async {
     final dirPath = await e.ensureDir(root, folderName);
     await _createFile(
-        e, dirPath, _defFolderContentFile, _defStringContentsBytes);
-    return dirPath;
+        e, dirPath.path, _defFolderContentFile, _defStringContentsBytes);
+    return dirPath.path;
   }
 
   IList<String> _genRelPath(String relPath) {
@@ -1230,6 +1233,14 @@ extension BFTestExtension on BFEnv {
     }
     final tmp = tmpPath();
     await File(tmp).writeAsBytes(bytes);
-    return pasteLocalFile(tmp, dir, unsafeName);
+    final res = await pasteLocalFile(tmp, dir, unsafeName);
+    return res.path;
   }
+}
+
+String _dupName(String s, int count) {
+  if (Platform.isAndroid) {
+    return '$s($count)';
+  }
+  return '$s ($count)';
 }

@@ -41,10 +41,10 @@ extension BFEnvExtension on BFEnv {
     await delete(st.path, st.isDir);
   }
 
-  Future<BFPath> ensureDirsForFile(
+  Future<UpdatedBFPath> ensureDirsForFile(
       BFPath dir, IList<String> relFilePath) async {
     if (relFilePath.length == 1) {
-      return dir;
+      return UpdatedBFPath(dir, null);
     }
     return ensureDirs(dir, relFilePath.take(relFilePath.length - 1).toIList());
   }

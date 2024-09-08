@@ -75,18 +75,22 @@ class BFEnvAndroidSAF extends BFEnv {
     return _locate(path, relPath);
   }
 
-  Future<BFPath> _safMove(
+  Future<UpdatedBFPath> _safMove(
       BFPath srcPath, BFPath srcDirPath, BFPath destDir) async {
     final res = await saf.moveEx(srcPath.scopedSafUri(),
         srcDirPath.scopedSafUri(), destDir.scopedSafUri());
     if (res == null) {
       throw Exception('Unexpected null result from moveEx');
     }
-    return BFScopedPath(res.uri.toString());
+    final fileName = res.name;
+    if (fileName == null || fileName.isEmpty) {
+      throw Exception('Unexpected null or empty name from item stat');
+    }
+    return UpdatedBFPath(BFScopedPath(res.uri.toString()), fileName);
   }
 
   @override
-  Future<BFPath> moveToDir(
+  Future<UpdatedBFPath> moveToDir(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
     final srcParentStat =
@@ -98,7 +102,7 @@ class BFEnvAndroidSAF extends BFEnv {
 
     // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
     // Then move the file to dest and rename it back to the desired name.
-    BFPath? srcTmpUri;
+    UpdatedBFPath? srcTmpUri;
     final srcTmpName = tmpFileName() + (isDir ? '' : p.extension(src.last));
     try {
       srcTmpUri = await rename(root, src, srcTmpName, isDir);
@@ -111,7 +115,7 @@ class BFEnvAndroidSAF extends BFEnv {
           isDir,
           nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
       var destUri =
-          await _safMove(srcTmpUri, srcParentStat.path, destDirStat.path);
+          await _safMove(srcTmpUri.path, srcParentStat.path, destDirStat.path);
 
       // Rename it back to desired name.
       destUri = await rename(
@@ -119,7 +123,7 @@ class BFEnvAndroidSAF extends BFEnv {
       return destUri;
     } catch (err) {
       // Try reverting changes if exception happened.
-      if (srcTmpUri != null && await stat(srcTmpUri) != null) {
+      if (srcTmpUri != null && await stat(srcTmpUri.path) != null) {
         try {
           await rename(
               root, [...src.parentDir(), srcTmpName].lock, src.last, isDir);
@@ -144,37 +148,46 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
-  Future<BFPath> ensureDirCore(BFPath dir, String name) async {
+  Future<UpdatedBFPath> ensureDir(BFPath dir, String unsafeName) async {
     // If `name` exists, Android SAF creates a `name (1)`. We will return the existing URI in that case.
-    final st = await stat(dir, relPath: [name].lock);
+    final st = await stat(dir, relPath: [unsafeName].lock);
     if (st != null) {
-      return st.path;
+      return UpdatedBFPath(st.path, null);
     }
-    final df = await saf.createDirectory(dir.scopedSafUri(), name);
+    final df = await saf.createDirectory(dir.scopedSafUri(), unsafeName);
     if (df == null) {
       throw Exception('mkdir failed at $dir');
     }
-    return BFScopedPath(df.uri.toString());
+    if (df.name == null || df.name!.isEmpty) {
+      throw Exception('Unexpected null or empty name from item stat');
+    }
+    return UpdatedBFPath(BFScopedPath(df.uri.toString()), df.name);
   }
 
   @override
-  Future<BFPath> ensureDirs(BFPath dir, IList<String> path) async {
+  Future<UpdatedBFPath> ensureDirs(BFPath dir, IList<String> path) async {
     final stat = await saf.mkdirp(dir.scopedSafUri(), path.unlock);
     if (stat == null) {
       throw Exception('mkdirp of $dir + $path has failed');
     }
-    return BFScopedPath(stat.uri.toString());
+    if (stat.name == null || stat.name!.isEmpty) {
+      throw Exception('Unexpected null or empty name from item stat');
+    }
+    return UpdatedBFPath(BFScopedPath(stat.uri.toString()), stat.name);
   }
 
   @override
-  Future<BFPath> renameInternal(BFPath root, IList<String> src, String newName,
-      bool isDir, BFEntity srcStat) async {
+  Future<UpdatedBFPath> renameInternal(BFPath root, IList<String> src,
+      String unsafeNewName, bool isDir, BFEntity srcStat) async {
     final path = srcStat.path;
-    final newDF = await saf.renameTo(path.scopedSafUri(), newName);
+    final newDF = await saf.renameTo(path.scopedSafUri(), unsafeNewName);
     if (newDF == null) {
       throw Exception('rename failed at $path');
     }
-    return BFScopedPath(newDF.uri.toString());
+    if (newDF.name == null || newDF.name!.isEmpty) {
+      throw Exception('Unexpected null or empty name from item stat');
+    }
+    return UpdatedBFPath(BFScopedPath(newDF.uri.toString()), newDF.name);
   }
 
   @override
@@ -192,12 +205,12 @@ class BFEnvAndroidSAF extends BFEnv {
       {BFNameUpdaterFunc? nameUpdater}) async {
     final res = await _plugin.startWriteStream(
         dir.scopedSafUri(), unsafeName, _getMime(unsafeName));
-    final newFileName = res.fileName;
+    final newFileName = res.fileResult.fileName;
     if (newFileName == null || newFileName.isEmpty) {
       throw Exception('Unexpected null fileName from startWriteStream');
     }
-    return BFSafOutStream(
-        res.session, _plugin, BFScopedPath(res.uri.toString()), newFileName);
+    return BFSafOutStream(res.session, _plugin,
+        BFScopedPath(res.fileResult.uri.toString()), newFileName);
   }
 
   String _getMime(String fileName) {
@@ -207,14 +220,16 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
-  Future<BFPath> pasteLocalFile(String localSrc, BFPath dir, String unsafeName,
+  Future<UpdatedBFPath> pasteLocalFile(
+      String localSrc, BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-
     final res = await _plugin.writeFileFromLocal(
-        localSrc, dir.scopedSafUri(), safeName, _getMime(safeName));
-    return BFScopedPath(res.toString());
+        localSrc, dir.scopedSafUri(), unsafeName, _getMime(unsafeName));
+    final fileName = res.fileName;
+    if (fileName == null || fileName.isEmpty) {
+      throw Exception('Unexpected null fileName from writeFileFromLocal');
+    }
+    return UpdatedBFPath(BFScopedPath(res.uri.toString()), fileName);
   }
 
   @override

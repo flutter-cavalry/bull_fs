@@ -236,6 +236,7 @@ class BFLocalOutStream extends BFOutStream {
 }
 
 class BFMemoryOutStream extends BFOutStream {
+  // ignore: deprecated_export_use
   final _bb = BytesBuilder(copy: false);
 
   @override
@@ -261,5 +262,17 @@ class BFMemoryOutStream extends BFOutStream {
 
   Uint8List toBytes() {
     return _bb.toBytes();
+  }
+}
+
+class UpdatedBFPath {
+  final BFPath path;
+  final String? newName;
+
+  UpdatedBFPath(this.path, this.newName);
+
+  @override
+  String toString() {
+    return '$path|$newName';
   }
 }
