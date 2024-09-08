@@ -102,13 +102,6 @@ extension BFPathExtension on BFPath {
   }
 }
 
-/// Used in move functions.
-class BFPathAndName {
-  final BFPath path;
-  final String name;
-  BFPathAndName(this.path, this.name);
-}
-
 class BFEntity {
   final BFPath path;
   final String name;

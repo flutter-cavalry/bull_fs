@@ -15,12 +15,6 @@ const _defFolderContentFile = 'content.bin';
 const _defStringContents = 'abcdef 🍉🌏';
 final _defStringContentsBytes = utf8.encode(_defStringContents);
 
-extension BFEntityExtension on BFEntity {
-  BFPathAndName toMini() {
-    return BFPathAndName(path, name);
-  }
-}
-
 class BFTestRoute extends StatefulWidget {
   const BFTestRoute({super.key});
 
