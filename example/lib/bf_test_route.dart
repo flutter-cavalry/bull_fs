@@ -137,7 +137,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {
-    final subDir1 = await env.ensureDir(r, '一');
+    final subDir1 = await env.ensureDir(r, '一 二');
     await env.slowWriteFileBytes(subDir1, 'a.txt', Uint8List.fromList([1]));
     await env.slowWriteFileBytes(subDir1, 'b.txt', Uint8List.fromList([2]));
 
@@ -526,7 +526,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final contents = await env.listDir(r);
       h.equals(_formatEntityList(contents),
-          '[D|b]|[F|root.txt|1]|[F|root2.txt|1]|[D|一]');
+          '[D|b]|[F|root.txt|1]|[F|root2.txt|1]|[D|一 二]');
     });
 
     ns.add('listDir recursively', (h) async {
@@ -535,7 +535,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final contents = await env.listDir(r, recursive: true);
       h.equals(_formatEntityList(contents),
-          '[F|a.txt|1]|[D|b]|[F|b.txt|1]|[F|c.txt|1]|[D|deep]|[F|root.txt|1]|[F|root2.txt|1]|[D|一]');
+          '[F|a.txt|1]|[D|b]|[F|b.txt|1]|[F|c.txt|1]|[D|deep]|[F|root.txt|1]|[F|root2.txt|1]|[D|一 二]');
     });
 
     ns.add('listDir recursively with dirRelPath', (h) async {
@@ -545,7 +545,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final contents =
           await env.listDir(r, recursive: true, relativePathInfo: true);
       h.equals(_formatEntityList(contents),
-          '[F|a.txt|1|dir_rel: 一]|[D|b]|[F|b.txt|1|dir_rel: 一]|[F|c.txt|1|dir_rel: 一/deep]|[D|deep|dir_rel: 一]|[F|root.txt|1]|[F|root2.txt|1]|[D|一]');
+          '[F|a.txt|1|dir_rel: 一 二]|[D|b]|[F|b.txt|1|dir_rel: 一 二]|[F|c.txt|1|dir_rel: 一 二/deep]|[D|deep|dir_rel: 一 二]|[F|root.txt|1]|[F|root2.txt|1]|[D|一 二]');
     });
 
     ns.add('listDirContentFiles', (h) async {
@@ -554,7 +554,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final contents = await env.listDirContentFiles(r);
       h.equals(await _formatPathInfoList(env, contents),
-          '一/a.txt | 一/b.txt | 一/deep/c.txt | root.txt | root2.txt');
+          '一 二/a.txt | 一 二/b.txt | 一 二/deep/c.txt | root.txt | root2.txt');
     });
 
     ns.add('rename (folder)', (h) async {
