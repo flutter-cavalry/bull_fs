@@ -398,7 +398,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       });
     }
 
-    ns.add('copyToLocalFile', (h) async {
+    ns.add('pasteLocalFile', (h) async {
       final r = h.data as BFPath;
       final tmpFile = tmpPath();
       await File(tmpFile).writeAsString(_defStringContents);

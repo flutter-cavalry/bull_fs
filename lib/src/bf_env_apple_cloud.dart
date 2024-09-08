@@ -88,14 +88,24 @@ class BFEnvAppleCloud extends BFEnv {
   Future<UpdatedBFPath> ensureDir(BFPath dir, String unsafeName) async {
     final destPath = await dir.iosJoinRelPath([unsafeName].lock, true);
     await _icloudPlugin.mkdir(destPath.scopedID());
-    return UpdatedBFPath(destPath, null);
+    return UpdatedBFPath(destPath, unsafeName);
   }
 
   @override
   Future<UpdatedBFPath> ensureDirs(BFPath dir, IList<String> path) async {
     final destPath = await dir.iosJoinRelPath(path, true);
     await _icloudPlugin.mkdir(destPath.scopedID());
-    return UpdatedBFPath(destPath, null);
+    String lastComponentName;
+    if (path.isEmpty) {
+      final destDirStat = await stat(destPath);
+      if (destDirStat == null) {
+        throw Exception('Failed to create dir: $destPath');
+      }
+      lastComponentName = destDirStat.name;
+    } else {
+      lastComponentName = path.last;
+    }
+    return UpdatedBFPath(destPath, lastComponentName);
   }
 
   @override
@@ -106,7 +116,7 @@ class BFEnvAppleCloud extends BFEnv {
     final destUrl =
         await _darwinUrlPlugin.append(dirUrl, [unsafeNewName], isDir: isDir);
     await _icloudPlugin.move(path.scopedID(), destUrl);
-    return UpdatedBFPath(BFScopedPath(destUrl), null);
+    return UpdatedBFPath(BFScopedPath(destUrl), unsafeNewName);
   }
 
   @override

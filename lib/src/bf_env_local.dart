@@ -96,14 +96,24 @@ class BFEnvLocal extends BFEnv {
   Future<UpdatedBFPath> ensureDir(BFPath dir, String unsafeName) async {
     final path = p.join(dir.localPath(), unsafeName);
     await Directory(path).create(recursive: true);
-    return UpdatedBFPath(BFLocalPath(path), null);
+    return UpdatedBFPath(BFLocalPath(path), unsafeName);
   }
 
   @override
   Future<UpdatedBFPath> ensureDirs(BFPath dir, IList<String> path) async {
     final finalPath = p.joinAll([dir.localPath(), ...path]);
     await Directory(finalPath).create(recursive: true);
-    return UpdatedBFPath(BFLocalPath(finalPath), null);
+    String lastComponentName;
+    if (path.isEmpty) {
+      final destDirStat = await stat(BFLocalPath(finalPath));
+      if (destDirStat == null) {
+        throw Exception('Failed to create dir: $finalPath');
+      }
+      lastComponentName = destDirStat.name;
+    } else {
+      lastComponentName = path.last;
+    }
+    return UpdatedBFPath(BFLocalPath(finalPath), lastComponentName);
   }
 
   @override
@@ -113,7 +123,7 @@ class BFEnvLocal extends BFEnv {
     final filePath = path.localPath();
     final newPath = p.join(p.dirname(filePath), unsafeNewName);
     await _move(filePath, newPath, isDir);
-    return UpdatedBFPath(BFLocalPath(newPath), null);
+    return UpdatedBFPath(BFLocalPath(newPath), unsafeNewName);
   }
 
   @override
@@ -132,7 +142,7 @@ class BFEnvLocal extends BFEnv {
     final destItemPath = p.join(destDirStat.path.toString(), destItemFileName);
 
     await _move(srcStat.path.localPath(), destItemPath, isDir);
-    return UpdatedBFPath(BFLocalPath(destItemPath), null);
+    return UpdatedBFPath(BFLocalPath(destItemPath), destItemFileName);
   }
 
   Future<void> _move(String src, String dest, bool isDir) async {
@@ -173,7 +183,7 @@ class BFEnvLocal extends BFEnv {
     final destPath = p.join(dirPath, safeName);
     final destBFPath = BFLocalPath(destPath);
     await _copy(localSrc, destBFPath.localPath(), false);
-    return UpdatedBFPath(destBFPath, null);
+    return UpdatedBFPath(destBFPath, safeName);
   }
 
   @override

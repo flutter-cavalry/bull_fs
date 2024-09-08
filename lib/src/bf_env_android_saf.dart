@@ -152,7 +152,7 @@ class BFEnvAndroidSAF extends BFEnv {
     // If `name` exists, Android SAF creates a `name (1)`. We will return the existing URI in that case.
     final st = await stat(dir, relPath: [unsafeName].lock);
     if (st != null) {
-      return UpdatedBFPath(st.path, null);
+      return UpdatedBFPath(st.path, st.name);
     }
     final df = await saf.createDirectory(dir.scopedSafUri(), unsafeName);
     if (df == null) {
@@ -161,7 +161,7 @@ class BFEnvAndroidSAF extends BFEnv {
     if (df.name == null || df.name!.isEmpty) {
       throw Exception('Unexpected null or empty name from item stat');
     }
-    return UpdatedBFPath(BFScopedPath(df.uri.toString()), df.name);
+    return UpdatedBFPath(BFScopedPath(df.uri.toString()), df.name!);
   }
 
   @override
@@ -173,7 +173,7 @@ class BFEnvAndroidSAF extends BFEnv {
     if (stat.name == null || stat.name!.isEmpty) {
       throw Exception('Unexpected null or empty name from item stat');
     }
-    return UpdatedBFPath(BFScopedPath(stat.uri.toString()), stat.name);
+    return UpdatedBFPath(BFScopedPath(stat.uri.toString()), stat.name!);
   }
 
   @override
@@ -187,7 +187,7 @@ class BFEnvAndroidSAF extends BFEnv {
     if (newDF.name == null || newDF.name!.isEmpty) {
       throw Exception('Unexpected null or empty name from item stat');
     }
-    return UpdatedBFPath(BFScopedPath(newDF.uri.toString()), newDF.name);
+    return UpdatedBFPath(BFScopedPath(newDF.uri.toString()), newDF.name!);
   }
 
   @override

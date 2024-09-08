@@ -44,7 +44,11 @@ extension BFEnvExtension on BFEnv {
   Future<UpdatedBFPath> ensureDirsForFile(
       BFPath dir, IList<String> relFilePath) async {
     if (relFilePath.length == 1) {
-      return UpdatedBFPath(dir, null);
+      final dirStat = await stat(dir);
+      if (dirStat == null) {
+        throw Exception('Parent dir does not exist: $dir');
+      }
+      return UpdatedBFPath(dir, dirStat.name);
     }
     return ensureDirs(dir, relFilePath.take(relFilePath.length - 1).toIList());
   }

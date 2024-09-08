@@ -267,7 +267,7 @@ class BFMemoryOutStream extends BFOutStream {
 
 class UpdatedBFPath {
   final BFPath path;
-  final String? newName;
+  final String newName;
 
   UpdatedBFPath(this.path, this.newName);
 
