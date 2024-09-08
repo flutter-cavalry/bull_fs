@@ -65,9 +65,9 @@ class NTRSuite {
         h = NTRHandle(data);
         onLog?.call(name);
         await fn(h);
-      } catch (err) {
+      } catch (err, st) {
         debugPrint('❌ $name\n$err\n');
-        rethrow;
+        debugPrintStack(stackTrace: st);
       } finally {
         if (h != null) {
           // `afterAll` only gets called when `beforeAll` is called (i.e. NTRHandle is created).
