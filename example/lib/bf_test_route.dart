@@ -130,7 +130,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     }
   }
 
-  String _platformDupSuffix(BFEnv env, String fileName, int c) {
+  String _dupSuffix(String fileName, int c) {
     final ext = p.extension(fileName);
     final name = p.basenameWithoutExtension(fileName);
     return '$name (${c - 1})$ext';
@@ -323,7 +323,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             destUriStat = await env.stat(destUri);
             h.notNull(destUriStat);
             h.equals(destUriStat!.isDir, false);
-            h.equals(destUriStat.name, _platformDupSuffix(env, fileName, 2));
+            h.equals(destUriStat.name, _dupSuffix(fileName, 2));
 
             // Write to the same file again.
             outStream = await env.writeFileStream(r, fileName);
@@ -347,30 +347,28 @@ class _BFTestRouteState extends State<BFTestRoute> {
       testWriteFileStream('test 三.txt', false,
           {"test 三.txt": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三.txt', true, {
-        _platformDupSuffix(env, 'test 三.txt', 2):
-            "6162633261626364656620f09f8d89f09f8c8f",
+        _dupSuffix('test 三.txt', 2): "6162633261626364656620f09f8d89f09f8c8f",
         "test 三.txt": "6162633161626364656620f09f8d89f09f8c8f",
-        _platformDupSuffix(env, 'test 三.txt', 3):
-            "6162633361626364656620f09f8d89f09f8c8f"
+        _dupSuffix('test 三.txt', 3): "6162633361626364656620f09f8d89f09f8c8f"
       });
       // Unknown extension.
       testWriteFileStream('test 三.elephant', false,
           {"test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三.elephant', true, {
-        _platformDupSuffix(env, 'test 三.elephant', 2):
+        _dupSuffix('test 三.elephant', 2):
             "6162633261626364656620f09f8d89f09f8c8f",
         "test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f",
-        _platformDupSuffix(env, 'test 三.elephant', 3):
+        _dupSuffix('test 三.elephant', 3):
             "6162633361626364656620f09f8d89f09f8c8f"
       });
       // Multiple extensions.
       testWriteFileStream('test 三.elephant.xyz', false,
           {"test 三.elephant.xyz": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三.elephant.xyz', true, {
-        _platformDupSuffix(env, 'test 三.elephant.xyz', 2):
+        _dupSuffix('test 三.elephant.xyz', 2):
             "6162633261626364656620f09f8d89f09f8c8f",
         "test 三.elephant.xyz": "6162633161626364656620f09f8d89f09f8c8f",
-        _platformDupSuffix(env, 'test 三.elephant.xyz', 3):
+        _dupSuffix('test 三.elephant.xyz', 3):
             "6162633361626364656620f09f8d89f09f8c8f"
       });
       // No extension.
@@ -378,10 +376,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
           {"test 三": "6162633161626364656620f09f8d89f09f8c8f"});
       testWriteFileStream('test 三', true, {
         "test 三": "6162633161626364656620f09f8d89f09f8c8f",
-        _platformDupSuffix(env, 'test 三', 2):
-            "6162633261626364656620f09f8d89f09f8c8f",
-        _platformDupSuffix(env, 'test 三', 3):
-            "6162633361626364656620f09f8d89f09f8c8f"
+        _dupSuffix('test 三', 2): "6162633261626364656620f09f8d89f09f8c8f",
+        _dupSuffix('test 三', 3): "6162633361626364656620f09f8d89f09f8c8f"
       });
 
       ns.add('readFileStream', (h) async {
@@ -432,13 +428,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await File(tmpFile).writeAsString('$_defStringContents 2');
           pasteRes = await env.pasteLocalFile(tmpFile, r, fileName);
           st = await env.stat(pasteRes.path);
-          h.equals(st!.name, _platformDupSuffix(env, fileName, 2));
+          h.equals(st!.name, _dupSuffix(fileName, 2));
 
           // Add third test.txt
           await File(tmpFile).writeAsString('$_defStringContents 3');
           pasteRes = await env.pasteLocalFile(tmpFile, r, fileName);
           st = await env.stat(pasteRes.path);
-          h.equals(st!.name, _platformDupSuffix(env, fileName, 3));
+          h.equals(st!.name, _dupSuffix(fileName, 3));
         }
 
         h.mapEquals(await env.directoryToMap(r), fs);
@@ -449,40 +445,34 @@ class _BFTestRouteState extends State<BFTestRoute> {
     testPasteToLocalFile('test 三.txt', false,
         {"test 三.txt": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三.txt', true, {
-      _platformDupSuffix(env, 'test 三.txt', 2):
-          "61626364656620f09f8d89f09f8c8f2032",
-      _platformDupSuffix(env, 'test 三.txt', 3):
-          "61626364656620f09f8d89f09f8c8f2033",
+      _dupSuffix('test 三.txt', 2): "61626364656620f09f8d89f09f8c8f2032",
+      _dupSuffix('test 三.txt', 3): "61626364656620f09f8d89f09f8c8f2033",
       "test 三.txt": "61626364656620f09f8d89f09f8c8f2031"
     });
     // Unknown extension.
     testPasteToLocalFile('test 三.elephant', false,
         {"test 三.elephant": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三.elephant', true, {
-      _platformDupSuffix(env, 'test 三.elephant', 2):
-          "61626364656620f09f8d89f09f8c8f2032",
+      _dupSuffix('test 三.elephant', 2): "61626364656620f09f8d89f09f8c8f2032",
       "test 三.elephant": "61626364656620f09f8d89f09f8c8f2031",
-      _platformDupSuffix(env, 'test 三.elephant', 3):
-          "61626364656620f09f8d89f09f8c8f2033"
+      _dupSuffix('test 三.elephant', 3): "61626364656620f09f8d89f09f8c8f2033"
     });
     // Multiple extensions.
     testPasteToLocalFile('test 三.elephant.xyz', false,
         {"test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三.elephant.xyz', true, {
-      _platformDupSuffix(env, 'test 三.elephant.xyz', 2):
+      _dupSuffix('test 三.elephant.xyz', 2):
           "61626364656620f09f8d89f09f8c8f2032",
       "test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2031",
-      _platformDupSuffix(env, 'test 三.elephant.xyz', 3):
-          "61626364656620f09f8d89f09f8c8f2033"
+      _dupSuffix('test 三.elephant.xyz', 3): "61626364656620f09f8d89f09f8c8f2033"
     });
     // No extension.
     testPasteToLocalFile(
         'test 三', false, {"test 三": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三', true, {
       "test 三": "61626364656620f09f8d89f09f8c8f2031",
-      _platformDupSuffix(env, 'test 三', 2):
-          "61626364656620f09f8d89f09f8c8f2032",
-      _platformDupSuffix(env, 'test 三', 3): "61626364656620f09f8d89f09f8c8f2033"
+      _dupSuffix('test 三', 2): "61626364656620f09f8d89f09f8c8f2032",
+      _dupSuffix('test 三', 3): "61626364656620f09f8d89f09f8c8f2033"
     });
 
     ns.add('stat (folder)', (h) async {
@@ -679,7 +669,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), true);
       final st = await e.stat(newPath.path);
-      h.equals(st!.name, _dupName('a', 1));
+      h.equals(st!.name, _dupSuffix('a', 1));
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -687,7 +677,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             "a": "010203",
             "file2": "02",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"},
-            _dupName('a', 1): {
+            "a (1)": {
               "file1": "01",
               "a_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
             }
@@ -1236,11 +1226,4 @@ extension BFTestExtension on BFEnv {
     final res = await pasteLocalFile(tmp, dir, unsafeName);
     return res.path;
   }
-}
-
-String _dupName(String s, int count) {
-  if (Platform.isAndroid) {
-    return '$s($count)';
-  }
-  return '$s ($count)';
 }
