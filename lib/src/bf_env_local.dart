@@ -41,6 +41,28 @@ class BFEnvLocal extends BFEnv {
   }
 
   @override
+  Future<List<BFPathAndDirRelPath>> listDirContentFiles(BFPath path) async {
+    final rootPath = path.localPath();
+    final dirObj = Directory(rootPath);
+    final paths = await dirObj.list(recursive: true).toList();
+    final res = paths
+        .whereType<File>()
+        .map((e) {
+          List<String>? dirRelPath;
+          final relPath = p.relative(e.path, from: rootPath).split(p.separator);
+          if (relPath.length == 1) {
+            dirRelPath = [];
+          } else if (relPath.length > 1) {
+            dirRelPath = relPath.sublist(0, relPath.length - 1);
+          }
+          return BFPathAndDirRelPath(BFLocalPath(e.path), dirRelPath ?? []);
+        })
+        .whereNotNull()
+        .toList();
+    return res;
+  }
+
+  @override
   Future<void> delete(BFPath path, bool isDir) async {
     if (isDir) {
       await Directory(path.localPath()).delete(recursive: true);

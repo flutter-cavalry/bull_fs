@@ -102,6 +102,22 @@ extension BFPathExtension on BFPath {
   }
 }
 
+class BFPathAndDirRelPath {
+  final BFPath path;
+  final List<String> dirRelPath;
+
+  BFPathAndDirRelPath(this.path, this.dirRelPath);
+
+  @override
+  String toString() {
+    var res = path.toString();
+    if (dirRelPath.isNotEmpty) {
+      res += '|dir_rel: ${dirRelPath.join('/')}';
+    }
+    return res;
+  }
+}
+
 class BFEntity {
   final BFPath path;
   final String name;
@@ -111,14 +127,7 @@ class BFEntity {
   final bool notDownloaded;
 
   // Automatically set when recursively listing a directory.
-  List<String>? _dirRelPath;
-  List<String>? get dirRelPath => _dirRelPath;
-  set dirRelPath(List<String>? value) {
-    if (value != null && value.isEmpty) {
-      value = null;
-    }
-    _dirRelPath = value;
-  }
+  List<String> dirRelPath = [];
 
   BFEntity(this.path, this.name, this.isDir, int length, this.lastMod,
       this.notDownloaded,
@@ -128,7 +137,9 @@ class BFEntity {
     } else {
       this.length = length;
     }
-    this.dirRelPath = dirRelPath;
+    if (dirRelPath != null) {
+      this.dirRelPath = dirRelPath;
+    }
   }
 
   @override
@@ -138,9 +149,8 @@ class BFEntity {
     if (!isDir) {
       res += '|${length > 0 ? '+' : '0'}';
     }
-    if (dirRelPath != null) {
-      res +=
-          '|dir_rel: ${dirRelPath!.isEmpty ? '<root>' : dirRelPath!.join('/')}';
+    if (dirRelPath.isNotEmpty) {
+      res += '|dir_rel: ${dirRelPath.join('/')}';
     }
     return res;
   }
@@ -151,9 +161,8 @@ class BFEntity {
     if (!isDir) {
       res += '|$length';
     }
-    if (dirRelPath != null) {
-      res +=
-          '|dir_rel: ${dirRelPath!.isEmpty ? '<root>' : dirRelPath!.join('/')}';
+    if (dirRelPath.isNotEmpty) {
+      res += '|dir_rel: ${dirRelPath.join('/')}';
     }
     return '[$res]';
   }

@@ -34,6 +34,10 @@ abstract class BFEnv {
   Future<List<BFEntity>> listDir(BFPath path,
       {bool? recursive, bool? relativePathInfo});
 
+  /// Unlike [listDir] with [recursive] and [relativePathInfo] set to `true`,
+  /// this function doesn't fetch item stats. So it's faster.
+  Future<List<BFPathAndDirRelPath>> listDirContentFiles(BFPath path);
+
   /// Copies a [BFPath] to a local file.
   ///
   /// [src] is the source path.

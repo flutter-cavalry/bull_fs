@@ -44,6 +44,25 @@ class BFEnvAppleCloud extends BFEnv {
   }
 
   @override
+  Future<List<BFPathAndDirRelPath>> listDirContentFiles(BFPath path) async {
+    final icloudEntities =
+        await _icloudPlugin.listContentFiles(path.scopedID());
+    final paths = icloudEntities.map((e) {
+      List<String>? dirRelPath;
+      if (e.relativePath != null) {
+        final relPath = e.relativePath!.split('/');
+        if (relPath.length == 1) {
+          dirRelPath = [];
+        } else if (relPath.length > 1) {
+          dirRelPath = relPath.sublist(0, relPath.length - 1);
+        }
+      }
+      return BFPathAndDirRelPath(BFScopedPath(e.url), dirRelPath ?? []);
+    }).toList();
+    return paths;
+  }
+
+  @override
   Future<void> delete(BFPath path, bool isDir) async {
     await _icloudPlugin.delete(path.scopedID());
   }

@@ -55,6 +55,17 @@ class BFEnvAndroidSAF extends BFEnv {
   }
 
   @override
+  Future<List<BFPathAndDirRelPath>> listDirContentFiles(BFPath path) async {
+    // TODO: write a faster implementation instead of using listDir.
+    final entities =
+        await listDir(path, recursive: true, relativePathInfo: true);
+    return entities
+        .where((e) => !e.isDir)
+        .map((e) => BFPathAndDirRelPath(e.path, e.dirRelPath))
+        .toList();
+  }
+
+  @override
   Future<void> delete(BFPath path, bool isDir) async {
     await saf.delete(path.scopedSafUri());
   }

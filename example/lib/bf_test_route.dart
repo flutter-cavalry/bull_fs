@@ -156,6 +156,23 @@ class _BFTestRouteState extends State<BFTestRoute> {
     return list.map((e) => e.toStringWithLength()).join('|');
   }
 
+  Future<String> _formatPathInfoList(
+      BFEnv env, List<BFPathAndDirRelPath> list) async {
+    final entities = await Future.wait(list.map((e) async {
+      final st = await env.stat(e.path);
+      if (st == null) {
+        throw Exception('Stat failed: ${e.path}');
+      }
+      return (e, st);
+    }));
+    entities.sort((a, b) => a.$2.name.compareTo(b.$2.name));
+    return entities
+        .map((e) =>
+            '${e.$1.dirRelPath.isEmpty ? '' : '${e.$1.dirRelPath.join('/')}/'}${e.$2.name}')
+        .toList()
+        .join(' | ');
+  }
+
   Future<void> _runEnvTests(String name, BFEnv env, BFPath root) async {
     final ns = NTRSuite(suiteName: name);
 
@@ -528,7 +545,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final contents =
           await env.listDir(r, recursive: true, relativePathInfo: true);
       h.equals(_formatEntityList(contents),
-          '[F|a.txt|1|dir_rel: 一]|[D|b|dir_rel: <root>]|[F|b.txt|1|dir_rel: 一]|[F|c.txt|1|dir_rel: 一/deep]|[D|deep|dir_rel: 一]|[F|root.txt|1|dir_rel: <root>]|[F|root2.txt|1|dir_rel: <root>]|[D|一|dir_rel: <root>]');
+          '[F|a.txt|1|dir_rel: 一]|[D|b]|[F|b.txt|1|dir_rel: 一]|[F|c.txt|1|dir_rel: 一/deep]|[D|deep|dir_rel: 一]|[F|root.txt|1]|[F|root2.txt|1]|[D|一]');
+    });
+
+    ns.add('listDirContentFiles', (h) async {
+      final r = h.data as BFPath;
+      await _createNestedDir(env, r);
+
+      final contents = await env.listDirContentFiles(r);
+      h.equals(await _formatPathInfoList(env, contents),
+          '一/a.txt | 一/b.txt | 一/deep/c.txt | root.txt | root2.txt');
     });
 
     ns.add('rename (folder)', (h) async {
