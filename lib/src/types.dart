@@ -197,6 +197,7 @@ class BFEntity {
 
 abstract class BFOutStream {
   BFPath getPath();
+  String getFileName();
   Future<void> write(Uint8List data);
   Future<void> close();
   Future<void> flush();
@@ -211,6 +212,11 @@ class BFLocalOutStream extends BFOutStream {
   @override
   BFPath getPath() {
     return _path;
+  }
+
+  @override
+  String getFileName() {
+    return p.basename(_path.localPath());
   }
 
   @override
@@ -235,6 +241,11 @@ class BFMemoryOutStream extends BFOutStream {
   @override
   BFPath getPath() {
     throw Exception('`getPath` is not supported in `MemoryBFOutStream`');
+  }
+
+  @override
+  String getFileName() {
+    throw Exception('`getFileName` is not supported in `MemoryBFOutStream`');
   }
 
   @override

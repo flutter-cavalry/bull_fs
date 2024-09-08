@@ -190,16 +190,20 @@ class BFEnvAndroidSAF extends BFEnv {
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _plugin.startWriteStream(
-        dir.scopedSafUri(), safeName, _getMime(safeName));
+        dir.scopedSafUri(), unsafeName, _getMime(unsafeName));
+    final newFileName = res.fileName;
+    if (newFileName == null || newFileName.isEmpty) {
+      throw Exception('Unexpected null fileName from startWriteStream');
+    }
     return BFSafOutStream(
-        res.session, _plugin, BFScopedPath(res.uri.toString()));
+        res.session, _plugin, BFScopedPath(res.uri.toString()), newFileName);
   }
 
   String _getMime(String fileName) {
-    return lookupMimeType(fileName) ?? 'application/octet-stream';
+    return lookupMimeType(fileName) ??
+        lookupMimeType(fileName) ??
+        'application/octet-stream';
   }
 
   @override
@@ -234,12 +238,18 @@ class BFSafOutStream extends BFOutStream {
   final String _session;
   final SafStream _plugin;
   final BFPath _path;
+  final String _fileName;
 
-  BFSafOutStream(this._session, this._plugin, this._path);
+  BFSafOutStream(this._session, this._plugin, this._path, this._fileName);
 
   @override
   BFPath getPath() {
     return _path;
+  }
+
+  @override
+  String getFileName() {
+    return _fileName;
   }
 
   @override

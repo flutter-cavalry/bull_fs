@@ -335,6 +335,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.11.1"
+  media_mime:
+    dependency: transitive
+    description:
+      name: media_mime
+      sha256: fdca72950238af8e47fad80d939ae737e96d10df1289e646ea39507046fb9a3d
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   meta:
     dependency: transitive
     description:
@@ -387,10 +395,10 @@ packages:
     dependency: transitive
     description:
       name: saf_stream
-      sha256: "1db21cfa5914a5cf9a7c962b5d57fc8c07011561e365e7ff7f8013019cc3c0f3"
+      sha256: e35a83b4ffc078bdbcd65525cf5f99d9d6baf6930963875f9d34757f7fdbd640
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.0"
+    version: "0.5.0"
   sky_engine:
     dependency: transitive
     description: flutter
