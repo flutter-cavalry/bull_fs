@@ -399,7 +399,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         h.mapEquals(await env.directoryToMap(r),
             {"test.txt": "61626364656620f09f8d89f09f8c8f"});
       });
-    }
+    } // End of if (env.hasStreamSupport()).
 
     ns.add('pasteLocalFile', (h) async {
       final r = h.data as BFPath;
@@ -413,6 +413,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       h.mapEquals(await env.directoryToMap(r),
           {"test.txt": "61626364656620f09f8d89f09f8c8f"});
+    });
+
+    ns.add('readFileSync', (h) async {
+      final r = h.data as BFPath;
+      final tmpFile = tmpPath();
+      await File(tmpFile).writeAsString(_defStringContents);
+      final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+
+      final bytes = await env.readFileSync(pasteRes.path);
+      h.equals(utf8.decode(bytes), _defStringContents);
     });
 
     void testPasteToLocalFile(
@@ -476,6 +486,81 @@ class _BFTestRouteState extends State<BFTestRoute> {
     testPasteToLocalFile(
         'test 三', false, {"test 三": "61626364656620f09f8d89f09f8c8f2031"});
     testPasteToLocalFile('test 三', true, {
+      "test 三": "61626364656620f09f8d89f09f8c8f2031",
+      _dupSuffix('test 三', 2): "61626364656620f09f8d89f09f8c8f2032",
+      _dupSuffix('test 三', 3): "61626364656620f09f8d89f09f8c8f2033"
+    });
+
+    ns.add('readFileSync', (h) async {
+      final r = h.data as BFPath;
+      final tmpFile = tmpPath();
+      await File(tmpFile).writeAsString(_defStringContents);
+      final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+
+      final bytes = await env.readFileSync(pasteRes.path);
+      h.equals(utf8.decode(bytes), _defStringContents);
+    });
+
+    void testWriteFileSync(
+        String fileName, bool multiple, Map<String, dynamic> fs) {
+      ns.add('writeFileSync  $fileName multiple: $multiple', (h) async {
+        final r = h.data as BFPath;
+        // Add first test.txt
+        var pasteRes = await env.writeFileSync(
+            r, fileName, utf8.encode('$_defStringContents 1'));
+        var st = await env.stat(pasteRes.path);
+        h.equals(st!.name, fileName);
+        h.equals(st.name, pasteRes.newName);
+
+        if (multiple) {
+          // Add second test.txt
+          pasteRes = await env.writeFileSync(
+              r, fileName, utf8.encode('$_defStringContents 2'));
+          st = await env.stat(pasteRes.path);
+          h.equals(st!.name, _dupSuffix(fileName, 2));
+          h.equals(st.name, pasteRes.newName);
+
+          // Add third test.txt
+          pasteRes = await env.writeFileSync(
+              r, fileName, utf8.encode('$_defStringContents 3'));
+          st = await env.stat(pasteRes.path);
+          h.equals(st!.name, _dupSuffix(fileName, 3));
+          h.equals(st.name, pasteRes.newName);
+        }
+
+        h.mapEquals(await env.directoryToMap(r), fs);
+      });
+    }
+
+    // Known extension.
+    testWriteFileSync('test 三.txt', false,
+        {"test 三.txt": "61626364656620f09f8d89f09f8c8f2031"});
+    testWriteFileSync('test 三.txt', true, {
+      _dupSuffix('test 三.txt', 2): "61626364656620f09f8d89f09f8c8f2032",
+      _dupSuffix('test 三.txt', 3): "61626364656620f09f8d89f09f8c8f2033",
+      "test 三.txt": "61626364656620f09f8d89f09f8c8f2031"
+    });
+    // Unknown extension.
+    testWriteFileSync('test 三.elephant', false,
+        {"test 三.elephant": "61626364656620f09f8d89f09f8c8f2031"});
+    testWriteFileSync('test 三.elephant', true, {
+      _dupSuffix('test 三.elephant', 2): "61626364656620f09f8d89f09f8c8f2032",
+      "test 三.elephant": "61626364656620f09f8d89f09f8c8f2031",
+      _dupSuffix('test 三.elephant', 3): "61626364656620f09f8d89f09f8c8f2033"
+    });
+    // Multiple extensions.
+    testWriteFileSync('test 三.elephant.xyz', false,
+        {"test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2031"});
+    testWriteFileSync('test 三.elephant.xyz', true, {
+      _dupSuffix('test 三.elephant.xyz', 2):
+          "61626364656620f09f8d89f09f8c8f2032",
+      "test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2031",
+      _dupSuffix('test 三.elephant.xyz', 3): "61626364656620f09f8d89f09f8c8f2033"
+    });
+    // No extension.
+    testWriteFileSync(
+        'test 三', false, {"test 三": "61626364656620f09f8d89f09f8c8f2031"});
+    testWriteFileSync('test 三', true, {
       "test 三": "61626364656620f09f8d89f09f8c8f2031",
       _dupSuffix('test 三', 2): "61626364656620f09f8d89f09f8c8f2032",
       _dupSuffix('test 三', 3): "61626364656620f09f8d89f09f8c8f2033"

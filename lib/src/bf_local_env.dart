@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import '../bull_fs.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
@@ -157,6 +158,18 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
+  Future<UpdatedBFPath> writeFileSync(
+      BFPath dir, String unsafeName, Uint8List bytes,
+      {BFNameUpdaterFunc? nameUpdater}) async {
+    final dirPath = dir.localPath();
+    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
+        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+    final destPath = p.join(dirPath, safeName);
+    await File(destPath).writeAsBytes(bytes);
+    return UpdatedBFPath(BFLocalPath(destPath), safeName);
+  }
+
+  @override
   Future<UpdatedBFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater}) async {
@@ -172,6 +185,11 @@ class BFLocalEnv extends BFEnv {
   @override
   Future<void> copyToLocalFile(BFPath src, String dest) async {
     await _copy(src.localPath(), dest, false);
+  }
+
+  @override
+  Future<Uint8List> readFileSync(BFPath path) async {
+    return await File(path.localPath()).readAsBytes();
   }
 
   Future<BFOutStream> writeFileStreamFromPath(String filePath) async {

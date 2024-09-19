@@ -196,6 +196,19 @@ class BFSafEnv extends BFEnv {
         BFScopedPath(res.fileResult.uri.toString()), newFileName);
   }
 
+  @override
+  Future<UpdatedBFPath> writeFileSync(
+      BFPath dir, String unsafeName, Uint8List bytes,
+      {BFNameUpdaterFunc? nameUpdater}) async {
+    final res = await _plugin.writeFileSync(
+        dir.scopedSafUri(), unsafeName, _getMime(unsafeName), bytes);
+    final fileName = res.fileName;
+    if (fileName == null || fileName.isEmpty) {
+      throw Exception('Unexpected null fileName from writeFileFromLocal');
+    }
+    return UpdatedBFPath(BFScopedPath(res.uri.toString()), fileName);
+  }
+
   String _getMime(String fileName) {
     return lookupMimeType(fileName) ??
         lookupMimeType(fileName) ??
@@ -218,6 +231,11 @@ class BFSafEnv extends BFEnv {
   @override
   Future<void> copyToLocalFile(BFPath src, String dest) async {
     await _plugin.copyToLocalFile(src.scopedSafUri(), dest);
+  }
+
+  @override
+  Future<Uint8List> readFileSync(BFPath path) async {
+    return _plugin.readFileSync(path.scopedSafUri());
   }
 
   BFEntity? _fromSAFEntity(saf.DocumentFile e,

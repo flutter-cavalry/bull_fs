@@ -181,4 +181,12 @@ abstract class BFEnv {
   /// Writes a file as a stream of bytes.
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater});
+
+  /// Reads a file as a byte array.
+  Future<Uint8List> readFileSync(BFPath path);
+
+  /// Writes a file as a byte array.
+  Future<UpdatedBFPath> writeFileSync(
+      BFPath dir, String unsafeName, Uint8List bytes,
+      {BFNameUpdaterFunc? nameUpdater});
 }

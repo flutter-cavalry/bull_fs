@@ -146,6 +146,19 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
+  Future<UpdatedBFPath> writeFileSync(
+      BFPath dir, String unsafeName, Uint8List bytes,
+      {BFNameUpdaterFunc? nameUpdater}) async {
+    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
+        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+    final destPathUrl =
+        await _darwinUrlPlugin.append(dir.toString(), [safeName], isDir: false);
+    final destPath = BFScopedPath(destPathUrl);
+    await _plugin.writeFile(destPathUrl, bytes);
+    return UpdatedBFPath(destPath, safeName);
+  }
+
+  @override
   Future<UpdatedBFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater}) async {
@@ -161,6 +174,11 @@ class BFNsfcEnv extends BFEnv {
   Future<void> copyToLocalFile(BFPath src, String dest) async {
     final destUrl = await _darwinUrlPlugin.filePathToUrl(dest);
     await _plugin.copyPath(src.scopedID(), destUrl);
+  }
+
+  @override
+  Future<Uint8List> readFileSync(BFPath path) async {
+    return _plugin.readFileSync(path.scopedID());
   }
 
   Future<BFEntity> _fromIcloudEntity(NsFileCoordinatorEntity entity,
