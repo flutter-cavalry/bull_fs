@@ -137,8 +137,8 @@ class BFNsfcEnv extends BFEnv {
       {BFNameUpdaterFunc? nameUpdater}) async {
     final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
         unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-    final destPathUrl = await _darwinUrlPlugin
-        .append(dir.toString(), [unsafeName], isDir: false);
+    final destPathUrl =
+        await _darwinUrlPlugin.append(dir.toString(), [safeName], isDir: false);
     final destPath = BFScopedPath(destPathUrl);
 
     final session = await _plugin.startWriteStream(destPathUrl);
