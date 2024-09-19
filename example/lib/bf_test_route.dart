@@ -97,7 +97,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       _output = 'Running...';
     });
 
-    UpdatedBFPath? cleanUpPath;
+    BFPath? cleanUpPath;
     try {
       // Local env.
       final localDir = tmpPath();
@@ -108,11 +108,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _runEnvTests('Local', BFLocalEnv(), BFLocalPath(localDir));
       if (env.envType() != BFEnvType.local) {
         // Native env.
-        cleanUpPath = await env.ensureDir(root, 'native');
+        cleanUpPath = await env.mkdirp(root, ['native'].lock);
         setState(() {
           _env = 'Native';
         });
-        await _runEnvTests('Native', env, cleanUpPath.path);
+        await _runEnvTests('Native', env, cleanUpPath);
       }
 
       setState(() {
@@ -137,18 +137,15 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {
-    final subDir1 = await env.ensureDir(r, '一 二');
-    await env.slowWriteFileBytes(
-        subDir1.path, 'a.txt', Uint8List.fromList([1]));
-    await env.slowWriteFileBytes(
-        subDir1.path, 'b.txt', Uint8List.fromList([2]));
+    final subDir1 = await env.mkdirp(r, ['一 二'].lock);
+    await env.slowWriteFileBytes(subDir1, 'a.txt', Uint8List.fromList([1]));
+    await env.slowWriteFileBytes(subDir1, 'b.txt', Uint8List.fromList([2]));
 
     // b is empty.
-    await env.ensureDir(r, 'b');
+    await env.mkdirp(r, ['b'].lock);
 
-    final subDir11 = await env.ensureDir(subDir1.path, 'deep');
-    await env.slowWriteFileBytes(
-        subDir11.path, 'c.txt', Uint8List.fromList([3]));
+    final subDir11 = await env.mkdirp(subDir1, ['deep'].lock);
+    await env.slowWriteFileBytes(subDir11, 'c.txt', Uint8List.fromList([3]));
 
     await env.slowWriteFileBytes(r, 'root.txt', Uint8List.fromList([4]));
     await env.slowWriteFileBytes(r, 'root2.txt', Uint8List.fromList([5]));
@@ -186,8 +183,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.beforeAll = () async {
       testCount++;
       // Create a new folder for each test.
-      final dirUri = await env.ensureDir(root, 'test_$testCount');
-      return dirUri.path;
+      final dirUri = await env.mkdirp(root, ['test_$testCount'].lock);
+      return dirUri;
     };
     ns.afterAll = (h) async {
       final r = h.data as BFPath;
@@ -196,17 +193,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('ensureDir', (h) async {
       final r = h.data as BFPath;
-      await env.ensureDir(r, 'space 一 二 三');
+      await env.mkdirp(r, ['space 一 二 三'].lock);
 
       // Do it twice and there should be no error.
-      final newDir = await env.ensureDir(r, 'space 一 二 三');
+      final newDir = await env.mkdirp(r, ['space 一 二 三'].lock);
 
       // Test return value.
-      final st = await env.stat(newDir.path);
+      final st = await env.stat(newDir);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, 'space 一 二 三');
-      h.equals(st.name, newDir.newName);
 
       h.mapEquals(await env.directoryToMap(r), {"space 一 二 三": {}});
     });
@@ -215,7 +211,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       try {
         await env.slowWriteFileBytes(r, 'space 一 二 三', Uint8List.fromList([1]));
-        await env.ensureDir(r, 'space 一 二 三');
+        await env.mkdirp(r, ['space 一 二 三'].lock);
         throw Error();
       } on Exception catch (_) {
         h.mapEquals(await env.directoryToMap(r), {"space 一 二 三": "01"});
@@ -224,21 +220,24 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('ensureDirs', (h) async {
       final r = h.data as BFPath;
-      final newDir = await env.ensureDirs(r, ['space 一 二 三', '22'].lock);
+      var newDir = await env.mkdirp(r, ['space 一 二 三', '22'].lock);
       // Test return value.
-      var st = await env.stat(newDir.path);
+      var st = await env.stat(newDir);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '22');
-      h.equals(st.name, newDir.newName);
 
       // Do it again with a new subdir.
-      var res = await env.ensureDirs(r, ['space 一 二 三', '22', '3 33'].lock);
-      h.equals(res.newName, '3 33');
+      newDir = await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
+      st = await env.stat(newDir);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, '3 33');
 
       // Do it again.
-      res = await env.ensureDirs(r, ['space 一 二 三', '22', '3 33'].lock);
-      h.equals(res.newName, '3 33');
+      newDir = await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
+      st = await env.stat(newDir);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, '3 33');
 
       h.mapEquals(await env.directoryToMap(r), {
         "space 一 二 三": {
@@ -250,12 +249,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('ensureDirs (failed)', (h) async {
       final r = h.data as BFPath;
       try {
-        await env.ensureDirs(r, ['space 一 二 三', '22', '3 33'].lock);
+        await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
         await env.slowWriteFileBytes(
             (await env.statPath(r, relPath: ['space 一 二 三', '22'].lock))!,
             'file',
             Uint8List.fromList([1]));
-        await env.ensureDirs(r, ['space 一 二 三', '22', 'file', 'another'].lock);
+        await env.mkdirp(r, ['space 一 二 三', '22', 'file', 'another'].lock);
         throw Error();
       } on Exception catch (_) {
         h.mapEquals(await env.directoryToMap(r), {
@@ -271,11 +270,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newDir =
           await env.ensureDirsForFile(r, ['space 一 二 三', '22', 'a.txt'].lock);
       // Test return value.
-      var st = await env.stat(newDir.path);
+      var st = await env.stat(newDir);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '22');
-      h.equals(st.name, newDir.newName);
 
       h.mapEquals(await env.directoryToMap(r), {
         "space 一 二 三": {"22": {}}
@@ -284,11 +282,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('ensureDirsForFile (just return)', (h) async {
       final r = h.data as BFPath;
-      final dir1 = await env.ensureDirs(r, ['space 一 二 三', '22'].lock);
-      final dir2 = await env.ensureDirsForFile(dir1.path, ['a.txt'].lock);
+      final dir1 = await env.mkdirp(r, ['space 一 二 三', '22'].lock);
+      final dir2 = await env.ensureDirsForFile(dir1, ['a.txt'].lock);
 
       // Test return value.
-      var st = await env.stat(dir2.path);
+      var st = await env.stat(dir2);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '22');
@@ -485,8 +483,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('stat (folder)', (h) async {
       final r = h.data as BFPath;
-      final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
-      final st = await env.stat(newDir.path);
+      final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
+      final st = await env.stat(newDir);
 
       h.notNull(st);
       h.equals(st!.isDir, true);
@@ -503,9 +501,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('stat (file)', (h) async {
       final r = h.data as BFPath;
-      final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
+      final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
       final fileUri = await env.slowWriteFileBytes(
-          newDir.path, 'test 仨.txt', _defStringContentsBytes);
+          newDir, 'test 仨.txt', _defStringContentsBytes);
       final st = await env.stat(fileUri);
 
       h.notNull(st);
@@ -560,7 +558,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('rename (folder)', (h) async {
       final r = h.data as BFPath;
-      await env.ensureDirs(r, ['a', '一 二'].lock);
+      await env.mkdirp(r, ['a', '一 二'].lock);
       final newPath =
           await env.rename(r, _genRelPath('a/一 二'), 'test 仨 2.txt', true);
       final st = await env.stat(newPath.path);
@@ -575,7 +573,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('rename (folder) (failed)', (h) async {
       final r = h.data as BFPath;
       try {
-        await env.ensureDirs(r, ['一 二'].lock);
+        await env.mkdirp(r, ['一 二'].lock);
         await env.slowWriteFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
 
         await env.rename(r, _genRelPath('一 二'), 'test 仨.txt', true);
@@ -588,9 +586,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('rename (file)', (h) async {
       final r = h.data as BFPath;
-      final newDir = await env.ensureDirs(r, ['a', '一 二'].lock);
+      final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
       await env.slowWriteFileBytes(
-          newDir.path, 'test 仨.txt', _defStringContentsBytes);
+          newDir, 'test 仨.txt', _defStringContentsBytes);
       final newPath = await env.rename(
           r, _genRelPath('a/一 二/test 仨.txt'), 'test 仨 2.txt', false);
       final st = await env.stat(newPath.path);
@@ -607,7 +605,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('rename (file) (failed)', (h) async {
       final r = h.data as BFPath;
       try {
-        await env.ensureDirs(r, ['test 仨 2.txt'].lock);
+        await env.mkdirp(r, ['test 仨 2.txt'].lock);
 
         await env.slowWriteFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
 
@@ -627,8 +625,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'a'].lock);
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'a'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       final srcDir = await _getPath(e, r, 'move/a');
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -663,8 +661,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'a'].lock);
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'a'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       final srcDir = await _getPath(e, r, 'move/a');
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -703,8 +701,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'a'].lock);
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'a'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       final srcDir = await _getPath(e, r, 'move/a');
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -715,7 +713,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
       // Create a conflict.
-      await e.ensureDirs(r, ['move', 'b', 'a'].lock);
+      await e.mkdirp(r, ['move', 'b', 'a'].lock);
       await _createFile(e, await _getPath(e, r, 'move/b/a'), 'z', [4, 5]);
 
       final newPath = await e.moveToDir(
@@ -744,7 +742,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'a', [100]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -774,7 +772,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -783,7 +781,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
       // Create a conflict.
-      await e.ensureDirs(r, ['move', 'b', 'a'].lock);
+      await e.mkdirp(r, ['move', 'b', 'a'].lock);
       await _createFile(e, await _getPath(e, r, 'move/b/a'), 'z', [4, 5]);
 
       final newPath = await e.moveToDir(
@@ -809,7 +807,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -843,7 +841,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -873,7 +871,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -907,7 +905,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -939,7 +937,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -973,7 +971,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -1005,7 +1003,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -1043,7 +1041,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/a to move/b
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'zzz', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -1079,7 +1077,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
 
       // Move move/zzz to move/b as a new name `a`. Both `zzz` and `a` exist on dest side.
-      await e.ensureDirs(r, ['move', 'b'].lock);
+      await e.mkdirp(r, ['move', 'b'].lock);
       await _createFile(e, await _getPath(e, r, 'move'), 'zzz', [65]);
       final destDir = await _getPath(e, r, 'move/b');
 
@@ -1146,7 +1144,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('nextAvailableFile (folder with extension)', (h) async {
       final r = h.data as BFPath;
-      await env.ensureDir(r, 'a 二.zz');
+      await env.mkdirp(r, ['a 二.zz'].lock);
       var name = await ZBFInternal.nextAvailableFileName(
           env, r, 'a 二.zz', true, ZBFInternal.defaultFileNameUpdater);
       h.equals(name, 'a 二.zz (1)');
@@ -1154,7 +1152,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       name = await ZBFInternal.nextAvailableFileName(
           env, r, 'b.zz', true, ZBFInternal.defaultFileNameUpdater);
       h.equals(name, 'b.zz');
-      await env.ensureDir(r, 'b.zz');
+      await env.mkdirp(r, ['b.zz'].lock);
 
       name = await ZBFInternal.nextAvailableFileName(
           env, r, 'b.zz', true, ZBFInternal.defaultFileNameUpdater);
@@ -1216,10 +1214,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
   Future<BFPath> _createFolderWithDefFile(
       BFEnv e, BFPath root, String folderName) async {
-    final dirPath = await e.ensureDir(root, folderName);
+    final dirPath = await e.mkdirp(root, [folderName].lock);
     await _createFile(
-        e, dirPath.path, _defFolderContentFile, _defStringContentsBytes);
-    return dirPath.path;
+        e, dirPath, _defFolderContentFile, _defStringContentsBytes);
+    return dirPath;
   }
 
   IList<String> _genRelPath(String relPath) {

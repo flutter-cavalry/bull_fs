@@ -41,16 +41,16 @@ extension BFEnvExtension on BFEnv {
     await delete(st.path, st.isDir);
   }
 
-  Future<UpdatedBFPath> ensureDirsForFile(
+  Future<BFPath> ensureDirsForFile(
       BFPath dir, IList<String> relFilePath) async {
     if (relFilePath.length == 1) {
       final dirStat = await stat(dir);
       if (dirStat == null) {
         throw Exception('Parent dir does not exist: $dir');
       }
-      return UpdatedBFPath(dir, dirStat.name);
+      return dir;
     }
-    return ensureDirs(dir, relFilePath.take(relFilePath.length - 1).toIList());
+    return mkdirp(dir, relFilePath.take(relFilePath.length - 1).toIList());
   }
 
   Future<BFEntity?> fileExists(BFPath path, {IList<String>? relPath}) async {

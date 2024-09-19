@@ -372,7 +372,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: d8d7c7afee867084136e2071165eea14d9b629e6
+      resolved-ref: "250baa5729657084b99deeae5cff1f4e7042184f"
       url: "https://github.com/flutter-cavalry/ns_file_coordinator_util.git"
     source: git
     version: "0.20.0"

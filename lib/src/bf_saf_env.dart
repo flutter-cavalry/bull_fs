@@ -148,32 +148,15 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> ensureDir(BFPath dir, String unsafeName) async {
-    // If `name` exists, Android SAF creates a `name (1)`. We will return the existing URI in that case.
-    final st = await stat(dir, relPath: [unsafeName].lock);
-    if (st != null) {
-      return UpdatedBFPath(st.path, st.name);
-    }
-    final df = await saf.createDirectory(dir.scopedSafUri(), unsafeName);
-    if (df == null) {
-      throw Exception('mkdir failed at $dir');
-    }
-    if (df.name == null || df.name!.isEmpty) {
-      throw Exception('Unexpected null or empty name from item stat');
-    }
-    return UpdatedBFPath(BFScopedPath(df.uri.toString()), df.name!);
-  }
-
-  @override
-  Future<UpdatedBFPath> ensureDirs(BFPath dir, IList<String> path) async {
-    final stat = await saf.mkdirp(dir.scopedSafUri(), path.unlock);
+  Future<BFPath> mkdirp(BFPath dir, IList<String> components) async {
+    final stat = await saf.mkdirp(dir.scopedSafUri(), components.unlock);
     if (stat == null) {
-      throw Exception('mkdirp of $dir + $path has failed');
+      throw Exception('mkdirp of $dir + $components has failed');
     }
     if (stat.name == null || stat.name!.isEmpty) {
       throw Exception('Unexpected null or empty name from item stat');
     }
-    return UpdatedBFPath(BFScopedPath(stat.uri.toString()), stat.name!);
+    return BFScopedPath(stat.uri.toString());
   }
 
   @override

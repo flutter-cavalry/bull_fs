@@ -93,27 +93,10 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> ensureDir(BFPath dir, String unsafeName) async {
-    final path = p.join(dir.localPath(), unsafeName);
-    await Directory(path).create(recursive: true);
-    return UpdatedBFPath(BFLocalPath(path), unsafeName);
-  }
-
-  @override
-  Future<UpdatedBFPath> ensureDirs(BFPath dir, IList<String> path) async {
-    final finalPath = p.joinAll([dir.localPath(), ...path]);
+  Future<BFPath> mkdirp(BFPath dir, IList<String> components) async {
+    final finalPath = p.joinAll([dir.localPath(), ...components]);
     await Directory(finalPath).create(recursive: true);
-    String lastComponentName;
-    if (path.isEmpty) {
-      final destDirStat = await stat(BFLocalPath(finalPath));
-      if (destDirStat == null) {
-        throw Exception('Failed to create dir: $finalPath');
-      }
-      lastComponentName = destDirStat.name;
-    } else {
-      lastComponentName = path.last;
-    }
-    return UpdatedBFPath(BFLocalPath(finalPath), lastComponentName);
+    return BFLocalPath(finalPath);
   }
 
   @override

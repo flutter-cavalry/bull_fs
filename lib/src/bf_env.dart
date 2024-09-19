@@ -67,17 +67,11 @@ abstract class BFEnv {
   /// [relPath] is the relative path to get the stat.
   Future<BFEntity?> stat(BFPath path, {IList<String>? relPath});
 
-  /// Like mkdir -p. Makes sure [dir]/[path]/ is created.
+  /// Like mkdir -p. Makes sure [dir]/[components]/ is created.
   ///
   /// [dir] is the parent directory.
-  /// [path] is the path to create.
-  Future<UpdatedBFPath> ensureDirs(BFPath dir, IList<String> path);
-
-  /// Based on [ensureDirCore], but throws an error if the path exists but is not a directory.
-  ///
-  /// [dir] is the parent directory.
-  /// [unsafeName] is the directory name.
-  Future<UpdatedBFPath> ensureDir(BFPath dir, String unsafeName);
+  /// [components] is the path to create.
+  Future<BFPath> mkdirp(BFPath dir, IList<String> components);
 
   /// Platform implementation of [BFEnv.rename].
   ///

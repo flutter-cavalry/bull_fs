@@ -87,27 +87,9 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> ensureDir(BFPath dir, String unsafeName) async {
-    final destPath = await dir.iosJoinRelPath([unsafeName].lock, true);
-    await _plugin.mkdir(destPath.scopedID());
-    return UpdatedBFPath(destPath, unsafeName);
-  }
-
-  @override
-  Future<UpdatedBFPath> ensureDirs(BFPath dir, IList<String> path) async {
-    final destPath = await dir.iosJoinRelPath(path, true);
-    await _plugin.mkdir(destPath.scopedID());
-    String lastComponentName;
-    if (path.isEmpty) {
-      final destDirStat = await stat(destPath);
-      if (destDirStat == null) {
-        throw Exception('Failed to create dir: $destPath');
-      }
-      lastComponentName = destDirStat.name;
-    } else {
-      lastComponentName = path.last;
-    }
-    return UpdatedBFPath(destPath, lastComponentName);
+  Future<BFPath> mkdirp(BFPath dir, IList<String> components) async {
+    final destPath = await _plugin.mkdirp(dir.scopedID(), components.unlock);
+    return BFScopedPath(destPath);
   }
 
   @override
