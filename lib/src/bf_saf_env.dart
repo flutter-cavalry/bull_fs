@@ -7,7 +7,7 @@ import 'package:mg_shared_storage/shared_storage.dart' as saf;
 import 'package:path/path.dart' as p;
 import 'package:tmp_path/tmp_path.dart';
 
-class BFEnvAndroidSAF extends BFEnv {
+class BFSafEnv extends BFEnv {
   final _plugin = SafStream();
 
   @override

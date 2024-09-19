@@ -65,7 +65,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   Future<void> _startLocal() async {
     final t = tmpPath();
     await Directory(t).create(recursive: true);
-    await _runTests(BFEnvLocal(), BFLocalPath(t));
+    await _runTests(BFLocalEnv(), BFLocalPath(t));
   }
 
   Future<void> _startNative() async {
@@ -105,7 +105,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       setState(() {
         _env = 'Local';
       });
-      await _runEnvTests('Local', BFEnvLocal(), BFLocalPath(localDir));
+      await _runEnvTests('Local', BFLocalEnv(), BFLocalPath(localDir));
       if (env.envType() != BFEnvType.local) {
         // Native env.
         cleanUpPath = await env.ensureDir(root, 'native');

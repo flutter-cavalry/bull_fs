@@ -14,7 +14,7 @@ class AppleResScope {
   AppleResScope(this.env);
 
   Future<void> requestAccess(BFPath path) async {
-    if (env is! BFEnvAppleCloud) {
+    if (env is! BFNsfcEnv) {
       return;
     }
     if (path is BFLocalPath) {
@@ -34,7 +34,7 @@ class AppleResScope {
   }
 
   Future<void> release() async {
-    if (env is! BFEnvAppleCloud) {
+    if (env is! BFNsfcEnv) {
       return;
     }
     // Release previous one if needed.

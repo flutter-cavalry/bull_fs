@@ -1,17 +1,17 @@
 import 'bf_env.dart';
-import 'bf_env_android_saf.dart';
-import 'bf_env_apple_cloud.dart';
-import 'bf_env_local.dart';
+import 'bf_saf_env.dart';
+import 'bf_nsfc_env.dart';
+import 'bf_local_env.dart';
 
 class BFEnvUtil {
   static BFEnv typeToEnv(BFEnvType type) {
     switch (type) {
       case BFEnvType.local:
-        return BFEnvLocal();
+        return BFLocalEnv();
       case BFEnvType.icloud:
-        return BFEnvAppleCloud();
+        return BFNsfcEnv();
       case BFEnvType.saf:
-        return BFEnvAndroidSAF();
+        return BFSafEnv();
     }
   }
 }

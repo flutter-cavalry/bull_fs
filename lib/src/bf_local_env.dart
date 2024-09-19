@@ -6,7 +6,7 @@ import 'package:collection/collection.dart';
 
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
-class BFEnvLocal extends BFEnv {
+class BFLocalEnv extends BFEnv {
   @override
   BFEnvType envType() {
     return BFEnvType.local;

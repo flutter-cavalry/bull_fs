@@ -10,7 +10,8 @@ import 'package:ns_file_coordinator_util/ns_file_coordinator_util.dart';
 
 final _darwinUrlPlugin = DarwinUrl();
 
-class BFEnvAppleCloud extends BFEnv {
+/// [BFEnv] for NSFileCoordinator.
+class BFNsfcEnv extends BFEnv {
   final _plugin = NsFileCoordinatorUtil();
 
   @override

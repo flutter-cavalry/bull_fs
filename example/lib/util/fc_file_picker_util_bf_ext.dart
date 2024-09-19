@@ -26,15 +26,14 @@ extension FilePickerUtilExtension on FcFilePickerXResult {
         throw Exception('Unexpected null androidUri from FilePickerXResult');
       }
       return ResolveBFPathResult(
-          BFScopedPath(androidUri!.toString()), BFEnvAndroidSAF(), false);
+          BFScopedPath(androidUri!.toString()), BFSafEnv(), false);
     }
     if (Platform.isIOS) {
       if (iosUrl == null) {
         throw Exception('Unexpected null iosUrl from FilePickerXResult');
       }
       isIcloud = await _darwinUrl.isUbiquitousUrlItem(iosUrl!);
-      return ResolveBFPathResult(
-          BFScopedPath(iosUrl!), BFEnvAppleCloud(), isIcloud);
+      return ResolveBFPathResult(BFScopedPath(iosUrl!), BFNsfcEnv(), isIcloud);
     }
     if (Platform.isMacOS) {
       if (iosUrl != null) {
@@ -46,13 +45,13 @@ extension FilePickerUtilExtension on FcFilePickerXResult {
       }
       if (isIcloud) {
         return ResolveBFPathResult(
-            BFScopedPath(iosUrl!), BFEnvAppleCloud(), isIcloud);
+            BFScopedPath(iosUrl!), BFNsfcEnv(), isIcloud);
       }
-      return ResolveBFPathResult(BFLocalPath(path!), BFEnvLocal(), isIcloud);
+      return ResolveBFPathResult(BFLocalPath(path!), BFLocalEnv(), isIcloud);
     }
     if (path == null) {
       throw Exception('Unexpected null path from FilePickerXResult');
     }
-    return ResolveBFPathResult(BFLocalPath(path!), BFEnvLocal(), false);
+    return ResolveBFPathResult(BFLocalPath(path!), BFLocalEnv(), false);
   }
 }
