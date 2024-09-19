@@ -396,10 +396,10 @@ packages:
     dependency: transitive
     description:
       name: saf_stream
-      sha256: "6957dda389a90d597d9567f4108516f9d6cc4c0def48983282520f31ad6dbd84"
+      sha256: bc97ab25fa9444dcecfa63c1df122bda9c5f3deaaf763cb9f850084120ee33cd
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.0"
+    version: "0.7.0"
   sky_engine:
     dependency: transitive
     description: flutter

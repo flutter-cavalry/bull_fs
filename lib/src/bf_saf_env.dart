@@ -206,7 +206,7 @@ class BFSafEnv extends BFEnv {
   Future<UpdatedBFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    final res = await _plugin.writeFileFromLocal(
+    final res = await _plugin.pasteLocalFile(
         localSrc, dir.scopedSafUri(), unsafeName, _getMime(unsafeName));
     final fileName = res.fileName;
     if (fileName == null || fileName.isEmpty) {
@@ -217,7 +217,7 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<void> copyToLocalFile(BFPath src, String dest) async {
-    await _plugin.readFileToLocal(src.scopedSafUri(), dest);
+    await _plugin.copyToLocalFile(src.scopedSafUri(), dest);
   }
 
   BFEntity? _fromSAFEntity(saf.DocumentFile e,
