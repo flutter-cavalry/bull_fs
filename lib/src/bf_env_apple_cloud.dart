@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:darwin_url/darwin_url.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'bf_env.dart';
@@ -9,7 +11,7 @@ import 'package:ns_file_coordinator_util/ns_file_coordinator_util.dart';
 final _darwinUrlPlugin = DarwinUrl();
 
 class BFEnvAppleCloud extends BFEnv {
-  final _icloudPlugin = NsFileCoordinatorUtil();
+  final _plugin = NsFileCoordinatorUtil();
 
   @override
   BFEnvType envType() {
@@ -24,7 +26,7 @@ class BFEnvAppleCloud extends BFEnv {
   @override
   Future<List<BFEntity>> listDir(BFPath path,
       {bool? recursive, bool? relativePathInfo}) async {
-    final icloudEntities = await _icloudPlugin.listContents(path.scopedID(),
+    final icloudEntities = await _plugin.listContents(path.scopedID(),
         recursive: recursive,
         filesOnly: false,
         relativePathInfo: relativePathInfo);
@@ -45,8 +47,7 @@ class BFEnvAppleCloud extends BFEnv {
 
   @override
   Future<List<BFPathAndDirRelPath>> listDirContentFiles(BFPath path) async {
-    final icloudEntities =
-        await _icloudPlugin.listContentFiles(path.scopedID());
+    final icloudEntities = await _plugin.listContentFiles(path.scopedID());
     final paths = icloudEntities.map((e) {
       List<String>? dirRelPath;
       if (e.relativePath != null) {
@@ -64,7 +65,7 @@ class BFEnvAppleCloud extends BFEnv {
 
   @override
   Future<void> delete(BFPath path, bool isDir) async {
-    await _icloudPlugin.delete(path.scopedID());
+    await _plugin.delete(path.scopedID());
   }
 
   @override
@@ -74,7 +75,7 @@ class BFEnvAppleCloud extends BFEnv {
       path = await path.iosJoinRelPath(relPath, false);
     }
     try {
-      final e = await _icloudPlugin.stat(path.scopedID());
+      final e = await _plugin.stat(path.scopedID());
       if (e == null) {
         return null;
       }
@@ -87,14 +88,14 @@ class BFEnvAppleCloud extends BFEnv {
   @override
   Future<UpdatedBFPath> ensureDir(BFPath dir, String unsafeName) async {
     final destPath = await dir.iosJoinRelPath([unsafeName].lock, true);
-    await _icloudPlugin.mkdir(destPath.scopedID());
+    await _plugin.mkdir(destPath.scopedID());
     return UpdatedBFPath(destPath, unsafeName);
   }
 
   @override
   Future<UpdatedBFPath> ensureDirs(BFPath dir, IList<String> path) async {
     final destPath = await dir.iosJoinRelPath(path, true);
-    await _icloudPlugin.mkdir(destPath.scopedID());
+    await _plugin.mkdir(destPath.scopedID());
     String lastComponentName;
     if (path.isEmpty) {
       final destDirStat = await stat(destPath);
@@ -115,7 +116,7 @@ class BFEnvAppleCloud extends BFEnv {
     final dirUrl = await _darwinUrlPlugin.dirUrl(path.scopedID());
     final destUrl =
         await _darwinUrlPlugin.append(dirUrl, [unsafeNewName], isDir: isDir);
-    await _icloudPlugin.move(path.scopedID(), destUrl);
+    await _plugin.move(path.scopedID(), destUrl);
     return UpdatedBFPath(BFScopedPath(destUrl), unsafeNewName);
   }
 
@@ -134,24 +135,31 @@ class BFEnvAppleCloud extends BFEnv {
         nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destItemPath =
         await destDirStat.path.iosJoinRelPath([destItemFileName].lock, isDir);
-    await _icloudPlugin.move(srcStat.path.scopedID(), destItemPath.scopedID());
+    await _plugin.move(srcStat.path.scopedID(), destItemPath.scopedID());
     return UpdatedBFPath(destItemPath, destItemFileName);
   }
 
   @override
   bool hasStreamSupport() {
-    return false;
+    return true;
   }
 
   @override
   Future<Stream<List<int>>> readFileStream(BFPath path) async {
-    throw Exception('Not supported');
+    return _plugin.readFileStream(path.scopedID());
   }
 
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    throw Exception('Not supported');
+    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
+        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+    final destPathUrl = await _darwinUrlPlugin
+        .append(dir.toString(), [unsafeName], isDir: false);
+    final destPath = BFScopedPath(destPathUrl);
+
+    final session = await _plugin.startWriteStream(destPathUrl);
+    return BFNsfcOutStream(session, _plugin, destPath, safeName);
   }
 
   @override
@@ -162,14 +170,14 @@ class BFEnvAppleCloud extends BFEnv {
         unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);
-    await _icloudPlugin.copyPath(srcUrl, destPath.scopedID());
+    await _plugin.copyPath(srcUrl, destPath.scopedID());
     return UpdatedBFPath(destPath, safeName);
   }
 
   @override
   Future<void> copyToLocalFile(BFPath src, String dest) async {
     final destUrl = await _darwinUrlPlugin.filePathToUrl(dest);
-    await _icloudPlugin.copyPath(src.scopedID(), destUrl);
+    await _plugin.copyPath(src.scopedID(), destUrl);
   }
 
   Future<BFEntity> _fromIcloudEntity(NsFileCoordinatorEntity entity,
@@ -192,4 +200,36 @@ class BFEnvAppleCloud extends BFEnv {
         entity.length, entity.lastMod, isOnCloud,
         dirRelPath: dirRelPath);
   }
+}
+
+class BFNsfcOutStream extends BFOutStream {
+  final int _session;
+  final NsFileCoordinatorUtil _plugin;
+  final BFPath _path;
+  final String _fileName;
+
+  BFNsfcOutStream(this._session, this._plugin, this._path, this._fileName);
+
+  @override
+  BFPath getPath() {
+    return _path;
+  }
+
+  @override
+  String getFileName() {
+    return _fileName;
+  }
+
+  @override
+  Future<void> write(Uint8List data) async {
+    await _plugin.writeChunk(_session, data);
+  }
+
+  @override
+  Future<void> close() async {
+    await _plugin.endWriteStream(_session);
+  }
+
+  @override
+  Future<void> flush() async {}
 }

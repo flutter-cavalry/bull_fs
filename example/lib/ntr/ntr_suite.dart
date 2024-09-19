@@ -50,6 +50,8 @@ class NTRSuite {
   final List<String> _caseNames = [];
   final List<Future<void> Function()> _cases = [];
 
+  List<String> _failed = [];
+
   void Function(String s)? onLog;
   Future<dynamic> Function()? beforeAll;
   Future<void> Function(NTRHandle h)? afterAll;
@@ -66,6 +68,7 @@ class NTRSuite {
         onLog?.call(name);
         await fn(h);
       } catch (err, st) {
+        _failed.add(name);
         debugPrint('❌ $name\n$err\n');
         debugPrintStack(stackTrace: st);
       } finally {
@@ -77,7 +80,8 @@ class NTRSuite {
     });
   }
 
-  Future<void> run({String? debugName}) async {
+  Future<List<String>> run({String? debugName}) async {
+    _failed = [];
     List<Future<void>> futures = [];
     for (var i = 0; i < _caseNames.length; i++) {
       if (debugName == null || _caseNames[i].contains(debugName)) {
@@ -85,5 +89,6 @@ class NTRSuite {
       }
     }
     await Future.wait(futures);
+    return _failed;
   }
 }

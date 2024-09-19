@@ -178,9 +178,13 @@ abstract class BFEnv {
     return newPath;
   }
 
+  /// Returns true if `readFileStream` and `writeFileStream` are supported.
   bool hasStreamSupport();
 
+  /// Reads a file as a stream of bytes.
   Future<Stream<List<int>>> readFileStream(BFPath path);
+
+  /// Writes a file as a stream of bytes.
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater});
 }

@@ -1181,7 +1181,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(name, 'b.zz.abc -> 1');
     });
 
-    await ns.run();
+    final failedNames = await ns.run();
+    if (failedNames.isNotEmpty) {
+      throw Exception('Failed tests: $failedNames');
+    }
   }
 
   void _statEquals(BFEntity st, BFEntity st2) {
