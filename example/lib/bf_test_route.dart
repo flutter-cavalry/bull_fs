@@ -138,17 +138,17 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {
     final subDir1 = await env.mkdirp(r, ['一 二'].lock);
-    await env.slowWriteFileBytes(subDir1, 'a.txt', Uint8List.fromList([1]));
-    await env.slowWriteFileBytes(subDir1, 'b.txt', Uint8List.fromList([2]));
+    await env.writeFileSync(subDir1, 'a.txt', Uint8List.fromList([1]));
+    await env.writeFileSync(subDir1, 'b.txt', Uint8List.fromList([2]));
 
     // b is empty.
     await env.mkdirp(r, ['b'].lock);
 
     final subDir11 = await env.mkdirp(subDir1, ['deep'].lock);
-    await env.slowWriteFileBytes(subDir11, 'c.txt', Uint8List.fromList([3]));
+    await env.writeFileSync(subDir11, 'c.txt', Uint8List.fromList([3]));
 
-    await env.slowWriteFileBytes(r, 'root.txt', Uint8List.fromList([4]));
-    await env.slowWriteFileBytes(r, 'root2.txt', Uint8List.fromList([5]));
+    await env.writeFileSync(r, 'root.txt', Uint8List.fromList([4]));
+    await env.writeFileSync(r, 'root2.txt', Uint8List.fromList([5]));
   }
 
   String _formatEntityList(List<BFEntity> list) {
@@ -210,7 +210,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('ensureDir (failed)', (h) async {
       final r = h.data as BFPath;
       try {
-        await env.slowWriteFileBytes(r, 'space 一 二 三', Uint8List.fromList([1]));
+        await env.writeFileSync(r, 'space 一 二 三', Uint8List.fromList([1]));
         await env.mkdirp(r, ['space 一 二 三'].lock);
         throw Error();
       } on Exception catch (_) {
@@ -250,7 +250,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       try {
         await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
-        await env.slowWriteFileBytes(
+        await env.writeFileSync(
             (await env.statPath(r, relPath: ['space 一 二 三', '22'].lock))!,
             'file',
             Uint8List.fromList([1]));
@@ -296,110 +296,107 @@ class _BFTestRouteState extends State<BFTestRoute> {
       });
     });
 
-    if (env.hasStreamSupport()) {
-      void testWriteFileStream(
-          String fileName, bool multiple, Map<String, dynamic> fs) {
-        ns.add('writeFileStream $fileName multiple: $multiple', (h) async {
-          final r = h.data as BFPath;
-          var outStream = await env.writeFileStream(r, fileName);
-          await outStream.write(Uint8List.fromList(utf8.encode('abc1')));
+    void testWriteFileStream(
+        String fileName, bool multiple, Map<String, dynamic> fs) {
+      ns.add('writeFileStream $fileName multiple: $multiple', (h) async {
+        final r = h.data as BFPath;
+        var outStream = await env.writeFileStream(r, fileName);
+        await outStream.write(Uint8List.fromList(utf8.encode('abc1')));
+        await outStream.write(_defStringContentsBytes);
+        await outStream.flush();
+        await outStream.close();
+
+        // Test `getPath`.
+        var destUri = outStream.getPath();
+        var destUriStat = await env.stat(destUri);
+        h.notNull(destUriStat);
+        h.equals(destUriStat!.isDir, false);
+        h.equals(destUriStat.name, fileName);
+        if (multiple) {
+          // Write to the same file again.
+          outStream = await env.writeFileStream(r, fileName);
+          await outStream.write(Uint8List.fromList(utf8.encode('abc2')));
           await outStream.write(_defStringContentsBytes);
           await outStream.flush();
           await outStream.close();
 
           // Test `getPath`.
-          var destUri = outStream.getPath();
-          var destUriStat = await env.stat(destUri);
+          destUri = outStream.getPath();
+          destUriStat = await env.stat(destUri);
           h.notNull(destUriStat);
           h.equals(destUriStat!.isDir, false);
-          h.equals(destUriStat.name, fileName);
-          if (multiple) {
-            // Write to the same file again.
-            outStream = await env.writeFileStream(r, fileName);
-            await outStream.write(Uint8List.fromList(utf8.encode('abc2')));
-            await outStream.write(_defStringContentsBytes);
-            await outStream.flush();
-            await outStream.close();
+          h.equals(destUriStat.name, _dupSuffix(fileName, 2));
 
-            // Test `getPath`.
-            destUri = outStream.getPath();
-            destUriStat = await env.stat(destUri);
-            h.notNull(destUriStat);
-            h.equals(destUriStat!.isDir, false);
-            h.equals(destUriStat.name, _dupSuffix(fileName, 2));
+          // Write to the same file again.
+          outStream = await env.writeFileStream(r, fileName);
+          await outStream.write(Uint8List.fromList(utf8.encode('abc3')));
+          await outStream.write(_defStringContentsBytes);
+          await outStream.flush();
+          await outStream.close();
 
-            // Write to the same file again.
-            outStream = await env.writeFileStream(r, fileName);
-            await outStream.write(Uint8List.fromList(utf8.encode('abc3')));
-            await outStream.write(_defStringContentsBytes);
-            await outStream.flush();
-            await outStream.close();
+          // Test `getPath`.
+          destUri = outStream.getPath();
+          destUriStat = await env.stat(destUri);
+          h.notNull(destUriStat);
+          h.equals(destUriStat!.isDir, false);
+        }
 
-            // Test `getPath`.
-            destUri = outStream.getPath();
-            destUriStat = await env.stat(destUri);
-            h.notNull(destUriStat);
-            h.equals(destUriStat!.isDir, false);
-          }
-
-          h.mapEquals(await env.directoryToMap(r), fs);
-        });
-      }
-
-      // Known extension.
-      testWriteFileStream('test 三.txt', false,
-          {"test 三.txt": "6162633161626364656620f09f8d89f09f8c8f"});
-      testWriteFileStream('test 三.txt', true, {
-        _dupSuffix('test 三.txt', 2): "6162633261626364656620f09f8d89f09f8c8f",
-        "test 三.txt": "6162633161626364656620f09f8d89f09f8c8f",
-        _dupSuffix('test 三.txt', 3): "6162633361626364656620f09f8d89f09f8c8f"
+        h.mapEquals(await env.directoryToMap(r), fs);
       });
-      // Unknown extension.
-      testWriteFileStream('test 三.elephant', false,
-          {"test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f"});
-      testWriteFileStream('test 三.elephant', true, {
-        _dupSuffix('test 三.elephant', 2):
-            "6162633261626364656620f09f8d89f09f8c8f",
-        "test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f",
-        _dupSuffix('test 三.elephant', 3):
-            "6162633361626364656620f09f8d89f09f8c8f"
-      });
-      // Multiple extensions.
-      testWriteFileStream('test 三.elephant.xyz', false,
-          {"test 三.elephant.xyz": "6162633161626364656620f09f8d89f09f8c8f"});
-      testWriteFileStream('test 三.elephant.xyz', true, {
-        _dupSuffix('test 三.elephant.xyz', 2):
-            "6162633261626364656620f09f8d89f09f8c8f",
-        "test 三.elephant.xyz": "6162633161626364656620f09f8d89f09f8c8f",
-        _dupSuffix('test 三.elephant.xyz', 3):
-            "6162633361626364656620f09f8d89f09f8c8f"
-      });
-      // No extension.
-      testWriteFileStream('test 三', false,
-          {"test 三": "6162633161626364656620f09f8d89f09f8c8f"});
-      testWriteFileStream('test 三', true, {
-        "test 三": "6162633161626364656620f09f8d89f09f8c8f",
-        _dupSuffix('test 三', 2): "6162633261626364656620f09f8d89f09f8c8f",
-        _dupSuffix('test 三', 3): "6162633361626364656620f09f8d89f09f8c8f"
-      });
+    }
 
-      ns.add('readFileStream', (h) async {
-        final r = h.data as BFPath;
-        final tmpFile = tmpPath();
-        await File(tmpFile).writeAsString(_defStringContents);
-        final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+    // Known extension.
+    testWriteFileStream('test 三.txt', false,
+        {"test 三.txt": "6162633161626364656620f09f8d89f09f8c8f"});
+    testWriteFileStream('test 三.txt', true, {
+      _dupSuffix('test 三.txt', 2): "6162633261626364656620f09f8d89f09f8c8f",
+      "test 三.txt": "6162633161626364656620f09f8d89f09f8c8f",
+      _dupSuffix('test 三.txt', 3): "6162633361626364656620f09f8d89f09f8c8f"
+    });
+    // Unknown extension.
+    testWriteFileStream('test 三.elephant', false,
+        {"test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f"});
+    testWriteFileStream('test 三.elephant', true, {
+      _dupSuffix('test 三.elephant', 2):
+          "6162633261626364656620f09f8d89f09f8c8f",
+      "test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f",
+      _dupSuffix('test 三.elephant', 3): "6162633361626364656620f09f8d89f09f8c8f"
+    });
+    // Multiple extensions.
+    testWriteFileStream('test 三.elephant.xyz', false,
+        {"test 三.elephant.xyz": "6162633161626364656620f09f8d89f09f8c8f"});
+    testWriteFileStream('test 三.elephant.xyz', true, {
+      _dupSuffix('test 三.elephant.xyz', 2):
+          "6162633261626364656620f09f8d89f09f8c8f",
+      "test 三.elephant.xyz": "6162633161626364656620f09f8d89f09f8c8f",
+      _dupSuffix('test 三.elephant.xyz', 3):
+          "6162633361626364656620f09f8d89f09f8c8f"
+    });
+    // No extension.
+    testWriteFileStream(
+        'test 三', false, {"test 三": "6162633161626364656620f09f8d89f09f8c8f"});
+    testWriteFileStream('test 三', true, {
+      "test 三": "6162633161626364656620f09f8d89f09f8c8f",
+      _dupSuffix('test 三', 2): "6162633261626364656620f09f8d89f09f8c8f",
+      _dupSuffix('test 三', 3): "6162633361626364656620f09f8d89f09f8c8f"
+    });
 
-        final stream = await env.readFileStream(pasteRes.path);
-        final bytes = await stream.fold<List<int>>([], (prev, element) {
-          prev.addAll(element);
-          return prev;
-        });
-        h.equals(utf8.decode(bytes), _defStringContents);
+    ns.add('readFileStream', (h) async {
+      final r = h.data as BFPath;
+      final tmpFile = tmpPath();
+      await File(tmpFile).writeAsString(_defStringContents);
+      final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
 
-        h.mapEquals(await env.directoryToMap(r),
-            {"test.txt": "61626364656620f09f8d89f09f8c8f"});
+      final stream = await env.readFileStream(pasteRes.path);
+      final bytes = await stream.fold<List<int>>([], (prev, element) {
+        prev.addAll(element);
+        return prev;
       });
-    } // End of if (env.hasStreamSupport()).
+      h.equals(utf8.decode(bytes), _defStringContents);
+
+      h.mapEquals(await env.directoryToMap(r),
+          {"test.txt": "61626364656620f09f8d89f09f8c8f"});
+    });
 
     ns.add('pasteLocalFile', (h) async {
       final r = h.data as BFPath;
@@ -587,8 +584,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('stat (file)', (h) async {
       final r = h.data as BFPath;
       final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
-      final fileUri = await env.slowWriteFileBytes(
-          newDir, 'test 仨.txt', _defStringContentsBytes);
+      final fileUri = (await env.writeFileSync(
+              newDir, 'test 仨.txt', _defStringContentsBytes))
+          .path;
       final st = await env.stat(fileUri);
 
       h.notNull(st);
@@ -659,7 +657,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       try {
         await env.mkdirp(r, ['一 二'].lock);
-        await env.slowWriteFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
+        await env.writeFileSync(r, 'test 仨.txt', _defStringContentsBytes);
 
         await env.rename(r, _genRelPath('一 二'), 'test 仨.txt', true);
         throw Error();
@@ -672,8 +670,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('rename (file)', (h) async {
       final r = h.data as BFPath;
       final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
-      await env.slowWriteFileBytes(
-          newDir, 'test 仨.txt', _defStringContentsBytes);
+      await env.writeFileSync(newDir, 'test 仨.txt', _defStringContentsBytes);
       final newPath = await env.rename(
           r, _genRelPath('a/一 二/test 仨.txt'), 'test 仨 2.txt', false);
       final st = await env.stat(newPath.path);
@@ -692,7 +689,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       try {
         await env.mkdirp(r, ['test 仨 2.txt'].lock);
 
-        await env.slowWriteFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
+        await env.writeFileSync(r, 'test 仨.txt', _defStringContentsBytes);
 
         await env.rename(
             r, _genRelPath('test 仨 2.txt/test 仨.txt'), 'test 仨 2.txt', false);
@@ -1293,8 +1290,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
   Future<BFPath> _createFile(
       BFEnv e, BFPath dir, String fileName, List<int> content) async {
-    return await e.slowWriteFileBytes(
-        dir, fileName, Uint8List.fromList(content));
+    final res =
+        await e.writeFileSync(dir, fileName, Uint8List.fromList(content));
+    return res.path;
   }
 
   Future<BFPath> _createFolderWithDefFile(
@@ -1321,19 +1319,5 @@ extension BFTestExtension on BFEnv {
       throw Exception('Item not found');
     }
     return st;
-  }
-
-  Future<BFPath> slowWriteFileBytes(
-      BFPath dir, String unsafeName, Uint8List bytes) async {
-    if (hasStreamSupport()) {
-      final writer = await writeFileStream(dir, unsafeName);
-      await writer.write(bytes);
-      await writer.close();
-      return writer.getPath();
-    }
-    final tmp = tmpPath();
-    await File(tmp).writeAsBytes(bytes);
-    final res = await pasteLocalFile(tmp, dir, unsafeName);
-    return res.path;
   }
 }

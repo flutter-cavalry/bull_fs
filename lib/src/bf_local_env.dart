@@ -138,11 +138,6 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  bool hasStreamSupport() {
-    return true;
-  }
-
-  @override
   Future<Stream<List<int>>> readFileStream(BFPath path) async {
     return File(path.localPath()).openRead();
   }

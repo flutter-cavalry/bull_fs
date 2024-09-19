@@ -174,11 +174,6 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  bool hasStreamSupport() {
-    return true;
-  }
-
-  @override
   Future<Stream<List<int>>> readFileStream(BFPath path) async {
     return _plugin.readFile(path.scopedSafUri());
   }

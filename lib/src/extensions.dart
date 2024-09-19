@@ -1,11 +1,7 @@
-import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:convert/convert.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'bf_env.dart';
 import 'types.dart';
-import 'package:path/path.dart' as p;
 
 extension IListStringExtension on IList<String> {
   IList<String> parentDir() {
@@ -76,20 +72,6 @@ extension BFEnvExtension on BFEnv {
     return st;
   }
 
-  Future<Uint8List> internalReadFileBytes(BFPath file) async {
-    if (hasStreamSupport()) {
-      final List<int> result = [];
-      final stream = await readFileStream(file);
-      await for (final chunk in stream) {
-        result.addAll(chunk);
-      }
-      return Uint8List.fromList(result);
-    }
-    final tmp = await _tmpFile();
-    await copyToLocalFile(file, tmp);
-    return File(tmp).readAsBytes();
-  }
-
   Future<Map<String, dynamic>> directoryToMap(BFPath dir,
       {bool Function(String name, BFEntity entity)? filter,
       bool? hideFileContents}) async {
@@ -124,14 +106,9 @@ extension BFEnvExtension on BFEnv {
       if (hideFileContents) {
         map[name] = null;
       } else {
-        final bytes = await internalReadFileBytes(ent.path);
+        final bytes = await readFileSync(ent.path);
         map[name] = hex.encode(bytes);
       }
     }
-  }
-
-  Future<String> _tmpFile() async {
-    final dir = await Directory.systemTemp.createTemp('bf_');
-    return p.join(dir.path, DateTime.now().millisecondsSinceEpoch.toString());
   }
 }
