@@ -370,11 +370,12 @@ packages:
   ns_file_coordinator_util:
     dependency: transitive
     description:
-      name: ns_file_coordinator_util
-      sha256: "72f17fd07f16c99dc714cde245533a2529385d759866e667caa1631fda70c3f6"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.15.0"
+      path: "."
+      ref: HEAD
+      resolved-ref: "97b4c173f7491c4a1a4165a983c42cc3eaf2aded"
+      url: "https://github.com/flutter-cavalry/ns_file_coordinator_util.git"
+    source: git
+    version: "0.20.0"
   path:
     dependency: "direct main"
     description:

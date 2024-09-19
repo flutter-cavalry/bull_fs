@@ -162,14 +162,14 @@ class BFEnvAppleCloud extends BFEnv {
         unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);
-    await _icloudPlugin.copy(srcUrl, destPath.scopedID());
+    await _icloudPlugin.copyPath(srcUrl, destPath.scopedID());
     return UpdatedBFPath(destPath, safeName);
   }
 
   @override
   Future<void> copyToLocalFile(BFPath src, String dest) async {
     final destUrl = await _darwinUrlPlugin.filePathToUrl(dest);
-    await _icloudPlugin.readFile(src.scopedID(), destUrl);
+    await _icloudPlugin.copyPath(src.scopedID(), destUrl);
   }
 
   Future<BFEntity> _fromIcloudEntity(NsFileCoordinatorEntity entity,
