@@ -149,7 +149,7 @@ class BFLocalEnv extends BFEnv {
     final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
         unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPath = p.join(dirPath, safeName);
-    return writeFileStreamFromPath(destPath);
+    return outStreamForLocalPath(destPath);
   }
 
   @override
@@ -187,7 +187,7 @@ class BFLocalEnv extends BFEnv {
     return await File(path.localPath()).readAsBytes();
   }
 
-  Future<BFOutStream> writeFileStreamFromPath(String filePath) async {
+  Future<BFOutStream> outStreamForLocalPath(String filePath) async {
     return BFLocalOutStream(File(filePath).openWrite(), BFLocalPath(filePath));
   }
 
