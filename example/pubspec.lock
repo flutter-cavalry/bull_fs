@@ -92,10 +92,10 @@ packages:
     dependency: "direct main"
     description:
       name: darwin_url
-      sha256: f9a335186fcbd5c5b8e2a55f24a513d2dedf3ae31550cf51d22187186530c122
+      sha256: e9756387f9e33097083160fe9e0c092fc98bf9f78506a552bb1f30b0c5a671b1
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.0"
+    version: "0.5.0"
   fake_async:
     dependency: transitive
     description:
@@ -395,12 +395,11 @@ packages:
   saf_stream:
     dependency: transitive
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "6ce2cbe1eddfff61f9be78731af8b5c557f5f0cf"
-      url: "https://github.com/flutter-cavalry/saf_stream.git"
-    source: git
-    version: "0.7.0"
+      name: saf_stream
+      sha256: a865d1889b71f5d51536aa1cf26ef6c4dc86c192fb8d75cc2084542b195b8a8c
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.7.1"
   sky_engine:
     dependency: transitive
     description: flutter
