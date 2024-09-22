@@ -116,10 +116,10 @@ packages:
     dependency: "direct main"
     description:
       name: fc_file_picker_util
-      sha256: "5fb5c5eb132b1c743ae1ef607b9ce1292947aebb1c367201edd6253779ae86d2"
+      sha256: "1de470c7fe56c07c63437d68f4a761508a5681a37a18a9538bba5bbd45be0716"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0"
+    version: "0.2.0"
   fc_material_alert:
     dependency: "direct main"
     description:
@@ -355,10 +355,10 @@ packages:
     dependency: transitive
     description:
       name: mg_shared_storage
-      sha256: "328e686b7de8e00cf2be92e411a08d86fede2947f5114e55ced9f177cfb7c9f9"
+      sha256: "21498cde10d4323a55f6e735d45755e31c5090fad7839092a3dbb0c25d03591c"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.1"
+    version: "0.8.0"
   mime:
     dependency: transitive
     description:
@@ -395,10 +395,11 @@ packages:
   saf_stream:
     dependency: transitive
     description:
-      name: saf_stream
-      sha256: bc97ab25fa9444dcecfa63c1df122bda9c5f3deaaf763cb9f850084120ee33cd
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "6ce2cbe1eddfff61f9be78731af8b5c557f5f0cf"
+      url: "https://github.com/flutter-cavalry/saf_stream.git"
+    source: git
     version: "0.7.0"
   sky_engine:
     dependency: transitive

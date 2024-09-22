@@ -74,10 +74,9 @@ class BFSafEnv extends BFEnv {
     return _locate(path, relPath);
   }
 
-  Future<UpdatedBFPath> _safMove(
-      BFPath srcPath, BFPath srcDirPath, BFPath destDir) async {
-    final res = await saf.moveEx(srcPath.scopedSafUri(),
-        srcDirPath.scopedSafUri(), destDir.scopedSafUri());
+  Future<UpdatedBFPath> _safMove(BFPath srcPath, BFPath destDir) async {
+    final res =
+        await saf.moveEx(srcPath.scopedSafUri(), destDir.scopedSafUri());
     if (res == null) {
       throw Exception('Unexpected null result from moveEx');
     }
@@ -90,7 +89,7 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<UpdatedBFPath> moveToDirSafe(
-      BFPath src, String srcName, BFPath srcDir, BFPath destDir, bool isDir,
+      BFPath src, String srcName, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
     // final srcParentStat =
     //     await ZBFInternal.mustGetStat(this, root, src.parentDir());
@@ -114,7 +113,7 @@ class BFSafEnv extends BFEnv {
           isDir,
           nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
 
-      final tmpDestInfo = await _safMove(srcTmpUri, srcDir, destDir);
+      final tmpDestInfo = await _safMove(srcTmpUri, destDir);
 
       // Rename it back to desired name.
       final destUri = await rename(tmpDestInfo.path, safeDestName, isDir);
