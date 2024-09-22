@@ -167,7 +167,7 @@ class BFNsfcEnv extends BFEnv {
             nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);
-    await _plugin.copyPath(srcUrl, destPath.scopedID());
+    await _plugin.copyPath(srcUrl, destPath.scopedID(), overwrite: overwrite);
     return UpdatedBFPath(destPath, safeName);
   }
 
