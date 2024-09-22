@@ -199,4 +199,16 @@ class BFLocalEnv extends BFEnv {
       await File(src).copy(dest);
     }
   }
+
+  @override
+  Future<BFPath?> appendPath(
+      BFPath path, IList<String> components, bool isDir) async {
+    final finalPath = p.joinAll([path.localPath(), ...components]);
+    return BFLocalPath(finalPath);
+  }
+
+  @override
+  Future<String?> basenameOfPath(BFPath path) async {
+    return p.basename(path.localPath());
+  }
 }

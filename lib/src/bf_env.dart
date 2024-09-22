@@ -191,4 +191,16 @@ abstract class BFEnv {
   Future<UpdatedBFPath> writeFileSync(
       BFPath dir, String unsafeName, Uint8List bytes,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite});
+
+  /// Appends a list of components to a path.
+  ///
+  /// [path] is the path to append.
+  /// [components] is the list of components to append.
+  /// [isDir] is whether the path is a directory.
+  Future<BFPath?> appendPath(BFPath path, IList<String> components, bool isDir);
+
+  /// Gets the basename of a path.
+  ///
+  /// [path] is the path to get the basename.
+  Future<String?> basenameOfPath(BFPath path);
 }

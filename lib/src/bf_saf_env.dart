@@ -230,6 +230,28 @@ class BFSafEnv extends BFEnv {
     return _plugin.readFileSync(path.scopedSafUri());
   }
 
+  @override
+  Future<BFPath?> appendPath(
+      BFPath path, IList<String> components, bool isDir) async {
+    final st = await stat(path, relPath: components);
+    if (st == null) {
+      return null;
+    }
+    if (st.isDir != isDir) {
+      return null;
+    }
+    return st.path;
+  }
+
+  @override
+  Future<String?> basenameOfPath(BFPath path) async {
+    final st = await stat(path);
+    if (st == null) {
+      return null;
+    }
+    return st.name;
+  }
+
   BFEntity? _fromSAFEntity(saf.DocumentFile e,
       {required List<String>? dirRelPath}) {
     final eName = e.name;

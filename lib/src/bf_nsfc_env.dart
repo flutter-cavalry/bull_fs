@@ -177,6 +177,19 @@ class BFNsfcEnv extends BFEnv {
     return _plugin.readFileSync(path.scopedID());
   }
 
+  @override
+  Future<BFPath?> appendPath(
+      BFPath path, IList<String> components, bool isDir) async {
+    final newPath = await _darwinUrlPlugin
+        .append(path.toString(), components.unlock, isDir: isDir);
+    return BFScopedPath(newPath);
+  }
+
+  @override
+  Future<String?> basenameOfPath(BFPath path) async {
+    return _darwinUrlPlugin.basename(path.toString());
+  }
+
   Future<BFEntity> _fromIcloudEntity(NsFileCoordinatorEntity entity,
       {required List<String>? dirRelPath}) async {
     const icloudExt = '.icloud';
