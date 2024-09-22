@@ -62,6 +62,7 @@ class NTRSuite {
     _caseNames.add(name.toLowerCase());
     _cases.add(() async {
       NTRHandle? h;
+      final startTime = DateTime.now();
       try {
         final data = await beforeAll?.call();
         h = NTRHandle(data);
@@ -72,6 +73,9 @@ class NTRSuite {
         debugPrint('❌ $name\n$err\n');
         debugPrintStack(stackTrace: st);
       } finally {
+        final endTime = DateTime.now();
+        final duration = endTime.difference(startTime);
+        debugPrint('Duration: $name (${duration.inMilliseconds}ms)');
         if (h != null) {
           // `afterAll` only gets called when `beforeAll` is called (i.e. NTRHandle is created).
           await afterAll?.call(h);
