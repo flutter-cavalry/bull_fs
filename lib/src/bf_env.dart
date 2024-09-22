@@ -104,12 +104,13 @@ abstract class BFEnv {
   /// [isDir] is whether the source is a directory.
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
-  Future<UpdatedBFPath> moveToDir(BFPath src, BFPath destDir, bool isDir,
+  Future<UpdatedBFPath> moveToDir(
+      BFPath src, BFPath srcDir, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) {
     if (overwrite == true) {
-      return _moveToDirByForce(src, destDir, isDir);
+      return _moveToDirByForce(src, srcDir, destDir, isDir);
     }
-    return moveToDirSafe(src, destDir, isDir, nameUpdater: nameUpdater);
+    return moveToDirSafe(src, srcDir, destDir, isDir, nameUpdater: nameUpdater);
   }
 
   /// Moves a file or directory to a directory.
@@ -122,13 +123,14 @@ abstract class BFEnv {
   /// [isDir] is whether the source is a directory.
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   @protected
-  Future<UpdatedBFPath> moveToDirSafe(BFPath src, BFPath destDir, bool isDir,
+  Future<UpdatedBFPath> moveToDirSafe(
+      BFPath src, BFPath srcDir, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater});
 
   /// Moves a file or directory to a directory and overwrites the existing item.
   /// This is called by [moveToDir] when [overwrite] is `true`.
   Future<UpdatedBFPath> _moveToDirByForce(
-      BFPath src, BFPath destDir, bool isDir) async {
+      BFPath src, BFPath srcDir, BFPath destDir, bool isDir) async {
     final srcName = await basenameOfPath(src);
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
@@ -137,7 +139,7 @@ abstract class BFEnv {
 
     // Call `moveToDir` if the destination item does not exist and no new name assigned.
     if (destItemStat == null) {
-      final newPath = await moveToDirSafe(src, destDir, isDir);
+      final newPath = await moveToDirSafe(src, srcDir, destDir, isDir);
       if (newPath.newName != srcName) {
         throw Exception(
             'Unexpected new name: ${newPath.newName}, expected: $srcName');
@@ -151,7 +153,7 @@ abstract class BFEnv {
         await rename(destItemStat.path, tmpDestName, destItemStat.isDir);
 
     // Move the source item to the destination.
-    final newPath = await moveToDirSafe(src, destDir, isDir);
+    final newPath = await moveToDirSafe(src, srcDir, destDir, isDir);
     if (newPath.newName != srcName) {
       throw Exception(
           'Unexpected new name: ${newPath.newName}, expected: $srcName');

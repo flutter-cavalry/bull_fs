@@ -74,9 +74,10 @@ class BFSafEnv extends BFEnv {
     return _locate(path, relPath);
   }
 
-  Future<UpdatedBFPath> _safMove(BFPath srcPath, BFPath destDir) async {
-    final res =
-        await saf.moveEx(srcPath.scopedSafUri(), destDir.scopedSafUri());
+  Future<UpdatedBFPath> _safMove(
+      BFPath srcPath, BFPath srcDir, BFPath destDir) async {
+    final res = await saf.moveEx(
+        srcPath.scopedSafUri(), srcDir.scopedSafUri(), destDir.scopedSafUri());
     if (res == null) {
       throw Exception('Unexpected null result from moveEx');
     }
@@ -88,7 +89,8 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> moveToDirSafe(BFPath src, BFPath destDir, bool isDir,
+  Future<UpdatedBFPath> moveToDirSafe(
+      BFPath src, BFPath srcDir, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
     // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
     // Then move the file to dest and rename it back to the desired name.
@@ -109,7 +111,7 @@ class BFSafEnv extends BFEnv {
           isDir,
           nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
 
-      final tmpDestInfo = await _safMove(srcTmpUri, destDir);
+      final tmpDestInfo = await _safMove(srcTmpUri, srcDir, destDir);
 
       // Rename it back to desired name.
       final destUri = await rename(tmpDestInfo.path, safeDestName, isDir);

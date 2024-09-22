@@ -355,10 +355,10 @@ packages:
     dependency: transitive
     description:
       name: mg_shared_storage
-      sha256: "21498cde10d4323a55f6e735d45755e31c5090fad7839092a3dbb0c25d03591c"
+      sha256: "385e193bef00e2d78d7b243d9a3843a0cec649f699543c34d4252a22c267c47b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.0"
+    version: "0.8.1"
   mime:
     dependency: transitive
     description:

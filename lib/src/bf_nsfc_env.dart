@@ -102,7 +102,8 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> moveToDirSafe(BFPath src, BFPath destDir, bool isDir,
+  Future<UpdatedBFPath> moveToDirSafe(
+      BFPath src, BFPath srcDir, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
     final srcName = await basenameOfPath(src);
     if (srcName == null) {
