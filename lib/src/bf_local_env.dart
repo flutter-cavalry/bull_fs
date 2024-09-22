@@ -111,7 +111,7 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> moveToDir(
+  Future<UpdatedBFPath> moveToDirSafe(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
     final srcStat = await ZBFInternal.mustGetStat(this, root, src);
@@ -144,10 +144,12 @@ class BFLocalEnv extends BFEnv {
 
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater}) async {
+      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
     final dirPath = dir.localPath();
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+    final safeName = overwrite == true
+        ? unsafeName
+        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPath = p.join(dirPath, safeName);
     return outStreamForLocalPath(destPath);
   }
@@ -155,10 +157,12 @@ class BFLocalEnv extends BFEnv {
   @override
   Future<UpdatedBFPath> writeFileSync(
       BFPath dir, String unsafeName, Uint8List bytes,
-      {BFNameUpdaterFunc? nameUpdater}) async {
+      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
     final dirPath = dir.localPath();
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+    final safeName = overwrite == true
+        ? unsafeName
+        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPath = p.join(dirPath, safeName);
     await File(destPath).writeAsBytes(bytes);
     return UpdatedBFPath(BFLocalPath(destPath), safeName);
@@ -167,9 +171,11 @@ class BFLocalEnv extends BFEnv {
   @override
   Future<UpdatedBFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater}) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    final safeName = overwrite == true
+        ? unsafeName
+        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final dirPath = dir.localPath();
     final destPath = p.join(dirPath, safeName);
     final destBFPath = BFLocalPath(destPath);

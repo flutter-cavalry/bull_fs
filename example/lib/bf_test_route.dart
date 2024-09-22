@@ -931,8 +931,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
-      final newPath = await e.forceMoveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false);
+      final newPath = await e.moveToDir(
+          r, _genRelPath('move/a'), _genRelPath('move/b'), false,
+          overwrite: true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
@@ -964,8 +965,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Create a conflict.
       await _createFile(e, destDir, 'a', [1, 2, 3]);
 
-      final newPath = await e.forceMoveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false);
+      final newPath = await e.moveToDir(
+          r, _genRelPath('move/a'), _genRelPath('move/b'), false,
+          overwrite: true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
@@ -995,9 +997,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
-      final newPath = await e.forceMoveToDir(
+      final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false,
-          unsafeNewName: 'a');
+          overwrite: true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
@@ -1030,9 +1032,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Create a conflict.
       await _createFile(e, destDir, 'a', [1, 2, 3]);
 
-      final newPath = await e.forceMoveToDir(
+      final newPath = await e.moveToDir(
           r, _genRelPath('move/a'), _genRelPath('move/b'), false,
-          unsafeNewName: 'a');
+          overwrite: true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
@@ -1042,148 +1044,6 @@ class _BFTestRouteState extends State<BFTestRoute> {
           "b": {
             "a": "41",
             "file2": "02",
-            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
-          }
-        }
-      });
-    });
-
-    ns.add('Move and replace file (new name) (no conflict)', (h) async {
-      final e = env;
-      final r = h.data as BFPath;
-
-      // Move move/a to move/b
-      await e.mkdirp(r, ['move', 'b'].lock);
-      await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
-      final destDir = await _getPath(e, r, 'move/b');
-
-      // Create some files and dirs for each dir.
-      await _createFile(e, destDir, 'file2', [2]);
-      await _createFolderWithDefFile(e, destDir, 'b_sub');
-
-      final newPath = await e.forceMoveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false,
-          unsafeNewName: 'zzz');
-      final st = await e.stat(newPath.path);
-      h.equals(st!.name, 'zzz');
-      h.equals(st.name, newPath.newName);
-
-      h.mapEquals(await e.directoryToMap(r), {
-        "move": {
-          "b": {
-            "zzz": "41",
-            "file2": "02",
-            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
-          }
-        }
-      });
-    });
-
-    ns.add('Move and replace file (new name) (no conflict after new name)',
-        (h) async {
-      final e = env;
-      final r = h.data as BFPath;
-
-      // Move move/a to move/b
-      await e.mkdirp(r, ['move', 'b'].lock);
-      await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
-      final destDir = await _getPath(e, r, 'move/b');
-
-      // Create some files and dirs for each dir.
-      await _createFile(e, destDir, 'file2', [2]);
-      await _createFolderWithDefFile(e, destDir, 'b_sub');
-
-      // Create a conflict.
-      await _createFile(e, destDir, 'a', [1, 2, 3]);
-
-      // Now `a` will be moved and assigned a new name `zzz`, so both `a` and `zzz` are kept.
-      final newPath = await e.forceMoveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false,
-          unsafeNewName: 'zzz');
-      final st = await e.stat(newPath.path);
-      h.equals(st!.name, 'zzz');
-      h.equals(st.name, newPath.newName);
-
-      h.mapEquals(await e.directoryToMap(r), {
-        "move": {
-          "b": {
-            "a": "010203",
-            "zzz": "41",
-            "file2": "02",
-            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
-          }
-        }
-      });
-    });
-
-    ns.add(
-        'Move and replace file (new name = default name) (conflict after new name)',
-        (h) async {
-      final e = env;
-      final r = h.data as BFPath;
-
-      // Move move/a to move/b
-      await e.mkdirp(r, ['move', 'b'].lock);
-      await _createFile(e, await _getPath(e, r, 'move'), 'zzz', [65]);
-      final destDir = await _getPath(e, r, 'move/b');
-
-      // Create some files and dirs for each dir.
-      await _createFile(e, destDir, 'file2', [2]);
-      await _createFolderWithDefFile(e, destDir, 'b_sub');
-
-      // Create a conflict.
-      await _createFile(e, destDir, 'a', [1, 2, 3]);
-
-      final newPath = await e.forceMoveToDir(
-          r, _genRelPath('move/zzz'), _genRelPath('move/b'), false,
-          unsafeNewName: 'a');
-      final st = await e.stat(newPath.path);
-      h.equals(st!.name, 'a');
-      h.equals(st.name, newPath.newName);
-
-      h.mapEquals(await e.directoryToMap(r), {
-        "move": {
-          "b": {
-            "a": "41",
-            "file2": "02",
-            "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
-          }
-        }
-      });
-    });
-
-    ns.add(
-        'Move and replace file (new name = default name) (conflicts before and after new name)',
-        (h) async {
-      final e = env;
-      final r = h.data as BFPath;
-
-      // Move move/zzz to move/b as a new name `a`. Both `zzz` and `a` exist on dest side.
-      await e.mkdirp(r, ['move', 'b'].lock);
-      await _createFile(e, await _getPath(e, r, 'move'), 'zzz', [65]);
-      final destDir = await _getPath(e, r, 'move/b');
-
-      // Create some files and dirs for each dir.
-      await _createFile(e, destDir, 'file2', [2]);
-      await _createFolderWithDefFile(e, destDir, 'b_sub');
-
-      // Create a conflict.
-      await _createFile(e, destDir, 'zzz', [4, 5, 6]);
-      await _createFile(e, destDir, 'a', [1, 2, 3]);
-
-      final newPath = await e.forceMoveToDir(
-          r, _genRelPath('move/zzz'), _genRelPath('move/b'), false,
-          unsafeNewName: 'a');
-      final st = await e.stat(newPath.path);
-      h.equals(st!.name, 'a');
-      h.equals(st.name, newPath.newName);
-
-      h.mapEquals(await e.directoryToMap(r), {
-        "move": {
-          "b": {
-            "a": "41",
-            "file2": "02",
-            "zzz": "040506",
             "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
           }
         }

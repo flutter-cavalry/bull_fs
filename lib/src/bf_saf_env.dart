@@ -90,7 +90,7 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> moveToDir(
+  Future<UpdatedBFPath> moveToDirSafe(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
     final srcParentStat =
@@ -180,12 +180,12 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater}) async {
+      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
     final res = await _plugin.startWriteStream(
         dir.scopedSafUri(), unsafeName, _getMime(unsafeName));
     final newFileName = res.fileResult.fileName;
     if (newFileName == null || newFileName.isEmpty) {
-      throw Exception('Unexpected null fileName from startWriteStream');
+      throw Exception('Unexpected null fileName from writeFileStream');
     }
     return BFSafOutStream(res.session, _plugin,
         BFScopedPath(res.fileResult.uri.toString()), newFileName);
@@ -194,12 +194,12 @@ class BFSafEnv extends BFEnv {
   @override
   Future<UpdatedBFPath> writeFileSync(
       BFPath dir, String unsafeName, Uint8List bytes,
-      {BFNameUpdaterFunc? nameUpdater}) async {
+      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
     final res = await _plugin.writeFileSync(
         dir.scopedSafUri(), unsafeName, _getMime(unsafeName), bytes);
     final fileName = res.fileName;
     if (fileName == null || fileName.isEmpty) {
-      throw Exception('Unexpected null fileName from writeFileFromLocal');
+      throw Exception('Unexpected null fileName from writeFileSync');
     }
     return UpdatedBFPath(BFScopedPath(res.uri.toString()), fileName);
   }
@@ -213,7 +213,7 @@ class BFSafEnv extends BFEnv {
   @override
   Future<UpdatedBFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater}) async {
+      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
     final res = await _plugin.pasteLocalFile(
         localSrc, dir.scopedSafUri(), unsafeName, _getMime(unsafeName));
     final fileName = res.fileName;

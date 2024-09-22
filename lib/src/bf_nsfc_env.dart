@@ -104,7 +104,7 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> moveToDir(
+  Future<UpdatedBFPath> moveToDirSafe(
       BFPath root, IList<String> src, IList<String> destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
     final srcStat = await ZBFInternal.mustGetStat(this, root, src);
@@ -129,9 +129,11 @@ class BFNsfcEnv extends BFEnv {
 
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater}) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    final safeName = overwrite == true
+        ? unsafeName
+        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPathUrl =
         await _darwinUrlPlugin.append(dir.toString(), [safeName], isDir: false);
     final destPath = BFScopedPath(destPathUrl);
@@ -143,9 +145,11 @@ class BFNsfcEnv extends BFEnv {
   @override
   Future<UpdatedBFPath> writeFileSync(
       BFPath dir, String unsafeName, Uint8List bytes,
-      {BFNameUpdaterFunc? nameUpdater}) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    final safeName = overwrite == true
+        ? unsafeName
+        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPathUrl =
         await _darwinUrlPlugin.append(dir.toString(), [safeName], isDir: false);
     final destPath = BFScopedPath(destPathUrl);
@@ -156,9 +160,11 @@ class BFNsfcEnv extends BFEnv {
   @override
   Future<UpdatedBFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater}) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    final safeName = overwrite == true
+        ? unsafeName
+        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);
     await _plugin.copyPath(srcUrl, destPath.scopedID());
