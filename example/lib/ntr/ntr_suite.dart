@@ -84,7 +84,6 @@ class NTRSuite {
         final endTime = DateTime.now();
         final duration = endTime.difference(startTime);
         _durations.add(NTRTime(name, duration));
-        debugPrint('Duration: $name (${duration.inMilliseconds}ms)');
         if (h != null) {
           // `afterEach` only gets called when `beforeEach` is called (i.e. NTRHandle is created).
           await afterEach?.call(h);
