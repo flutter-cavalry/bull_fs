@@ -314,7 +314,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             await env.writeFileStream(r, fileName, overwrite: overwrite);
         await outStream.write(Uint8List.fromList(utf8.encode('abc1')));
         await outStream.write(_defStringContentsBytes);
-        await outStream.flush();
+
         await outStream.close();
 
         // Test `getPath`.
@@ -329,7 +329,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
               await env.writeFileStream(r, fileName, overwrite: overwrite);
           await outStream.write(Uint8List.fromList(utf8.encode('abc2')));
           await outStream.write(_defStringContentsBytes);
-          await outStream.flush();
+
           await outStream.close();
 
           // Test `getPath`.
@@ -345,7 +345,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
               await env.writeFileStream(r, fileName, overwrite: overwrite);
           await outStream.write(Uint8List.fromList(utf8.encode('abc3')));
           await outStream.write(_defStringContentsBytes);
-          await outStream.flush();
+
           await outStream.close();
 
           // Test `getPath`.
