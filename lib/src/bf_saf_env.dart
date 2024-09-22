@@ -56,7 +56,6 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<List<BFPathAndDirRelPath>> listDirContentFiles(BFPath path) async {
-    // TODO: write a faster implementation instead of using listDir.
     final entities =
         await listDir(path, recursive: true, relativePathInfo: true);
     return entities
@@ -91,42 +90,40 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<UpdatedBFPath> moveToDirSafe(
-      BFPath root, IList<String> src, IList<String> destDir, bool isDir,
+      BFPath src, String srcName, BFPath srcDir, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    final srcParentStat =
-        await ZBFInternal.mustGetStat(this, root, src.parentDir());
-    final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
-    if (!destDirStat.isDir) {
-      throw Exception('$destDir is not a directory');
-    }
+    // final srcParentStat =
+    //     await ZBFInternal.mustGetStat(this, root, src.parentDir());
+    // final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
+    // if (!destDirStat.isDir) {
+    //   throw Exception('$destDir is not a directory');
+    // }
 
     // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
     // Then move the file to dest and rename it back to the desired name.
-    UpdatedBFPath? srcTmpUri;
-    final srcTmpName = tmpFileName() + (isDir ? '' : p.extension(src.last));
+    BFPath? srcTmpUri;
+    final srcTmpName = tmpFileName() + (isDir ? '' : p.extension(srcName));
     try {
-      srcTmpUri = await rename(root, src, srcTmpName, isDir);
+      srcTmpUri = await rename(src, srcTmpName, isDir);
 
-      final unsafeDestName = src.last;
+      final unsafeDestName = srcName;
       final safeDestName = await ZBFInternal.nextAvailableFileName(
           this,
-          destDirStat.path,
+          destDir,
           unsafeDestName,
           isDir,
           nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-      var destUri =
-          await _safMove(srcTmpUri.path, srcParentStat.path, destDirStat.path);
+
+      final tmpDestInfo = await _safMove(srcTmpUri, srcDir, destDir);
 
       // Rename it back to desired name.
-      destUri = await rename(
-          root, [...destDir, srcTmpName].lock, safeDestName, isDir);
-      return destUri;
+      final destUri = await rename(tmpDestInfo.path, safeDestName, isDir);
+      return UpdatedBFPath(destUri, safeDestName);
     } catch (err) {
       // Try reverting changes if exception happened.
-      if (srcTmpUri != null && await stat(srcTmpUri.path) != null) {
+      if (srcTmpUri != null && await stat(srcTmpUri) != null) {
         try {
-          await rename(
-              root, [...src.parentDir(), srcTmpName].lock, src.last, isDir);
+          await rename(srcTmpUri, srcName, isDir);
         } catch (_) {
           // Ignore exceptions during reverting.
           if (kDebugMode) {
@@ -160,17 +157,15 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> renameInternal(BFPath root, IList<String> src,
-      String unsafeNewName, bool isDir, BFEntity srcStat) async {
-    final path = srcStat.path;
-    final newDF = await saf.renameTo(path.scopedSafUri(), unsafeNewName);
+  Future<BFPath> renameInternal(BFPath path, String newName, bool isDir) async {
+    final newDF = await saf.renameTo(path.scopedSafUri(), newName);
     if (newDF == null) {
       throw Exception('rename failed at $path');
     }
     if (newDF.name == null || newDF.name!.isEmpty) {
       throw Exception('Unexpected null or empty name from item stat');
     }
-    return UpdatedBFPath(BFScopedPath(newDF.uri.toString()), newDF.name!);
+    return BFScopedPath(newDF.uri.toString());
   }
 
   @override

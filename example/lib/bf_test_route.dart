@@ -668,11 +668,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('rename (folder)', (h) async {
       final r = h.data as BFPath;
       await env.mkdirp(r, ['a', '一 二'].lock);
-      final newPath =
-          await env.rename(r, _genRelPath('a/一 二'), 'test 仨 2.txt', true);
-      final st = await env.stat(newPath.path);
+      final newPath = await env.rename(
+          await _getPath(env, r, 'a/一 二'), 'test 仨 2.txt', true);
+      final st = await env.stat(newPath);
       h.equals(st!.name, 'test 仨 2.txt');
-      h.equals(st.name, newPath.newName);
 
       h.mapEquals(await env.directoryToMap(r), {
         "a": {"test 仨 2.txt": {}}
@@ -685,7 +684,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         await env.mkdirp(r, ['一 二'].lock);
         await env.writeFileSync(r, 'test 仨.txt', _defStringContentsBytes);
 
-        await env.rename(r, _genRelPath('一 二'), 'test 仨.txt', true);
+        await env.rename(await _getPath(env, r, '一 二'), 'test 仨.txt', true);
         throw Error();
       } on Exception catch (_) {
         h.mapEquals(await env.directoryToMap(r),
@@ -698,10 +697,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
       await env.writeFileSync(newDir, 'test 仨.txt', _defStringContentsBytes);
       final newPath = await env.rename(
-          r, _genRelPath('a/一 二/test 仨.txt'), 'test 仨 2.txt', false);
-      final st = await env.stat(newPath.path);
+          await _getPath(env, r, 'a/一 二/test 仨.txt'), 'test 仨 2.txt', false);
+      final st = await env.stat(newPath);
       h.equals(st!.name, 'test 仨 2.txt');
-      h.equals(st.name, newPath.newName);
 
       h.mapEquals(await env.directoryToMap(r), {
         "a": {
@@ -717,8 +715,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
         await env.writeFileSync(r, 'test 仨.txt', _defStringContentsBytes);
 
-        await env.rename(
-            r, _genRelPath('test 仨 2.txt/test 仨.txt'), 'test 仨 2.txt', false);
+        await env.rename(await _getPath(env, r, 'test 仨 2.txt/test 仨.txt'),
+            'test 仨 2.txt', false);
         throw Error();
       } on Exception catch (_) {
         h.mapEquals(await env.directoryToMap(r), {
@@ -744,8 +742,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _createFolderWithDefFile(e, srcDir, 'a_sub');
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
-      final newPath = await e.moveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), true);
+      final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), 'a',
+          await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'), true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
@@ -783,8 +781,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Create a conflict.
       await _createFile(e, destDir, 'a', [1, 2, 3]);
 
-      final newPath = await e.moveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), true);
+      final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), 'a',
+          await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'), true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, _dupSuffix('a', 2));
       h.equals(st.name, newPath.newName);
@@ -824,8 +822,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await e.mkdirp(r, ['move', 'b', 'a'].lock);
       await _createFile(e, await _getPath(e, r, 'move/b/a'), 'z', [4, 5]);
 
-      final newPath = await e.moveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), true);
+      final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), 'a',
+          await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'), true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a (1)');
       h.equals(st.name, newPath.newName);
@@ -858,8 +856,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
-      final newPath = await e.moveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false);
+      final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), 'a',
+          await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'), false);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
@@ -892,8 +890,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await e.mkdirp(r, ['move', 'b', 'a'].lock);
       await _createFile(e, await _getPath(e, r, 'move/b/a'), 'z', [4, 5]);
 
-      final newPath = await e.moveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false);
+      final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), 'a',
+          await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'), false);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a (1)');
       h.equals(st.name, newPath.newName);
@@ -926,8 +924,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Create a conflict.
       await _createFile(e, destDir, 'a', [4, 5, 6]);
 
-      final newPath = await e.moveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false);
+      final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), 'a',
+          await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'), false);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a (1)');
       h.equals(st.name, newPath.newName);
@@ -957,8 +955,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
-      final newPath = await e.moveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false,
+      final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), 'a',
+          await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'), false,
           overwrite: true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
@@ -991,8 +989,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Create a conflict.
       await _createFile(e, destDir, 'a', [1, 2, 3]);
 
-      final newPath = await e.moveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false,
+      final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), 'a',
+          await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'), false,
           overwrite: true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
@@ -1023,8 +1021,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _createFile(e, destDir, 'file2', [2]);
       await _createFolderWithDefFile(e, destDir, 'b_sub');
 
-      final newPath = await e.moveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false,
+      final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), 'a',
+          await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'), false,
           overwrite: true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');
@@ -1058,8 +1056,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Create a conflict.
       await _createFile(e, destDir, 'a', [1, 2, 3]);
 
-      final newPath = await e.moveToDir(
-          r, _genRelPath('move/a'), _genRelPath('move/b'), false,
+      final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), 'a',
+          await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'), false,
           overwrite: true);
       final st = await e.stat(newPath.path);
       h.equals(st!.name, 'a');

@@ -93,32 +93,27 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> renameInternal(BFPath root, IList<String> src,
-      String unsafeNewName, bool isDir, BFEntity srcStat) async {
-    final path = srcStat.path;
+  Future<BFPath> renameInternal(BFPath path, String newName, bool isDir) async {
     final dirUrl = await _darwinUrlPlugin.dirUrl(path.scopedID());
     final destUrl =
-        await _darwinUrlPlugin.append(dirUrl, [unsafeNewName], isDir: isDir);
+        await _darwinUrlPlugin.append(dirUrl, [newName], isDir: isDir);
     await _plugin.move(path.scopedID(), destUrl);
-    return UpdatedBFPath(BFScopedPath(destUrl), unsafeNewName);
+    return BFScopedPath(destUrl);
   }
 
   @override
   Future<UpdatedBFPath> moveToDirSafe(
-      BFPath root, IList<String> src, IList<String> destDir, bool isDir,
+      BFPath src, String srcName, BFPath srcDir, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    final srcStat = await ZBFInternal.mustGetStat(this, root, src);
-    final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
-
     final destItemFileName = await ZBFInternal.nextAvailableFileName(
         this,
-        destDirStat.path,
-        srcStat.name,
+        destDir,
+        srcName,
         isDir,
         nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destItemPath =
-        await destDirStat.path.iosJoinRelPath([destItemFileName].lock, isDir);
-    await _plugin.move(srcStat.path.scopedID(), destItemPath.scopedID());
+        await destDir.iosJoinRelPath([destItemFileName].lock, isDir);
+    await _plugin.move(src.scopedID(), destItemPath.scopedID());
     return UpdatedBFPath(destItemPath, destItemFileName);
   }
 

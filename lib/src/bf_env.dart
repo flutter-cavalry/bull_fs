@@ -76,51 +76,42 @@ abstract class BFEnv {
 
   /// Platform implementation of [BFEnv.rename].
   ///
-  /// [root] is the root directory.
-  /// [src] is the source path.
-  /// [unsafeNewName] is the new name.
+  /// [path] is the item path.
+  /// [newName] is the new name.
   /// [isDir] is whether the source is a directory.
-  /// [srcStat] is the stat of the source path.
   @protected
-  Future<UpdatedBFPath> renameInternal(BFPath root, IList<String> src,
-      String unsafeNewName, bool isDir, BFEntity srcStat);
+  Future<BFPath> renameInternal(BFPath path, String newName, bool isDir);
 
   /// Renames a file or directory.
   ///
-  /// [root] is the root directory.
-  /// [src] is the source path.
-  /// [unsafeNewName] is the new name.
+  /// [path] is the item path.
+  /// [newName] is the new name.
   /// [isDir] is whether the source is a directory.
-  Future<UpdatedBFPath> rename(
-      BFPath root, IList<String> src, String unsafeNewName, bool isDir) async {
-    final st = await stat(root, relPath: src);
-    if (st == null) {
-      throw Exception('Path does not exist: ${src.join('/')}');
-    }
-    final newSt =
-        await stat(root, relPath: [...src.parentDir(), unsafeNewName].lock);
+  Future<BFPath> rename(BFPath path, String newName, bool isDir) async {
+    final newSt = await stat(path, relPath: [newName].lock);
     if (newSt != null) {
       throw Exception('Path already exists: ${newSt.path}');
     }
-    return renameInternal(root, src, unsafeNewName, isDir, st);
+    return renameInternal(path, newName, isDir);
   }
 
   /// Moves a file or directory to a directory.
   /// Use [nameUpdater] to update the file name if it conflicts with existing files.
   ///
-  /// [root] is the root directory.
   /// [src] is the source path.
+  /// [srcName] is the source name.
   /// [destDir] is the destination directory.
   /// [isDir] is whether the source is a directory.
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
   Future<UpdatedBFPath> moveToDir(
-      BFPath root, IList<String> src, IList<String> destDir, bool isDir,
+      BFPath src, String srcName, BFPath srcDir, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) {
     if (overwrite == true) {
-      return _moveToDirByForce(root, src, destDir, isDir);
+      return _moveToDirByForce(src, srcName, srcDir, destDir, isDir);
     }
-    return moveToDirSafe(root, src, destDir, isDir, nameUpdater: nameUpdater);
+    return moveToDirSafe(src, srcName, srcDir, destDir, isDir,
+        nameUpdater: nameUpdater);
   }
 
   /// Moves a file or directory to a directory.
@@ -134,40 +125,39 @@ abstract class BFEnv {
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   @protected
   Future<UpdatedBFPath> moveToDirSafe(
-      BFPath root, IList<String> src, IList<String> destDir, bool isDir,
+      BFPath src, String srcName, BFPath srcDir, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater});
 
   /// Moves a file or directory to a directory and overwrites the existing item.
   /// This is called by [moveToDir] when [overwrite] is `true`.
-  Future<UpdatedBFPath> _moveToDirByForce(
-      BFPath root, IList<String> src, IList<String> destDir, bool isDir) async {
-    final fileName = src.last;
-    final destItemRelPath = [...destDir, fileName].lock;
-    final destItemStat = await stat(root, relPath: destItemRelPath);
+  Future<UpdatedBFPath> _moveToDirByForce(BFPath src, String srcName,
+      BFPath srcDir, BFPath destDir, bool isDir) async {
+    final destItemStat = await stat(destDir, relPath: [srcName].lock);
 
     // Call `moveToDir` if the destination item does not exist and no new name assigned.
     if (destItemStat == null) {
-      return moveToDirSafe(root, src, destDir, isDir);
+      final newPath = await moveToDirSafe(src, srcName, srcDir, destDir, isDir);
+      if (newPath.newName != srcName) {
+        throw Exception(
+            'Unexpected new name: ${newPath.newName}, expected: $srcName');
+      }
+      return newPath;
     }
 
-    final destDirStat = await stat(root, relPath: destDir);
-    if (destDirStat == null) {
-      throw Exception('Destination directory does not exist: $destDir');
-    }
-    final unsafeTmpDestName = tmpFileName();
+    final tmpDestName = tmpFileName();
     // Rename the destination item to a temporary name if it exists.
-    final tmpDestInfo = await rename(
-        root, destItemRelPath, unsafeTmpDestName, destItemStat.isDir);
+    final tmpDestPath =
+        await rename(destItemStat.path, tmpDestName, destItemStat.isDir);
 
     // Move the source item to the destination.
-    final newPath = await moveToDirSafe(root, src, destDir, isDir);
-    if (newPath.newName != fileName) {
+    final newPath = await moveToDirSafe(src, srcName, srcDir, destDir, isDir);
+    if (newPath.newName != srcName) {
       throw Exception(
-          'Unexpected new name: ${newPath.newName}, expected: $fileName');
+          'Unexpected new name: ${newPath.newName}, expected: $srcName');
     }
 
-    // Remove the overwritten destination item.
-    await delete(tmpDestInfo.path, destItemStat.isDir);
+    // Remove the tmp file after it's been overwritten.
+    await delete(tmpDestPath, destItemStat.isDir);
     return newPath;
   }
 

@@ -101,31 +101,26 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> renameInternal(BFPath root, IList<String> src,
-      String unsafeNewName, bool isDir, BFEntity srcStat) async {
-    final path = srcStat.path;
+  Future<BFPath> renameInternal(BFPath path, String newName, bool isDir) async {
     final filePath = path.localPath();
-    final newPath = p.join(p.dirname(filePath), unsafeNewName);
+    final newPath = p.join(p.dirname(filePath), newName);
     await _move(filePath, newPath, isDir);
-    return UpdatedBFPath(BFLocalPath(newPath), unsafeNewName);
+    return BFLocalPath(newPath);
   }
 
   @override
   Future<UpdatedBFPath> moveToDirSafe(
-      BFPath root, IList<String> src, IList<String> destDir, bool isDir,
+      BFPath src, String srcName, BFPath srcDir, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    final srcStat = await ZBFInternal.mustGetStat(this, root, src);
-    final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
-
     final destItemFileName = await ZBFInternal.nextAvailableFileName(
         this,
-        destDirStat.path,
-        srcStat.name,
+        destDir,
+        srcName,
         isDir,
         nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-    final destItemPath = p.join(destDirStat.path.toString(), destItemFileName);
+    final destItemPath = p.join(destDir.toString(), destItemFileName);
 
-    await _move(srcStat.path.localPath(), destItemPath, isDir);
+    await _move(src.localPath(), destItemPath, isDir);
     return UpdatedBFPath(BFLocalPath(destItemPath), destItemFileName);
   }
 
