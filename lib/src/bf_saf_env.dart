@@ -176,7 +176,8 @@ class BFSafEnv extends BFEnv {
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
     final res = await _plugin.startWriteStream(
-        dir.scopedSafUri(), unsafeName, _getMime(unsafeName));
+        dir.scopedSafUri(), unsafeName, _getMime(unsafeName),
+        overwrite: overwrite);
     final newFileName = res.fileResult.fileName;
     if (newFileName == null || newFileName.isEmpty) {
       throw Exception('Unexpected null fileName from writeFileStream');
@@ -190,7 +191,8 @@ class BFSafEnv extends BFEnv {
       BFPath dir, String unsafeName, Uint8List bytes,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
     final res = await _plugin.writeFileSync(
-        dir.scopedSafUri(), unsafeName, _getMime(unsafeName), bytes);
+        dir.scopedSafUri(), unsafeName, _getMime(unsafeName), bytes,
+        overwrite: overwrite);
     final fileName = res.fileName;
     if (fileName == null || fileName.isEmpty) {
       throw Exception('Unexpected null fileName from writeFileSync');
@@ -209,7 +211,8 @@ class BFSafEnv extends BFEnv {
       String localSrc, BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
     final res = await _plugin.pasteLocalFile(
-        localSrc, dir.scopedSafUri(), unsafeName, _getMime(unsafeName));
+        localSrc, dir.scopedSafUri(), unsafeName, _getMime(unsafeName),
+        overwrite: overwrite);
     final fileName = res.fileName;
     if (fileName == null || fileName.isEmpty) {
       throw Exception('Unexpected null fileName from writeFileFromLocal');
