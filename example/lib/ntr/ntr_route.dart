@@ -12,6 +12,7 @@ class NTRRoute extends StatefulWidget {
 
 class _NTRRouteState extends State<NTRRoute> {
   String _msg = '';
+  List<NTRTime> _durations = [];
 
   @override
   Widget build(BuildContext context) {
@@ -20,14 +21,26 @@ class _NTRRouteState extends State<NTRRoute> {
         centerTitle: true,
         title: Text('${widget.suite.suiteName} NTests'),
       ),
-      body: Center(
-        child: Text(_msg),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Text(_msg),
+            const SizedBox(height: 10),
+            ...[
+              for (final d in _durations)
+                Text('${d.name}: ${d.duration.inMilliseconds} ms')
+            ]
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final suite = widget.suite;
           suite.onLog = (s) => setState(() => _msg = s);
           await suite.run();
+          setState(() {
+            _durations = suite.reportDurations();
+          });
         },
         child: const Icon(Icons.run_circle_outlined),
       ),

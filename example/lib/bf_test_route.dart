@@ -25,6 +25,7 @@ class BFTestRoute extends StatefulWidget {
 class _BFTestRouteState extends State<BFTestRoute> {
   var _env = '';
   var _output = '';
+  List<NTRTime> _durations = [];
 
   @override
   Widget build(BuildContext context) {
@@ -32,34 +33,38 @@ class _BFTestRouteState extends State<BFTestRoute> {
         appBar: AppBar(
           title: const Text('BullFS tests'),
         ),
-        body: Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: <Widget>[
-              OutlinedButton(
-                  onPressed: _startLocal, child: const Text('Run local env')),
-              if (!Platform.isWindows) ...[
-                const SizedBox(
-                  height: 10,
-                ),
-                OutlinedButton(
-                    onPressed: _startNative,
-                    child: const Text('Run native env'))
-              ],
-              const SizedBox(
-                height: 10,
+        body: Padding(
+            padding: const EdgeInsets.all(10),
+            child: SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  OutlinedButton(
+                      onPressed: _startLocal,
+                      child: const Text('Run local env')),
+                  if (!Platform.isWindows) ...[
+                    const SizedBox(
+                      height: 10,
+                    ),
+                    OutlinedButton(
+                        onPressed: _startNative,
+                        child: const Text('Run native env'))
+                  ],
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Text(_env),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  SelectableText(_output),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  for (final d in _durations)
+                    Text('${d.name}: ${d.duration.inMilliseconds} ms')
+                ],
               ),
-              Text(_env),
-              const SizedBox(
-                height: 10,
-              ),
-              SelectableText(_output),
-              const SizedBox(
-                height: 10,
-              ),
-            ],
-          ),
-        ));
+            )));
   }
 
   Future<void> _startLocal() async {
@@ -98,21 +103,27 @@ class _BFTestRouteState extends State<BFTestRoute> {
     });
 
     BFPath? cleanUpPath;
+    final isLocal = env.envType() == BFEnvType.local;
+    final suite = NTRSuite(suiteName: isLocal ? 'Local' : 'Native');
     try {
-      // Local env.
-      final localDir = tmpPath();
-      await Directory(localDir).create(recursive: true);
-      setState(() {
-        _env = 'Local';
-      });
-      await _runEnvTests('Local', BFLocalEnv(), BFLocalPath(localDir));
-      if (env.envType() != BFEnvType.local) {
-        // Native env.
+      if (isLocal) {
+        final localDir = tmpPath();
+        await Directory(localDir).create(recursive: true);
+        cleanUpPath = BFLocalPath(localDir);
+        setState(() {
+          _env = 'Local';
+        });
+        await _runEnvTests(
+          suite,
+          env,
+          cleanUpPath,
+        );
+      } else {
         cleanUpPath = await env.mkdirp(root, ['native'].lock);
         setState(() {
           _env = 'Native';
         });
-        await _runEnvTests('Native', env, cleanUpPath);
+        await _runEnvTests(suite, env, cleanUpPath);
       }
 
       setState(() {
@@ -123,6 +134,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
         _output = 'Failed: See debug console for details';
       });
     } finally {
+      setState(() {
+        _durations = suite.reportDurations();
+      });
       // Clean up.
       if (cleanUpPath != null) {
         await env.deletePathIfExists(root);
@@ -173,22 +187,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
         .join(' | ');
   }
 
-  Future<void> _runEnvTests(String name, BFEnv env, BFPath root) async {
-    final ns = NTRSuite(suiteName: name);
-
+  Future<void> _runEnvTests(NTRSuite ns, BFEnv env, BFPath root) async {
     int testCount = 0;
     ns.onLog = (s) => setState(() {
           _output = s;
         });
-    ns.beforeAll = () async {
+    ns.beforeEach = () async {
       testCount++;
       // Create a new folder for each test.
       final dirUri = await env.mkdirp(root, ['test_$testCount'].lock);
       return dirUri;
-    };
-    ns.afterAll = (h) async {
-      final r = h.data as BFPath;
-      await env.deletePathIfExists(r);
     };
 
     ns.add('ensureDir', (h) async {

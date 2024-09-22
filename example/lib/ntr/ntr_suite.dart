@@ -45,16 +45,24 @@ class NTRHandle {
   }
 }
 
+class NTRTime {
+  final String name;
+  final Duration duration;
+
+  NTRTime(this.name, this.duration);
+}
+
 class NTRSuite {
   final String suiteName;
   final List<String> _caseNames = [];
   final List<Future<void> Function()> _cases = [];
 
   List<String> _failed = [];
+  final List<NTRTime> _durations = [];
 
   void Function(String s)? onLog;
-  Future<dynamic> Function()? beforeAll;
-  Future<void> Function(NTRHandle h)? afterAll;
+  Future<dynamic> Function()? beforeEach;
+  Future<void> Function(NTRHandle h)? afterEach;
 
   NTRSuite({required this.suiteName});
 
@@ -64,7 +72,7 @@ class NTRSuite {
       NTRHandle? h;
       final startTime = DateTime.now();
       try {
-        final data = await beforeAll?.call();
+        final data = await beforeEach?.call();
         h = NTRHandle(data);
         onLog?.call(name);
         await fn(h);
@@ -75,10 +83,11 @@ class NTRSuite {
       } finally {
         final endTime = DateTime.now();
         final duration = endTime.difference(startTime);
+        _durations.add(NTRTime(name, duration));
         debugPrint('Duration: $name (${duration.inMilliseconds}ms)');
         if (h != null) {
-          // `afterAll` only gets called when `beforeAll` is called (i.e. NTRHandle is created).
-          await afterAll?.call(h);
+          // `afterEach` only gets called when `beforeEach` is called (i.e. NTRHandle is created).
+          await afterEach?.call(h);
         }
       }
     });
@@ -94,5 +103,10 @@ class NTRSuite {
     }
     await Future.wait(futures);
     return _failed;
+  }
+
+  List<NTRTime> reportDurations() {
+    _durations.sort((a, b) => b.duration.compareTo(a.duration));
+    return _durations;
   }
 }
