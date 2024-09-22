@@ -94,13 +94,11 @@ class NTRSuite {
 
   Future<List<String>> run({String? debugName}) async {
     _failed = [];
-    List<Future<void>> futures = [];
     for (var i = 0; i < _caseNames.length; i++) {
       if (debugName == null || _caseNames[i].contains(debugName)) {
-        futures.add(_cases[i].call());
+        await _cases[i]();
       }
     }
-    await Future.wait(futures);
     return _failed;
   }
 
