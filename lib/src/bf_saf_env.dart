@@ -88,19 +88,15 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> moveToDirSafe(
-      BFPath src, String srcName, BFPath destDir, bool isDir,
+  Future<UpdatedBFPath> moveToDirSafe(BFPath src, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    // final srcParentStat =
-    //     await ZBFInternal.mustGetStat(this, root, src.parentDir());
-    // final destDirStat = await ZBFInternal.mustGetStat(this, root, destDir);
-    // if (!destDirStat.isDir) {
-    //   throw Exception('$destDir is not a directory');
-    // }
-
     // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
     // Then move the file to dest and rename it back to the desired name.
     BFPath? srcTmpUri;
+    final srcName = await basenameOfPath(src);
+    if (srcName == null) {
+      throw Exception('Unexpected null basename from item stat');
+    }
     final srcTmpName = tmpFileName() + (isDir ? '' : p.extension(srcName));
     try {
       srcTmpUri = await rename(src, srcTmpName, isDir);

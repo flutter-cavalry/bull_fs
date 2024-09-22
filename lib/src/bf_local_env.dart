@@ -109,9 +109,9 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> moveToDirSafe(
-      BFPath src, String srcName, BFPath destDir, bool isDir,
+  Future<UpdatedBFPath> moveToDirSafe(BFPath src, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
+    final srcName = p.basename(src.localPath());
     final destItemFileName = await ZBFInternal.nextAvailableFileName(
         this,
         destDir,
