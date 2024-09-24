@@ -93,7 +93,7 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<BFPath> renameInternal(BFPath path, String newName, bool isDir) async {
+  Future<BFPath> rename(BFPath path, String newName, bool isDir) async {
     final dirUrl = await _darwinUrlPlugin.dirUrl(path.scopedID());
     final destUrl =
         await _darwinUrlPlugin.append(dirUrl, [newName], isDir: isDir);
