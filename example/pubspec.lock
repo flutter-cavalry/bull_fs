@@ -180,10 +180,10 @@ packages:
     dependency: transitive
     description:
       name: file_selector_macos
-      sha256: f42eacb83b318e183b1ae24eead1373ab1334084404c8c16e0354f9a3e55d385
+      sha256: cb284e267f8e2a45a904b5c094d2ba51d0aabfc20b1538ab786d9ef7dc2bf75c
       url: "https://pub.dev"
     source: hosted
-    version: "0.9.4"
+    version: "0.9.4+1"
   file_selector_platform_interface:
     dependency: transitive
     description:
@@ -355,10 +355,10 @@ packages:
     dependency: transitive
     description:
       name: mg_shared_storage
-      sha256: "385e193bef00e2d78d7b243d9a3843a0cec649f699543c34d4252a22c267c47b"
+      sha256: a253a0e2438a60221e9e2cbed01f610c21f61c1ff3afe98c8a736eeae19d2d74
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.1"
+    version: "0.8.2"
   mime:
     dependency: transitive
     description:
@@ -396,10 +396,10 @@ packages:
     dependency: transitive
     description:
       name: saf_stream
-      sha256: a865d1889b71f5d51536aa1cf26ef6c4dc86c192fb8d75cc2084542b195b8a8c
+      sha256: "49579e9c4a6298edba620979b02b1698e942492486d36a7ff95edd06d393ab50"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.1"
+    version: "0.7.2"
   sky_engine:
     dependency: transitive
     description: flutter
