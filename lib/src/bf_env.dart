@@ -85,10 +85,12 @@ abstract class BFEnv {
   /// Renames a file or directory.
   ///
   /// [path] is the item path.
+  /// [parentDir] is the parent directory.
   /// [newName] is the new name.
   /// [isDir] is whether the source is a directory.
-  Future<BFPath> rename(BFPath path, String newName, bool isDir) async {
-    final newSt = await stat(path, relPath: [newName].lock);
+  Future<BFPath> rename(
+      BFPath path, BFPath parentDir, String newName, bool isDir) async {
+    final newSt = await stat(parentDir, relPath: [newName].lock);
     if (newSt != null) {
       throw Exception('Path already exists: ${newSt.path}');
     }
@@ -149,8 +151,8 @@ abstract class BFEnv {
 
     final tmpDestName = tmpFileName();
     // Rename the destination item to a temporary name if it exists.
-    final tmpDestPath =
-        await rename(destItemStat.path, tmpDestName, destItemStat.isDir);
+    final tmpDestPath = await rename(
+        destItemStat.path, destDir, tmpDestName, destItemStat.isDir);
 
     // Move the source item to the destination.
     final newPath = await moveToDirSafe(src, srcDir, destDir, isDir);

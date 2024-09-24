@@ -101,7 +101,7 @@ class BFSafEnv extends BFEnv {
     }
     final srcTmpName = tmpFileName() + (isDir ? '' : p.extension(srcName));
     try {
-      srcTmpUri = await rename(src, srcTmpName, isDir);
+      srcTmpUri = await rename(src, srcDir, srcTmpName, isDir);
 
       final unsafeDestName = srcName;
       final safeDestName = await ZBFInternal.nextAvailableFileName(
@@ -114,13 +114,14 @@ class BFSafEnv extends BFEnv {
       final tmpDestInfo = await _safMove(srcTmpUri, srcDir, destDir);
 
       // Rename it back to desired name.
-      final destUri = await rename(tmpDestInfo.path, safeDestName, isDir);
+      final destUri =
+          await rename(tmpDestInfo.path, destDir, safeDestName, isDir);
       return UpdatedBFPath(destUri, safeDestName);
     } catch (err) {
       // Try reverting changes if exception happened.
       if (srcTmpUri != null && await stat(srcTmpUri) != null) {
         try {
-          await rename(srcTmpUri, srcName, isDir);
+          await rename(srcTmpUri, srcDir, srcName, isDir);
         } catch (_) {
           // Ignore exceptions during reverting.
           if (kDebugMode) {
