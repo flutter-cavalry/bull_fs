@@ -74,12 +74,26 @@ abstract class BFEnv {
   /// [components] is the path to create.
   Future<BFPath> mkdirp(BFPath dir, IList<String> components);
 
+  /// Platform implementation of [BFEnv.rename].
+  ///
+  /// [path] is the item path.
+  /// [newName] is the new name.
+  /// [isDir] is whether the source is a directory.
+  @protected
+  Future<BFPath> renameInternal(BFPath path, String newName, bool isDir);
+
   /// Renames a file or directory.
   ///
   /// [path] is the item path.
   /// [newName] is the new name.
   /// [isDir] is whether the source is a directory.
-  Future<BFPath> rename(BFPath path, String newName, bool isDir);
+  Future<BFPath> rename(BFPath path, String newName, bool isDir) async {
+    final newSt = await stat(path, relPath: [newName].lock);
+    if (newSt != null) {
+      throw Exception('Path already exists: ${newSt.path}');
+    }
+    return renameInternal(path, newName, isDir);
+  }
 
   /// Moves a file or directory to a directory.
   /// Use [nameUpdater] to update the file name if it conflicts with existing files.
