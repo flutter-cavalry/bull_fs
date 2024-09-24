@@ -312,9 +312,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
         final r = h.data as BFPath;
         var outStream =
             await env.writeFileStream(r, fileName, overwrite: overwrite);
-        await outStream.write(Uint8List.fromList(utf8.encode('abc1')));
+        await outStream.write(utf8.encode('abc1'));
         await outStream.write(_defStringContentsBytes);
-
         await outStream.close();
 
         // Test `getPath`.
@@ -323,13 +322,14 @@ class _BFTestRouteState extends State<BFTestRoute> {
         h.notNull(destUriStat);
         h.equals(destUriStat!.isDir, false);
         h.equals(destUriStat.name, fileName);
+        h.equals(destUriStat.length, 19);
+
         if (multiple) {
           // Write to the same file again.
           outStream =
               await env.writeFileStream(r, fileName, overwrite: overwrite);
-          await outStream.write(Uint8List.fromList(utf8.encode('abc2')));
+          await outStream.write(utf8.encode('abc2'));
           await outStream.write(_defStringContentsBytes);
-
           await outStream.close();
 
           // Test `getPath`.
@@ -339,13 +339,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
           h.equals(destUriStat!.isDir, false);
           h.equals(
               destUriStat.name, overwrite ? fileName : _dupSuffix(fileName, 2));
+          h.equals(destUriStat.length, 19);
 
           // Write to the same file again.
           outStream =
               await env.writeFileStream(r, fileName, overwrite: overwrite);
-          await outStream.write(Uint8List.fromList(utf8.encode('abc3')));
+          await outStream.write(utf8.encode('abc3'));
           await outStream.write(_defStringContentsBytes);
-
           await outStream.close();
 
           // Test `getPath`.
@@ -355,6 +355,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           h.equals(destUriStat!.isDir, false);
           h.equals(
               destUriStat.name, overwrite ? fileName : _dupSuffix(fileName, 3));
+          h.equals(destUriStat.length, 19);
         }
 
         h.mapEquals(await env.directoryToMap(r), fs);
@@ -446,6 +447,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         var st = await env.stat(pasteRes.path);
         h.equals(st!.name, fileName);
         h.equals(st.name, pasteRes.newName);
+        h.equals(st.length, 17);
 
         if (multiple) {
           // Add second test.txt
@@ -455,6 +457,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           st = await env.stat(pasteRes.path);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 2));
           h.equals(st.name, pasteRes.newName);
+          h.equals(st.length, 17);
 
           // Add third test.txt
           await File(tmpFile).writeAsString('$_defStringContents 3');
@@ -463,6 +466,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           st = await env.stat(pasteRes.path);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 3));
           h.equals(st.name, pasteRes.newName);
+          h.equals(st.length, 17);
         }
 
         h.mapEquals(await env.directoryToMap(r), fs);
@@ -532,6 +536,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         var st = await env.stat(pasteRes.path);
         h.equals(st!.name, fileName);
         h.equals(st.name, pasteRes.newName);
+        h.equals(st.length, 17);
 
         if (multiple) {
           // Add second test.txt
@@ -541,6 +546,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           st = await env.stat(pasteRes.path);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 2));
           h.equals(st.name, pasteRes.newName);
+          h.equals(st.length, 17);
 
           // Add third test.txt
           pasteRes = await env.writeFileSync(
@@ -549,6 +555,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           st = await env.stat(pasteRes.path);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 3));
           h.equals(st.name, pasteRes.newName);
+          h.equals(st.length, 17);
         }
 
         h.mapEquals(await env.directoryToMap(r), fs);

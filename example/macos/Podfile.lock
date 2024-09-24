@@ -39,7 +39,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   accessing_security_scoped_resource: 5328c9963fc8873d1b60650ff42101847d3ff0ea
   darwin_url: a6439fcef7fdfdd19ac9f7aa4ffed427d98b1da3
-  file_selector_macos: 54fdab7caa3ac3fc43c9fac4d7d8d231277f8cf2
+  file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
   FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
   macos_file_picker: 9ae907f5f69a352afc8fb44e8a80bb180f9267d5
   ns_file_coordinator_util: 3577b3bb512fd6e66d94b978b6f64d6521deab3e
