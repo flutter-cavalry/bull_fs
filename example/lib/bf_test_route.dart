@@ -304,6 +304,37 @@ class _BFTestRouteState extends State<BFTestRoute> {
       });
     });
 
+    ns.add('createDir', (h) async {
+      final r = h.data as BFPath;
+      final newDir = await env.createDir(r, 'space 一 二 三');
+
+      // Test return value.
+      final st = await env.stat(newDir.path);
+      h.notNull(st);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, 'space 一 二 三');
+      h.equals(newDir.newName, st.name);
+
+      h.mapEquals(await env.directoryToMap(r), {"space 一 二 三": {}});
+    });
+
+    ns.add('createDir (with conflict)', (h) async {
+      final r = h.data as BFPath;
+      await env.writeFileSync(r, 'space 一 二 三', Uint8List.fromList([1]));
+
+      final newDir = await env.createDir(r, 'space 一 二 三');
+
+      // Test return value.
+      final st = await env.stat(newDir.path);
+      h.notNull(st);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, 'space 一 二 三 (1)');
+      h.equals(newDir.newName, st.name);
+
+      h.mapEquals(await env.directoryToMap(r),
+          {"space 一 二 三 (1)": {}, "space 一 二 三": "01"});
+    });
+
     void testWriteFileStream(String fileName, bool multiple, bool overwrite,
         Map<String, dynamic> fs) {
       ns.add(

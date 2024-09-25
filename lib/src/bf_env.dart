@@ -74,6 +74,21 @@ abstract class BFEnv {
   /// [components] is the path to create.
   Future<BFPath> mkdirp(BFPath dir, IList<String> components);
 
+  /// Creates a new directory. Unlike [mkdirp], this function always creates a new directory.
+  /// If the directory already exists, it uses [nameUpdater] to find a new name.
+  ///
+  /// [dir] is the parent directory.
+  /// [unsafeName] is the directory name. It's unsafe because it may conflict
+  /// with existing files and may change.
+  /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
+  Future<UpdatedBFPath> createDir(BFPath dir, String unsafeName,
+      {BFNameUpdaterFunc? nameUpdater}) async {
+    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
+        unsafeName, true, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+    final newDir = await mkdirp(dir, [safeName].lock);
+    return UpdatedBFPath(newDir, safeName);
+  }
+
   /// Platform implementation of [BFEnv.rename].
   ///
   /// [path] is the item path.
