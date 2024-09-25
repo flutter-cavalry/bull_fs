@@ -4,7 +4,6 @@ import '../bull_fs.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:collection/collection.dart';
-
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 class BFLocalEnv extends BFEnv {
@@ -34,7 +33,7 @@ class BFLocalEnv extends BFEnv {
           dirRelPath = relPath.sublist(0, relPath.length - 1);
         }
       }
-      return BFEntity.fromLocalEntityNE(e, dirRelPath: dirRelPath);
+      return BFEntity.fromLocalEntityNE(e, dirRelPath: dirRelPath?.lock);
     })))
         .whereNotNull()
         .toList();
@@ -56,7 +55,8 @@ class BFLocalEnv extends BFEnv {
           } else if (relPath.length > 1) {
             dirRelPath = relPath.sublist(0, relPath.length - 1);
           }
-          return BFPathAndDirRelPath(BFLocalPath(e.path), dirRelPath ?? []);
+          return BFPathAndDirRelPath(
+              BFLocalPath(e.path), (dirRelPath ?? []).lock);
         })
         .whereNotNull()
         .toList();

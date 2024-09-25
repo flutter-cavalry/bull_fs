@@ -25,7 +25,7 @@ class BFSafEnv extends BFEnv {
     final objs = await saf.listFiles2(path.scopedSafUri());
     if (objs != null) {
       collector.addAll(objs
-          .map((e) => _fromSAFEntity(e, dirRelPath: dirRelPath))
+          .map((e) => _fromSAFEntity(e, dirRelPath: dirRelPath?.lock))
           .whereType<BFEntity>());
     }
   }
@@ -252,7 +252,7 @@ class BFSafEnv extends BFEnv {
   }
 
   BFEntity? _fromSAFEntity(saf.DocumentFile e,
-      {required List<String>? dirRelPath}) {
+      {required IList<String>? dirRelPath}) {
     final eName = e.name;
     if (eName == null) {
       return null;

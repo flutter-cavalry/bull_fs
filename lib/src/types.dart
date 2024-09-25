@@ -104,7 +104,7 @@ extension BFPathExtension on BFPath {
 
 class BFPathAndDirRelPath {
   final BFPath path;
-  final List<String> dirRelPath;
+  final IList<String> dirRelPath;
 
   BFPathAndDirRelPath(this.path, this.dirRelPath);
 
@@ -127,11 +127,11 @@ class BFEntity {
   final bool notDownloaded;
 
   // Automatically set when recursively listing a directory.
-  List<String> dirRelPath = [];
+  IList<String> dirRelPath = <String>[].lock;
 
   BFEntity(this.path, this.name, this.isDir, int length, this.lastMod,
       this.notDownloaded,
-      {List<String>? dirRelPath}) {
+      {IList<String>? dirRelPath}) {
     if (isDir) {
       this.length = -1;
     } else {
@@ -168,7 +168,7 @@ class BFEntity {
   }
 
   static Future<BFEntity> fromLocalEntity(FileSystemEntity entity,
-      {required List<String>? dirRelPath}) async {
+      {required IList<String>? dirRelPath}) async {
     int length;
     bool isDir;
     DateTime? lastMod;
@@ -186,7 +186,7 @@ class BFEntity {
   }
 
   static Future<BFEntity?> fromLocalEntityNE(FileSystemEntity entity,
-      {required List<String>? dirRelPath}) async {
+      {required IList<String>? dirRelPath}) async {
     try {
       return await fromLocalEntity(entity, dirRelPath: dirRelPath);
     } catch (_) {

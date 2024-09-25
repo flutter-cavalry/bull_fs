@@ -41,7 +41,7 @@ class BFNsfcEnv extends BFEnv {
           dirRelPath = relPath.sublist(0, relPath.length - 1);
         }
       }
-      return _fromIcloudEntity(e, dirRelPath: dirRelPath);
+      return _fromIcloudEntity(e, dirRelPath: dirRelPath?.lock);
     }).toList();
     return await Future.wait(futures);
   }
@@ -59,7 +59,7 @@ class BFNsfcEnv extends BFEnv {
           dirRelPath = relPath.sublist(0, relPath.length - 1);
         }
       }
-      return BFPathAndDirRelPath(BFScopedPath(e.url), dirRelPath ?? []);
+      return BFPathAndDirRelPath(BFScopedPath(e.url), (dirRelPath ?? []).lock);
     }).toList();
     return paths;
   }
@@ -195,7 +195,7 @@ class BFNsfcEnv extends BFEnv {
   }
 
   Future<BFEntity> _fromIcloudEntity(NsFileCoordinatorEntity entity,
-      {required List<String>? dirRelPath}) async {
+      {required IList<String>? dirRelPath}) async {
     const icloudExt = '.icloud';
     final eName = entity.name;
     final eUrl = entity.url;
