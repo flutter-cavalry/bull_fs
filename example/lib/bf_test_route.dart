@@ -150,6 +150,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
     return '$name (${c - 1})$ext';
   }
 
+  String _testNameUpdater(String fileName, bool isDir, int attempt) {
+    return 'NU-$fileName-$isDir-$attempt';
+  }
+
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {
     final subDir1 = await env.mkdirp(r, ['一 二'].lock);
     await env.writeFileSync(subDir1, 'a.txt', Uint8List.fromList([1]));
@@ -437,6 +441,24 @@ class _BFTestRouteState extends State<BFTestRoute> {
     testWriteFileStream('test 三', true, true,
         {"test 三": "6162633361626364656620f09f8d89f09f8c8f"});
 
+    ns.add('writeFileStream (name updater)', (h) async {
+      final r = h.data as BFPath;
+
+      // Add first.
+      var out = await env.writeFileStream(r, '一 二.txt.png',
+          nameUpdater: _testNameUpdater);
+      await out.write(_defStringContentsBytes);
+      await out.close();
+      // Add second which triggers the name updater.
+      out = await env.writeFileStream(r, '一 二.txt.png',
+          nameUpdater: _testNameUpdater);
+      await out.write(_defStringContentsBytes);
+      await out.close();
+      var st = await env.stat(out.getPath());
+      h.equals(st!.name, 'NU-一 二.txt.png-false-1');
+      h.equals(st.name, out.getFileName());
+    });
+
     ns.add('readFileStream', (h) async {
       final r = h.data as BFPath;
       final tmpFile = tmpPath();
@@ -546,6 +568,22 @@ class _BFTestRouteState extends State<BFTestRoute> {
     testPasteToLocalFile(
         'test 三', true, true, {"test 三": "61626364656620f09f8d89f09f8c8f2033"});
 
+    ns.add('pasteLocalFile (name updater)', (h) async {
+      final r = h.data as BFPath;
+      final tmpFile = tmpPath();
+      await File(tmpFile).writeAsString('$_defStringContents 1');
+
+      // Add first.
+      await env.pasteLocalFile(tmpFile, r, '一 二.txt.png',
+          nameUpdater: _testNameUpdater);
+      // Add second which triggers the name updater.
+      var pasteRes = await env.pasteLocalFile(tmpFile, r, '一 二.txt.png',
+          nameUpdater: _testNameUpdater);
+      var st = await env.stat(pasteRes.path);
+      h.equals(st!.name, 'NU-一 二.txt.png-false-1');
+      h.equals(st.name, pasteRes.newName);
+    });
+
     ns.add('readFileSync', (h) async {
       final r = h.data as BFPath;
       final tmpFile = tmpPath();
@@ -634,6 +672,21 @@ class _BFTestRouteState extends State<BFTestRoute> {
     });
     testWriteFileSync(
         'test 三', true, true, {"test 三": "61626364656620f09f8d89f09f8c8f2033"});
+
+    ns.add('writeFileSync (name updater)', (h) async {
+      final r = h.data as BFPath;
+
+      // Add first.
+      await env.writeFileSync(r, '一 二.txt.png', _defStringContentsBytes,
+          nameUpdater: _testNameUpdater);
+      // Add second which triggers the name updater.
+      var writeRes = await env.writeFileSync(
+          r, '一 二.txt.png', _defStringContentsBytes,
+          nameUpdater: _testNameUpdater);
+      var st = await env.stat(writeRes.path);
+      h.equals(st!.name, 'NU-一 二.txt.png-false-1');
+      h.equals(st.name, writeRes.newName);
+    });
 
     ns.add('stat (folder)', (h) async {
       final r = h.data as BFPath;
