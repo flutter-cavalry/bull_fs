@@ -174,8 +174,10 @@ class BFSafEnv extends BFEnv {
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+    final safeName = override == true
+        ? unsafeName
+        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _plugin.startWriteStream(
         dir.scopedSafUri(), safeName, _getMime(safeName),
         overwrite: overwrite);
@@ -191,8 +193,10 @@ class BFSafEnv extends BFEnv {
   Future<UpdatedBFPath> writeFileSync(
       BFPath dir, String unsafeName, Uint8List bytes,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+    final safeName = override == true
+        ? unsafeName
+        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _plugin.writeFileSync(
         dir.scopedSafUri(), safeName, _getMime(safeName), bytes,
         overwrite: overwrite);
@@ -213,8 +217,10 @@ class BFSafEnv extends BFEnv {
   Future<UpdatedBFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+    final safeName = override == true
+        ? unsafeName
+        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _plugin.pasteLocalFile(
         localSrc, dir.scopedSafUri(), safeName, _getMime(safeName),
         overwrite: overwrite);
