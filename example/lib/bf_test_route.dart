@@ -383,6 +383,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await outStream.write(_defStringContentsBytes);
           await outStream.close();
 
+          // Test `outStream.close` can be called multiple times.
+          await outStream.close();
+          await outStream.close();
+
           // Test `getPath`.
           destUri = outStream.getPath();
           destUriStat = await env.stat(destUri);
