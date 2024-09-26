@@ -596,7 +596,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     void testWriteFileSync(String fileName, bool multiple, bool overwrite,
         Map<String, dynamic> fs) {
-      ns.add('writeFileSync  $fileName multiple: $multiple', (h) async {
+      ns.add(
+          'writeFileSync  $fileName multiple: $multiple, overwrite: $overwrite',
+          (h) async {
         final r = h.data as BFPath;
         // Add first test.txt
         var pasteRes = await env.writeFileSync(

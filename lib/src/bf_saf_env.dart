@@ -174,8 +174,10 @@ class BFSafEnv extends BFEnv {
   @override
   Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
+        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _plugin.startWriteStream(
-        dir.scopedSafUri(), unsafeName, _getMime(unsafeName),
+        dir.scopedSafUri(), safeName, _getMime(safeName),
         overwrite: overwrite);
     final newFileName = res.fileResult.fileName;
     if (newFileName == null || newFileName.isEmpty) {
@@ -189,8 +191,10 @@ class BFSafEnv extends BFEnv {
   Future<UpdatedBFPath> writeFileSync(
       BFPath dir, String unsafeName, Uint8List bytes,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
+        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _plugin.writeFileSync(
-        dir.scopedSafUri(), unsafeName, _getMime(unsafeName), bytes,
+        dir.scopedSafUri(), safeName, _getMime(safeName), bytes,
         overwrite: overwrite);
     final fileName = res.fileName;
     if (fileName == null || fileName.isEmpty) {
@@ -209,8 +213,10 @@ class BFSafEnv extends BFEnv {
   Future<UpdatedBFPath> pasteLocalFile(
       String localSrc, BFPath dir, String unsafeName,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
+        unsafeName, false, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _plugin.pasteLocalFile(
-        localSrc, dir.scopedSafUri(), unsafeName, _getMime(unsafeName),
+        localSrc, dir.scopedSafUri(), safeName, _getMime(safeName),
         overwrite: overwrite);
     final fileName = res.fileName;
     if (fileName == null || fileName.isEmpty) {
