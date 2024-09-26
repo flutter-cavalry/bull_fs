@@ -222,6 +222,8 @@ class BFNsfcOutStream extends BFOutStream {
   final BFPath _path;
   final String _fileName;
 
+  bool _closed = false;
+
   BFNsfcOutStream(this._session, this._plugin, this._path, this._fileName);
 
   @override
@@ -241,7 +243,11 @@ class BFNsfcOutStream extends BFOutStream {
 
   @override
   Future<void> close() async {
+    if (_closed) {
+      return;
+    }
     await _plugin.endWriteStream(_session);
+    _closed = true;
   }
 
   @override
