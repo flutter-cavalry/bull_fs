@@ -147,7 +147,7 @@ class BFLocalEnv extends BFEnv {
         : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
             nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPath = p.join(dirPath, safeName);
-    return outStreamForLocalPath(destPath);
+    return await outStreamForLocalPath(destPath);
   }
 
   @override
