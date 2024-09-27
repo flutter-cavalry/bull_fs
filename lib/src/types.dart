@@ -203,11 +203,11 @@ abstract class BFOutStream {
   Future<void> flush();
 }
 
-class BFLocalOutStream extends BFOutStream {
+class BFLocalSinkOutStream extends BFOutStream {
   final IOSink _sink;
   final BFPath _path;
 
-  BFLocalOutStream(this._sink, this._path);
+  BFLocalSinkOutStream(this._sink, this._path);
 
   @override
   BFPath getPath() {
@@ -232,6 +232,43 @@ class BFLocalOutStream extends BFOutStream {
   @override
   Future<void> flush() async {
     await _sink.flush();
+  }
+}
+
+class BFLocalRafOutStream extends BFOutStream {
+  final RandomAccessFile _raf;
+  final BFPath _path;
+  bool _closed = false;
+
+  BFLocalRafOutStream(this._raf, this._path);
+
+  @override
+  BFPath getPath() {
+    return _path;
+  }
+
+  @override
+  String getFileName() {
+    return p.basename(_path.localPath());
+  }
+
+  @override
+  Future<void> write(Uint8List data) async {
+    await _raf.writeFrom(data);
+  }
+
+  @override
+  Future<void> close() async {
+    if (_closed) {
+      return;
+    }
+    await _raf.close();
+    _closed = true;
+  }
+
+  @override
+  Future<void> flush() async {
+    await _raf.flush();
   }
 }
 
