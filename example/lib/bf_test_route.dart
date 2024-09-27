@@ -379,8 +379,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
           // Write to the same file again.
           outStream =
               await env.writeFileStream(r, fileName, overwrite: overwrite);
-          await outStream.write(utf8.encode('abc3'));
-          await outStream.write(_defStringContentsBytes);
+
+          // Write a smaller string to test that the file is truncated.
+          await outStream.write(utf8.encode('A'));
+          await outStream.write(utf8.encode('B'));
+          await outStream.write(utf8.encode('C'));
+          await outStream.write(utf8.encode('A'));
           await outStream.close();
 
           // Test `outStream.close` can be called multiple times.
@@ -394,7 +398,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           h.equals(destUriStat!.isDir, false);
           h.equals(
               destUriStat.name, overwrite ? fileName : _dupSuffix(fileName, 3));
-          h.equals(destUriStat.length, 19);
+          h.equals(destUriStat.length, 4);
         }
 
         h.mapEquals(await env.directoryToMap(r), fs);
@@ -407,10 +411,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
     testWriteFileStream('test 三.txt', true, false, {
       _dupSuffix('test 三.txt', 2): "6162633261626364656620f09f8d89f09f8c8f",
       "test 三.txt": "6162633161626364656620f09f8d89f09f8c8f",
-      _dupSuffix('test 三.txt', 3): "6162633361626364656620f09f8d89f09f8c8f"
+      _dupSuffix('test 三.txt', 3): "41424341"
     });
-    testWriteFileStream('test 三.txt', true, true,
-        {"test 三.txt": "6162633361626364656620f09f8d89f09f8c8f"});
+    testWriteFileStream('test 三.txt', true, true, {"test 三.txt": "41424341"});
     // Unknown extension.
     testWriteFileStream('test 三.elephant', false, false,
         {"test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f"});
@@ -418,10 +421,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
       _dupSuffix('test 三.elephant', 2):
           "6162633261626364656620f09f8d89f09f8c8f",
       "test 三.elephant": "6162633161626364656620f09f8d89f09f8c8f",
-      _dupSuffix('test 三.elephant', 3): "6162633361626364656620f09f8d89f09f8c8f"
+      _dupSuffix('test 三.elephant', 3): "41424341"
     });
-    testWriteFileStream('test 三.elephant', true, true,
-        {"test 三.elephant": "6162633361626364656620f09f8d89f09f8c8f"});
+    testWriteFileStream(
+        'test 三.elephant', true, true, {"test 三.elephant": "41424341"});
     // Multiple extensions.
     testWriteFileStream('test 三.elephant.xyz', false, false,
         {"test 三.elephant.xyz": "6162633161626364656620f09f8d89f09f8c8f"});
@@ -429,21 +432,19 @@ class _BFTestRouteState extends State<BFTestRoute> {
       _dupSuffix('test 三.elephant.xyz', 2):
           "6162633261626364656620f09f8d89f09f8c8f",
       "test 三.elephant.xyz": "6162633161626364656620f09f8d89f09f8c8f",
-      _dupSuffix('test 三.elephant.xyz', 3):
-          "6162633361626364656620f09f8d89f09f8c8f"
+      _dupSuffix('test 三.elephant.xyz', 3): "41424341"
     });
-    testWriteFileStream('test 三.elephant.xyz', true, true,
-        {"test 三.elephant.xyz": "6162633361626364656620f09f8d89f09f8c8f"});
+    testWriteFileStream(
+        'test 三.elephant.xyz', true, true, {"test 三.elephant.xyz": "41424341"});
     // No extension.
     testWriteFileStream('test 三', false, false,
         {"test 三": "6162633161626364656620f09f8d89f09f8c8f"});
     testWriteFileStream('test 三', true, false, {
       "test 三": "6162633161626364656620f09f8d89f09f8c8f",
       _dupSuffix('test 三', 2): "6162633261626364656620f09f8d89f09f8c8f",
-      _dupSuffix('test 三', 3): "6162633361626364656620f09f8d89f09f8c8f"
+      _dupSuffix('test 三', 3): "41424341"
     });
-    testWriteFileStream('test 三', true, true,
-        {"test 三": "6162633361626364656620f09f8d89f09f8c8f"});
+    testWriteFileStream('test 三', true, true, {"test 三": "41424341"});
 
     ns.add('writeFileStream (name updater)', (h) async {
       final r = h.data as BFPath;
@@ -624,13 +625,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
           h.equals(st.length, 17);
 
           // Add third test.txt
-          pasteRes = await env.writeFileSync(
-              r, fileName, utf8.encode('$_defStringContents 3'),
+          // Write a smaller string to test that the file is truncated.
+          pasteRes = await env.writeFileSync(r, fileName, utf8.encode('ABCD'),
               overwrite: overwrite);
           st = await env.stat(pasteRes.path);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 3));
           h.equals(st.name, pasteRes.newName);
-          h.equals(st.length, 17);
+          h.equals(st.length, 4);
         }
 
         h.mapEquals(await env.directoryToMap(r), fs);
@@ -642,21 +643,20 @@ class _BFTestRouteState extends State<BFTestRoute> {
         {"test 三.txt": "61626364656620f09f8d89f09f8c8f2031"});
     testWriteFileSync('test 三.txt', true, false, {
       _dupSuffix('test 三.txt', 2): "61626364656620f09f8d89f09f8c8f2032",
-      _dupSuffix('test 三.txt', 3): "61626364656620f09f8d89f09f8c8f2033",
+      _dupSuffix('test 三.txt', 3): "41424344",
       "test 三.txt": "61626364656620f09f8d89f09f8c8f2031"
     });
-    testWriteFileSync('test 三.txt', true, true,
-        {"test 三.txt": "61626364656620f09f8d89f09f8c8f2033"});
+    testWriteFileSync('test 三.txt', true, true, {"test 三.txt": "41424344"});
     // Unknown extension.
     testWriteFileSync('test 三.elephant', false, false,
         {"test 三.elephant": "61626364656620f09f8d89f09f8c8f2031"});
     testWriteFileSync('test 三.elephant', true, false, {
       _dupSuffix('test 三.elephant', 2): "61626364656620f09f8d89f09f8c8f2032",
       "test 三.elephant": "61626364656620f09f8d89f09f8c8f2031",
-      _dupSuffix('test 三.elephant', 3): "61626364656620f09f8d89f09f8c8f2033"
+      _dupSuffix('test 三.elephant', 3): "41424344"
     });
-    testWriteFileSync('test 三.elephant', true, true,
-        {"test 三.elephant": "61626364656620f09f8d89f09f8c8f2033"});
+    testWriteFileSync(
+        'test 三.elephant', true, true, {"test 三.elephant": "41424344"});
     // Multiple extensions.
     testWriteFileSync('test 三.elephant.xyz', false, false,
         {"test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2031"});
@@ -664,20 +664,19 @@ class _BFTestRouteState extends State<BFTestRoute> {
       _dupSuffix('test 三.elephant.xyz', 2):
           "61626364656620f09f8d89f09f8c8f2032",
       "test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2031",
-      _dupSuffix('test 三.elephant.xyz', 3): "61626364656620f09f8d89f09f8c8f2033"
+      _dupSuffix('test 三.elephant.xyz', 3): "41424344"
     });
-    testWriteFileSync('test 三.elephant.xyz', true, true,
-        {"test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2033"});
+    testWriteFileSync(
+        'test 三.elephant.xyz', true, true, {"test 三.elephant.xyz": "41424344"});
     // No extension.
     testWriteFileSync('test 三', false, false,
         {"test 三": "61626364656620f09f8d89f09f8c8f2031"});
     testWriteFileSync('test 三', true, false, {
       "test 三": "61626364656620f09f8d89f09f8c8f2031",
       _dupSuffix('test 三', 2): "61626364656620f09f8d89f09f8c8f2032",
-      _dupSuffix('test 三', 3): "61626364656620f09f8d89f09f8c8f2033"
+      _dupSuffix('test 三', 3): "41424344"
     });
-    testWriteFileSync(
-        'test 三', true, true, {"test 三": "61626364656620f09f8d89f09f8c8f2033"});
+    testWriteFileSync('test 三', true, true, {"test 三": "41424344"});
 
     ns.add('writeFileSync (name updater)', (h) async {
       final r = h.data as BFPath;
