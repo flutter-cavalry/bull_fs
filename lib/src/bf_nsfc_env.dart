@@ -122,8 +122,9 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<Stream<List<int>>> readFileStream(BFPath path) async {
-    return _plugin.readFileStream(path.scopedID());
+  Future<Stream<List<int>>> readFileStream(BFPath path,
+      {int? bufferSize}) async {
+    return _plugin.readFileStream(path.scopedID(), bufferSize: bufferSize);
   }
 
   @override

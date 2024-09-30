@@ -184,7 +184,7 @@ abstract class BFEnv {
   /// Reads a file as a stream of bytes.
   ///
   /// [path] is the file path.
-  Future<Stream<List<int>>> readFileStream(BFPath path);
+  Future<Stream<List<int>>> readFileStream(BFPath path, {int? bufferSize});
 
   /// Writes a file as a stream of bytes.
   ///

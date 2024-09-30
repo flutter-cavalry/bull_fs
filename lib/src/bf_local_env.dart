@@ -134,7 +134,8 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<Stream<List<int>>> readFileStream(BFPath path) async {
+  Future<Stream<List<int>>> readFileStream(BFPath path,
+      {int? bufferSize}) async {
     return File(path.localPath()).openRead();
   }
 
