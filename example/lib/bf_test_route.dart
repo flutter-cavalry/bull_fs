@@ -481,6 +481,23 @@ class _BFTestRouteState extends State<BFTestRoute> {
           {"test.txt": "61626364656620f09f8d89f09f8c8f"});
     });
 
+    ns.add('readFileStream (with offset)', (h) async {
+      final r = h.data as BFPath;
+      final tmpFile = tmpPath();
+      await File(tmpFile).writeAsString(_defStringContents);
+      final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+
+      final stream = await env.readFileStream(pasteRes.path, start: 3);
+      final bytes = await stream.fold<List<int>>([], (prev, element) {
+        prev.addAll(element);
+        return prev;
+      });
+      h.equals(utf8.decode(bytes), _defStringContents.substring(3));
+
+      h.mapEquals(await env.directoryToMap(r),
+          {"test.txt": "61626364656620f09f8d89f09f8c8f"});
+    });
+
     ns.add('readFileSync', (h) async {
       final r = h.data as BFPath;
       final tmpFile = tmpPath();
