@@ -179,7 +179,7 @@ class BFNsfcEnv extends BFEnv {
 
   @override
   Future<Uint8List> readFileSync(BFPath path, {int? start, int? count}) async {
-    return _plugin.readFileSync(path.scopedID());
+    return _plugin.readFileSync(path.scopedID(), start: start, count: count);
   }
 
   @override
