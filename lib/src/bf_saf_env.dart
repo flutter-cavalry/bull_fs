@@ -238,7 +238,7 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<Uint8List> readFileSync(BFPath path) async {
+  Future<Uint8List> readFileSync(BFPath path, {int? start, int? count}) async {
     return _plugin.readFileSync(path.scopedSafUri());
   }
 

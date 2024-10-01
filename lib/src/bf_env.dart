@@ -199,7 +199,7 @@ abstract class BFEnv {
   /// Reads a file as a byte array.
   ///
   /// [path] is the file path.
-  Future<Uint8List> readFileSync(BFPath path);
+  Future<Uint8List> readFileSync(BFPath path, {int? start, int? count});
 
   /// Writes a file as a byte array.
   ///

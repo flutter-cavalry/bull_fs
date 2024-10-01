@@ -491,6 +491,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(utf8.decode(bytes), _defStringContents);
     });
 
+    ns.add('readFileSync (start and count)', (h) async {
+      final r = h.data as BFPath;
+      final tmpFile = tmpPath();
+      await File(tmpFile).writeAsString(_defStringContents);
+      final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+
+      final bytes = await env.readFileSync(pasteRes.path, start: 3, count: 2);
+      h.equals(utf8.decode(bytes), 'de');
+    });
+
     void testPasteToLocalFile(String fileName, bool multiple, bool overwrite,
         Map<String, dynamic> fs) {
       ns.add(
