@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:example/ntr/ntr_suite.dart';
 import 'package:example/util/fc_file_picker_util_bf_ext.dart';
@@ -462,6 +463,23 @@ class _BFTestRouteState extends State<BFTestRoute> {
       var st = await env.stat(out.getPath());
       h.equals(st!.name, 'NU-一 二.txt.png-false-1');
       h.equals(st.name, out.getFileName());
+    });
+
+    ns.add('writeFileStream (concurrent writes)', (h) async {
+      final r = h.data as BFPath;
+
+      Future<void> testWrite(int i) async {
+        final out = await env.writeFileStream(r, 't_$i.txt');
+        await out.writeManyChunks(i.toString());
+      }
+
+      Future<void> verifyResult(int i) async {
+        final path = await _getPath(env, r, 't_$i.txt');
+        await _checkManyChunks(env, path, i.toString());
+      }
+
+      await Future.wait([for (var i = 0; i < 10; i++) testWrite(i)]);
+      await Future.wait([for (var i = 0; i < 10; i++) verifyResult(i)]);
     });
 
     ns.add('readFileStream', (h) async {
@@ -1293,6 +1311,19 @@ class _BFTestRouteState extends State<BFTestRoute> {
     assert(st.lastMod == st2.lastMod);
   }
 
+  Future<void> _checkManyChunks(BFEnv e, BFPath path, String prefix) async {
+    final bytes = await e.readFileSync(path);
+    final str = utf8.decode(bytes);
+    final sb = StringBuffer();
+    for (var i = 0; i < 50; i++) {
+      sb.write('$prefix $i');
+    }
+    final expected = sb.toString();
+    if (str != expected) {
+      throw Exception('Unexpected content: $str');
+    }
+  }
+
   Future<BFEntity> _getStat(BFEnv e, BFPath root, String relPath) async {
     final stat = await e.stat(root, relPath: _genRelPath(relPath));
     if (stat == null) {
@@ -1337,5 +1368,16 @@ extension BFTestExtension on BFEnv {
       throw Exception('Item not found');
     }
     return st;
+  }
+}
+
+extension BFOutStreamExtension on BFOutStream {
+  Future<void> writeManyChunks(String prefix) async {
+    final random = Random();
+    for (var i = 0; i < 50; i++) {
+      await write(Uint8List.fromList('$prefix $i'.codeUnits));
+      await Future.delayed(Duration(milliseconds: random.nextInt(100)));
+    }
+    await close();
   }
 }
