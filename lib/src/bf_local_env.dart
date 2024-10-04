@@ -201,8 +201,9 @@ class BFLocalEnv extends BFEnv {
   }
 
   Future<BFOutStream> outStreamForLocalPath(String filePath) async {
-    return BFLocalSinkOutStream(
-        File(filePath).openWrite(), BFLocalPath(filePath));
+    return BFLocalRafOutStream(
+        await File(filePath).open(mode: FileMode.writeOnly),
+        BFLocalPath(filePath));
   }
 
   Future<void> _copy(String src, String dest, bool isDir) async {
