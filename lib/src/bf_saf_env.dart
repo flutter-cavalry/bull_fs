@@ -169,7 +169,8 @@ class BFSafEnv extends BFEnv {
   @override
   Future<Stream<List<int>>> readFileStream(BFPath path,
       {int? bufferSize, int? start}) async {
-    return _plugin.readFile(path.scopedSafUri(), bufferSize: bufferSize);
+    return _plugin.readFileStream(path.scopedSafUri(),
+        bufferSize: bufferSize, start: start);
   }
 
   @override
@@ -239,7 +240,8 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<Uint8List> readFileSync(BFPath path, {int? start, int? count}) async {
-    return _plugin.readFileSync(path.scopedSafUri());
+    return _plugin.readFileSync(path.scopedSafUri(),
+        start: start, count: count);
   }
 
   @override

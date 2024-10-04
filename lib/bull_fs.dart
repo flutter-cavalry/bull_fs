@@ -1,5 +1,3 @@
-library bull_fs;
-
 export 'src/types.dart';
 export 'src/zbf_internal.dart';
 export 'src/extensions.dart';
