@@ -385,7 +385,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await outStream.write(utf8.encode('A'));
           await outStream.write(utf8.encode('B'));
           await outStream.write(utf8.encode('C'));
+          await outStream.flush();
           await outStream.write(utf8.encode('A'));
+          await outStream.flush();
           await outStream.close();
 
           // Test `outStream.close` can be called multiple times.
