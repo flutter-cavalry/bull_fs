@@ -15,6 +15,14 @@ enum BFEnvType {
   icloud
 }
 
+/// Result type of [BFEnv.itemExists].
+class BFItemExistsResult {
+  final BFPath path;
+  final bool isDir;
+
+  BFItemExistsResult(this.path, this.isDir);
+}
+
 typedef BFNameUpdaterFunc = String Function(
     String fileName, bool isDir, int attempt);
 
@@ -215,12 +223,31 @@ abstract class BFEnv {
       BFPath dir, String unsafeName, Uint8List bytes,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite});
 
-  /// Returns a [BFPath] if the specified [path] and [components] exist.
+  /// Returns a [BFItemExistsResult] if the specified [path]/[extendedPath] exists.
   ///
   /// [path] the staring path.
-  /// [components] the list of components to append after the path.
-  /// [isDir] whether the item you are looking for is a directory.
-  Future<BFPath?> exists(BFPath path, IList<String> components, bool isDir);
+  /// [extendedPath] the list of components to append after the path.
+  Future<BFItemExistsResult?> itemExists(
+      BFPath path, IList<String>? extendedPath);
+
+  /// Returns a [BFPath] if the specified [path]/[extendedPath] exists and is a file.
+  Future<BFPath?> fileExists(BFPath path, IList<String>? extendedPath) async {
+    final res = await itemExists(path, extendedPath);
+    if (res == null || res.isDir) {
+      return null;
+    }
+    return res.path;
+  }
+
+  /// Returns a [BFPath] if the specified [path]/[extendedPath] exists and is a directory.
+  Future<BFPath?> directoryExists(
+      BFPath path, IList<String>? extendedPath) async {
+    final res = await itemExists(path, extendedPath);
+    if (res == null || !res.isDir) {
+      return null;
+    }
+    return res.path;
+  }
 
   /// Gets the basename of a path.
   ///

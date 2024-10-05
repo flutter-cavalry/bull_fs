@@ -184,18 +184,15 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<BFPath?> exists(
-      BFPath path, IList<String> components, bool isDir) async {
+  Future<BFItemExistsResult?> itemExists(
+      BFPath path, IList<String>? extendedPath) async {
     final newPath = await _darwinUrlPlugin
-        .append(path.toString(), components.unlock, isDir: isDir);
+        .append(path.toString(), extendedPath?.unlock ?? [], isDir: false);
     final isDirRes = await _plugin.isDirectory(newPath);
     if (isDirRes == null) {
       return null;
     }
-    if (isDirRes == isDir) {
-      return BFScopedPath(newPath);
-    }
-    return null;
+    return BFItemExistsResult(BFScopedPath(newPath), isDirRes);
   }
 
   @override

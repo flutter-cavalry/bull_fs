@@ -241,16 +241,13 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<BFPath?> exists(
-      BFPath path, IList<String> components, bool isDir) async {
-    final st = await stat(path, relPath: components);
+  Future<BFItemExistsResult?> itemExists(
+      BFPath path, IList<String>? extendedPath) async {
+    final st = await stat(path, relPath: extendedPath);
     if (st == null) {
       return null;
     }
-    if (st.isDir != isDir) {
-      return null;
-    }
-    return st.path;
+    return BFItemExistsResult(st.path, st.isDir);
   }
 
   @override

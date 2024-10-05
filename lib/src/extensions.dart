@@ -16,20 +16,13 @@ extension IListStringExtension on IList<String> {
 }
 
 extension BFEnvExtension on BFEnv {
-  Future<BFPath?> child(BFPath path, {IList<String>? relPath}) async {
-    final st = await stat(path, relPath: relPath);
-    if (st == null) {
-      return null;
-    }
-    return st.path;
-  }
-
-  Future<void> deletePathIfExists(BFPath path, {IList<String>? relPath}) async {
-    final st = await stat(path, relPath: relPath);
-    if (st == null) {
+  Future<void> deletePathIfExists(
+      BFPath path, IList<String>? extendedPath) async {
+    final pathInfo = await itemExists(path, extendedPath);
+    if (pathInfo == null) {
       return;
     }
-    await delete(st.path, st.isDir);
+    await delete(pathInfo.path, pathInfo.isDir);
   }
 
   Future<BFPath> ensureDirsForFile(
@@ -42,29 +35,6 @@ extension BFEnvExtension on BFEnv {
       return dir;
     }
     return mkdirp(dir, relFilePath.take(relFilePath.length - 1).toIList());
-  }
-
-  Future<BFEntity?> fileExists(BFPath path, {IList<String>? relPath}) async {
-    final st = await stat(path, relPath: relPath);
-    if (st == null) {
-      return null;
-    }
-    if (st.isDir) {
-      return null;
-    }
-    return st;
-  }
-
-  Future<BFEntity?> directoryExists(BFPath path,
-      {IList<String>? relPath}) async {
-    final st = await stat(path, relPath: relPath);
-    if (st == null) {
-      return null;
-    }
-    if (!st.isDir) {
-      return null;
-    }
-    return st;
   }
 
   Future<Map<String, dynamic>> directoryToMap(BFPath dir,

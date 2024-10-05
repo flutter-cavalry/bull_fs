@@ -140,7 +140,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       });
       // Clean up.
       if (cleanUpPath != null) {
-        await env.deletePathIfExists(root);
+        await env.deletePathIfExists(root, null);
       }
     }
   }
@@ -264,7 +264,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       try {
         await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
         await env.writeFileSync(
-            (await env.exists(r, ['space 一 二 三', '22'].lock, true))!,
+            (await env.directoryExists(r, ['space 一 二 三', '22'].lock))!,
             'file',
             Uint8List.fromList([1]));
         await env.mkdirp(r, ['space 一 二 三', '22', 'file', 'another'].lock);
@@ -282,8 +282,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       await env.mkdirp(r, ['一', '22', '3 3', '4'].lock);
       // Test return value.
-      final path = await env.exists(
-          await _getPath(env, r, '一/22'), ['3 3', '4'].lock, true);
+      final path = await env.directoryExists(
+          await _getPath(env, r, '一/22'), ['3 3', '4'].lock);
       final st = await env.stat(path!);
       h.notNull(st);
       h.equals(st!.isDir, true);
@@ -292,12 +292,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final basename = await env.findBasename(path);
       h.equals(basename, '4');
 
-      final conflictType = await env.exists(
-          await _getPath(env, r, '一/22'), ['3 3', '4'].lock, false);
+      final conflictType = await env.fileExists(
+          await _getPath(env, r, '一/22'), ['3 3', '4'].lock);
       h.isNull(conflictType);
 
-      final notFound = await env.exists(
-          await _getPath(env, r, '一/22'), ['3 3', '5'].lock, true);
+      final notFound = await env.directoryExists(
+          await _getPath(env, r, '一/22'), ['3 3', '5'].lock);
       h.isNull(notFound);
     });
 
@@ -307,8 +307,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await env.writeFileSync(dir, '3 3', Uint8List.fromList([1]));
 
       // Test return value.
-      final path = await env.exists(
-          await _getPath(env, r, '一'), ['22', '3 3'].lock, false);
+      final path =
+          await env.fileExists(await _getPath(env, r, '一'), ['22', '3 3'].lock);
       final st = await env.stat(path!);
       h.notNull(st);
       h.equals(st!.isDir, false);
@@ -317,12 +317,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final basename = await env.findBasename(path);
       h.equals(basename, '3 3');
 
-      final conflictType = await env.exists(
-          await _getPath(env, r, '一'), ['22', '3 3'].lock, true);
+      final conflictType = await env.directoryExists(
+          await _getPath(env, r, '一'), ['22', '3 3'].lock);
       h.isNull(conflictType);
 
-      final notFound = await env.exists(
-          await _getPath(env, r, '一'), ['22', '3 4'].lock, false);
+      final notFound =
+          await env.fileExists(await _getPath(env, r, '一'), ['22', '3 4'].lock);
       h.isNull(notFound);
     });
 
@@ -801,7 +801,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final st2 = await env.stat(r, relPath: ['a', '一 二'].lock);
       _statEquals(st, st2!);
 
-      final subPath = await env.exists(r, ['a'].lock, true);
+      final subPath = await env.directoryExists(r, ['a'].lock);
       final st3 = await env.stat(subPath!, relPath: ['一 二'].lock);
       _statEquals(st, st3!);
     });
@@ -822,7 +822,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final st2 = await env.stat(r, relPath: ['a', '一 二', 'test 仨.txt'].lock);
       _statEquals(st, st2!);
 
-      final subPath = await env.exists(r, ['a', '一 二'].lock, true);
+      final subPath = await env.directoryExists(r, ['a', '一 二'].lock);
       final st3 = await env.stat(subPath!, relPath: ['test 仨.txt'].lock);
       _statEquals(st, st3!);
     });

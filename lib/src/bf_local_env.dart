@@ -215,19 +215,15 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<BFPath?> exists(
-      BFPath path, IList<String> components, bool isDir) async {
-    final finalPath = p.joinAll([path.localPath(), ...components]);
-    if (isDir) {
-      final dir = Directory(finalPath);
-      if (await dir.exists()) {
-        return BFLocalPath(finalPath);
-      }
-    } else {
-      final file = File(finalPath);
-      if (await file.exists()) {
-        return BFLocalPath(finalPath);
-      }
+  Future<BFItemExistsResult?> itemExists(
+      BFPath path, IList<String>? extendedPath) async {
+    final finalPath = p.joinAll([path.localPath(), ...(extendedPath ?? [])]);
+    final ioType = await FileSystemEntity.type(finalPath);
+    if (ioType == FileSystemEntityType.file) {
+      return BFItemExistsResult(BFLocalPath(finalPath), false);
+    }
+    if (ioType == FileSystemEntityType.directory) {
+      return BFItemExistsResult(BFLocalPath(finalPath), true);
     }
     return null;
   }
