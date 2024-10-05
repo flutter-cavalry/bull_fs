@@ -278,7 +278,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       }
     });
 
-    ns.add('findPath and findBasename', (h) async {
+    ns.add('findPath and findBasename (dir)', (h) async {
       final r = h.data as BFPath;
       await env.mkdirp(r, ['一', '22', '3 3', '4'].lock);
       // Test return value.
@@ -291,6 +291,23 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final basename = await env.findBasename(path);
       h.equals(basename, '4');
+    });
+
+    ns.add('findPath and findBasename (file)', (h) async {
+      final r = h.data as BFPath;
+      final dir = await env.mkdirp(r, ['一', '22'].lock);
+      await env.writeFileSync(dir, '3 3', Uint8List.fromList([1]));
+
+      // Test return value.
+      final path = await env.findPath(
+          await _getPath(env, r, '一'), ['22', '3 3'].lock, false);
+      final st = await env.stat(path!);
+      h.notNull(st);
+      h.equals(st!.isDir, false);
+      h.equals(st.name, '3 3');
+
+      final basename = await env.findBasename(path);
+      h.equals(basename, '3 3');
     });
 
     ns.add('ensureDirsForFile', (h) async {
