@@ -70,9 +70,9 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<BFEntity?> stat(BFPath path, {IList<String>? relPath}) async {
-    final st = await saf.child(
-        path.scopedSafUri(), relPath == null ? '' : relPath.join('/'));
+  Future<BFEntity?> stat(BFPath path, {IList<String>? extendedPath}) async {
+    final st = await saf.child(path.scopedSafUri(),
+        extendedPath == null ? '' : extendedPath.join('/'));
     if (st == null) {
       return null;
     }
@@ -243,7 +243,7 @@ class BFSafEnv extends BFEnv {
   @override
   Future<BFItemExistsResult?> itemExists(
       BFPath path, IList<String>? extendedPath) async {
-    final st = await stat(path, relPath: extendedPath);
+    final st = await stat(path, extendedPath: extendedPath);
     if (st == null) {
       return null;
     }

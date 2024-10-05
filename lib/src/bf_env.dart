@@ -72,9 +72,9 @@ abstract class BFEnv {
 
   /// Gets the stat of a file or directory.
   ///
-  /// [path] is the path to get the stat.
-  /// [relPath] is the relative path to get the stat.
-  Future<BFEntity?> stat(BFPath path, {IList<String>? relPath});
+  /// [path] starting path.
+  /// [extendedPath] extended path components to be appended to the path.
+  Future<BFEntity?> stat(BFPath path, {IList<String>? extendedPath});
 
   /// Like mkdir -p. Makes sure [dir]/[components]/ is created.
   ///
@@ -113,7 +113,7 @@ abstract class BFEnv {
   /// [isDir] is whether the source is a directory.
   Future<BFPath> rename(
       BFPath path, BFPath parentDir, String newName, bool isDir) async {
-    final newSt = await stat(parentDir, relPath: [newName].lock);
+    final newSt = await stat(parentDir, extendedPath: [newName].lock);
     if (newSt != null) {
       throw Exception('Path already exists: ${newSt.path}');
     }
@@ -160,7 +160,7 @@ abstract class BFEnv {
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
     }
-    final destItemStat = await stat(destDir, relPath: [srcName].lock);
+    final destItemStat = await stat(destDir, extendedPath: [srcName].lock);
 
     // Call `moveToDir` if the destination item does not exist and no new name assigned.
     if (destItemStat == null) {

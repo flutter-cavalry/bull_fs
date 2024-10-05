@@ -10,13 +10,13 @@ class ZBFInternal {
   static Future<String> nextAvailableFileName(BFEnv env, BFPath dir,
       String unsafeFileName, bool isDir, BFNameUpdaterFunc nameUpdater) async {
     // First attempt.
-    if (await env.stat(dir, relPath: [unsafeFileName].lock) == null) {
+    if (await env.stat(dir, extendedPath: [unsafeFileName].lock) == null) {
       return unsafeFileName;
     }
 
     for (var i = 1; i <= _maxNameAttempts; i++) {
       final newName = nameUpdater(unsafeFileName, isDir, i);
-      if (await env.stat(dir, relPath: [newName].lock) == null) {
+      if (await env.stat(dir, extendedPath: [newName].lock) == null) {
         return newName;
       }
     }
@@ -25,7 +25,7 @@ class ZBFInternal {
 
   static Future<BFEntity> mustGetStat(
       BFEnv env, BFPath root, IList<String> relPath) async {
-    final stat = await env.stat(root, relPath: relPath);
+    final stat = await env.stat(root, extendedPath: relPath);
     if (stat == null) {
       throw Exception('${relPath.join('/')} is not found in $root');
     }

@@ -798,11 +798,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(st.name, '一 二');
       h.equals(st.length, -1);
 
-      final st2 = await env.stat(r, relPath: ['a', '一 二'].lock);
+      final st2 = await env.stat(r, extendedPath: ['a', '一 二'].lock);
       _statEquals(st, st2!);
 
       final subPath = await env.directoryExists(r, ['a'].lock);
-      final st3 = await env.stat(subPath!, relPath: ['一 二'].lock);
+      final st3 = await env.stat(subPath!, extendedPath: ['一 二'].lock);
       _statEquals(st, st3!);
     });
 
@@ -819,11 +819,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(st.name, 'test 仨.txt');
       h.equals(st.length, 15);
 
-      final st2 = await env.stat(r, relPath: ['a', '一 二', 'test 仨.txt'].lock);
+      final st2 =
+          await env.stat(r, extendedPath: ['a', '一 二', 'test 仨.txt'].lock);
       _statEquals(st, st2!);
 
       final subPath = await env.directoryExists(r, ['a', '一 二'].lock);
-      final st3 = await env.stat(subPath!, relPath: ['test 仨.txt'].lock);
+      final st3 = await env.stat(subPath!, extendedPath: ['test 仨.txt'].lock);
       _statEquals(st, st3!);
     });
 
@@ -1375,7 +1376,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<BFEntity> _getStat(BFEnv e, BFPath root, String relPath) async {
-    final stat = await e.stat(root, relPath: _genRelPath(relPath));
+    final stat = await e.stat(root, extendedPath: _genRelPath(relPath));
     if (stat == null) {
       throw Exception('stat is null for "$relPath"');
     }
@@ -1413,7 +1414,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
 extension BFTestExtension on BFEnv {
   Future<BFEntity> mustGetStat(BFPath path, {IList<String>? relPath}) async {
-    final st = await stat(path, relPath: relPath);
+    final st = await stat(path, extendedPath: relPath);
     if (st == null) {
       throw Exception('Item not found');
     }

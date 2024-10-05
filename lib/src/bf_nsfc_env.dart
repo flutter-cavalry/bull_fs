@@ -70,10 +70,10 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<BFEntity?> stat(BFPath path, {IList<String>? relPath}) async {
-    if (relPath != null) {
+  Future<BFEntity?> stat(BFPath path, {IList<String>? extendedPath}) async {
+    if (extendedPath != null) {
       // Use file URI for unknown paths.
-      path = await path.iosJoinRelPath(relPath, false);
+      path = await path.iosJoinRelPath(extendedPath, false);
     }
     try {
       final e = await _plugin.stat(path.scopedID());

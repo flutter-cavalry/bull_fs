@@ -73,10 +73,10 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<BFEntity?> stat(BFPath path, {IList<String>? relPath}) async {
+  Future<BFEntity?> stat(BFPath path, {IList<String>? extendedPath}) async {
     var filePath = path.localPath();
-    if (relPath != null) {
-      filePath = p.joinAll([filePath, ...relPath]);
+    if (extendedPath != null) {
+      filePath = p.joinAll([filePath, ...extendedPath]);
     }
     // Remove the last /.
     if (filePath.endsWith('/')) {
