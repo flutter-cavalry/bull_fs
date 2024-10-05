@@ -215,12 +215,12 @@ abstract class BFEnv {
       BFPath dir, String unsafeName, Uint8List bytes,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite});
 
-  /// Appends a list of components to a path.
+  /// Returns a [BFPath] if the specified [path] and [components] exist.
   ///
-  /// [path] is the path to append.
-  /// [components] is the list of components to append.
-  /// [isDir] is whether the path is a directory.
-  Future<BFPath?> findPath(BFPath path, IList<String> components, bool isDir);
+  /// [path] the staring path.
+  /// [components] the list of components to append after the path.
+  /// [isDir] whether the item you are looking for is a directory.
+  Future<BFPath?> exists(BFPath path, IList<String> components, bool isDir);
 
   /// Gets the basename of a path.
   ///

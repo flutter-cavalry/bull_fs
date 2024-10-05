@@ -245,7 +245,7 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<BFPath?> findPath(
+  Future<BFPath?> exists(
       BFPath path, IList<String> components, bool isDir) async {
     final st = await stat(path, relPath: components);
     if (st == null) {
