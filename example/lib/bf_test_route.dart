@@ -264,7 +264,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       try {
         await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
         await env.writeFileSync(
-            (await env.appendPath(r, ['space 一 二 三', '22'].lock, true))!,
+            (await env.findPath(r, ['space 一 二 三', '22'].lock, true))!,
             'file',
             Uint8List.fromList([1]));
         await env.mkdirp(r, ['space 一 二 三', '22', 'file', 'another'].lock);
@@ -278,18 +278,18 @@ class _BFTestRouteState extends State<BFTestRoute> {
       }
     });
 
-    ns.add('appendPath and basenameOfPath', (h) async {
+    ns.add('findPath and findBasename', (h) async {
       final r = h.data as BFPath;
       await env.mkdirp(r, ['一', '22', '3 3', '4'].lock);
       // Test return value.
-      final path = await env.appendPath(
+      final path = await env.findPath(
           await _getPath(env, r, '一/22'), ['3 3', '4'].lock, true);
       final st = await env.stat(path!);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '4');
 
-      final basename = await env.basenameOfPath(path);
+      final basename = await env.findBasename(path);
       h.equals(basename, '4');
     });
 
@@ -768,7 +768,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final st2 = await env.stat(r, relPath: ['a', '一 二'].lock);
       _statEquals(st, st2!);
 
-      final subPath = await env.appendPath(r, ['a'].lock, true);
+      final subPath = await env.findPath(r, ['a'].lock, true);
       final st3 = await env.stat(subPath!, relPath: ['一 二'].lock);
       _statEquals(st, st3!);
     });
@@ -789,7 +789,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final st2 = await env.stat(r, relPath: ['a', '一 二', 'test 仨.txt'].lock);
       _statEquals(st, st2!);
 
-      final subPath = await env.appendPath(r, ['a', '一 二'].lock, true);
+      final subPath = await env.findPath(r, ['a', '一 二'].lock, true);
       final st3 = await env.stat(subPath!, relPath: ['test 仨.txt'].lock);
       _statEquals(st, st3!);
     });

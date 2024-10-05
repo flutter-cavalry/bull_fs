@@ -148,7 +148,7 @@ abstract class BFEnv {
   /// This is called by [moveToDir] when [overwrite] is `true`.
   Future<UpdatedBFPath> _moveToDirByForce(
       BFPath src, BFPath srcDir, BFPath destDir, bool isDir) async {
-    final srcName = await basenameOfPath(src);
+    final srcName = await findBasename(src);
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
     }
@@ -220,10 +220,10 @@ abstract class BFEnv {
   /// [path] is the path to append.
   /// [components] is the list of components to append.
   /// [isDir] is whether the path is a directory.
-  Future<BFPath?> appendPath(BFPath path, IList<String> components, bool isDir);
+  Future<BFPath?> findPath(BFPath path, IList<String> components, bool isDir);
 
   /// Gets the basename of a path.
   ///
   /// [path] is the path to get the basename.
-  Future<String?> basenameOfPath(BFPath path);
+  Future<String?> findBasename(BFPath path);
 }

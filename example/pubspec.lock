@@ -164,10 +164,10 @@ packages:
     dependency: transitive
     description:
       name: file_selector_ios
-      sha256: "38ebf91ecbcfa89a9639a0854ccaed8ab370c75678938eebca7d34184296f0bb"
+      sha256: "94b98ad950b8d40d96fee8fa88640c2e4bd8afcdd4817993bd04e20310f45420"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.3"
+    version: "0.5.3+1"
   file_selector_linux:
     dependency: transitive
     description:
@@ -180,10 +180,10 @@ packages:
     dependency: transitive
     description:
       name: file_selector_macos
-      sha256: cb284e267f8e2a45a904b5c094d2ba51d0aabfc20b1538ab786d9ef7dc2bf75c
+      sha256: "271ab9986df0c135d45c3cdb6bd0faa5db6f4976d3e4b437cf7d0f258d941bfc"
       url: "https://pub.dev"
     source: hosted
-    version: "0.9.4+1"
+    version: "0.9.4+2"
   file_selector_platform_interface:
     dependency: transitive
     description:
@@ -372,7 +372,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: b4ad148373ee3fb8526c5fab3948256e163ee399
+      resolved-ref: bb35eb2c6998d55ff017e0aad3831b5395664b18
       url: "https://github.com/flutter-cavalry/ns_file_coordinator_util.git"
     source: git
     version: "0.22.0"

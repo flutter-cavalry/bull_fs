@@ -215,14 +215,14 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<BFPath?> appendPath(
+  Future<BFPath?> findPath(
       BFPath path, IList<String> components, bool isDir) async {
     final finalPath = p.joinAll([path.localPath(), ...components]);
     return BFLocalPath(finalPath);
   }
 
   @override
-  Future<String?> basenameOfPath(BFPath path) async {
+  Future<String?> findBasename(BFPath path) async {
     return p.basename(path.localPath());
   }
 }

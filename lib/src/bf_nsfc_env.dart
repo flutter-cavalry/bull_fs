@@ -105,7 +105,7 @@ class BFNsfcEnv extends BFEnv {
   Future<UpdatedBFPath> moveToDirSafe(
       BFPath src, BFPath srcDir, BFPath destDir, bool isDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    final srcName = await basenameOfPath(src);
+    final srcName = await findBasename(src);
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
     }
@@ -184,7 +184,7 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<BFPath?> appendPath(
+  Future<BFPath?> findPath(
       BFPath path, IList<String> components, bool isDir) async {
     final newPath = await _darwinUrlPlugin
         .append(path.toString(), components.unlock, isDir: isDir);
@@ -192,7 +192,7 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<String?> basenameOfPath(BFPath path) async {
+  Future<String?> findBasename(BFPath path) async {
     return _darwinUrlPlugin.basename(path.toString());
   }
 

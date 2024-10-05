@@ -95,7 +95,7 @@ class BFSafEnv extends BFEnv {
     // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
     // Then move the file to dest and rename it back to the desired name.
     BFPath? srcTmpUri;
-    final srcName = await basenameOfPath(src);
+    final srcName = await findBasename(src);
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
     }
@@ -245,7 +245,7 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<BFPath?> appendPath(
+  Future<BFPath?> findPath(
       BFPath path, IList<String> components, bool isDir) async {
     final st = await stat(path, relPath: components);
     if (st == null) {
@@ -258,7 +258,7 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<String?> basenameOfPath(BFPath path) async {
+  Future<String?> findBasename(BFPath path) async {
     final st = await stat(path);
     if (st == null) {
       return null;
