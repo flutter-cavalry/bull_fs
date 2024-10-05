@@ -192,7 +192,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         .join(' | ');
   }
 
-  Future<void> _runEnvTests(NTRSuite ns, BFEnv env, BFPath root) async {
+  Future<void> _runEnvTests(NTRSuite ns, BFEnv env, BFPath globalRoot) async {
     int testCount = 0;
     ns.onLog = (s) => setState(() {
           _output = s;
@@ -200,7 +200,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.beforeEach = () async {
       testCount++;
       // Create a new folder for each test.
-      final dirUri = await env.mkdirp(root, ['test_$testCount'].lock);
+      final dirUri = await env.mkdirp(globalRoot, ['test_$testCount'].lock);
       return dirUri;
     };
 
@@ -264,7 +264,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       try {
         await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
         await env.writeFileSync(
-            (await env.statPath(r, relPath: ['space 一 二 三', '22'].lock))!,
+            (await env.appendPath(r, ['space 一 二 三', '22'].lock, true))!,
             'file',
             Uint8List.fromList([1]));
         await env.mkdirp(r, ['space 一 二 三', '22', 'file', 'another'].lock);
@@ -276,6 +276,21 @@ class _BFTestRouteState extends State<BFTestRoute> {
           }
         });
       }
+    });
+
+    ns.add('appendPath and basenameOfPath', (h) async {
+      final r = h.data as BFPath;
+      await env.mkdirp(r, ['一', '22', '3 3', '4'].lock);
+      // Test return value.
+      final path = await env.appendPath(
+          await _getPath(env, r, '一/22'), ['3 3', '4'].lock, true);
+      final st = await env.stat(path!);
+      h.notNull(st);
+      h.equals(st!.isDir, true);
+      h.equals(st.name, '4');
+
+      final basename = await env.basenameOfPath(path);
+      h.equals(basename, '4');
     });
 
     ns.add('ensureDirsForFile', (h) async {
@@ -753,7 +768,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final st2 = await env.stat(r, relPath: ['a', '一 二'].lock);
       _statEquals(st, st2!);
 
-      final subPath = await env.statPath(r, relPath: ['a'].lock);
+      final subPath = await env.appendPath(r, ['a'].lock, true);
       final st3 = await env.stat(subPath!, relPath: ['一 二'].lock);
       _statEquals(st, st3!);
     });
@@ -774,7 +789,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final st2 = await env.stat(r, relPath: ['a', '一 二', 'test 仨.txt'].lock);
       _statEquals(st, st2!);
 
-      final subPath = await env.statPath(r, relPath: ['a', '一 二'].lock);
+      final subPath = await env.appendPath(r, ['a', '一 二'].lock, true);
       final st3 = await env.stat(subPath!, relPath: ['test 仨.txt'].lock);
       _statEquals(st, st3!);
     });

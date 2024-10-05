@@ -16,11 +16,6 @@ extension IListStringExtension on IList<String> {
 }
 
 extension BFEnvExtension on BFEnv {
-  Future<BFPath?> statPath(BFPath path, {IList<String>? relPath}) async {
-    final res = await stat(path, relPath: relPath);
-    return res?.path;
-  }
-
   Future<BFPath?> child(BFPath path, {IList<String>? relPath}) async {
     final st = await stat(path, relPath: relPath);
     if (st == null) {
