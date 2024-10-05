@@ -71,7 +71,12 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<BFEntity?> stat(BFPath path, {IList<String>? relPath}) async {
-    return _locate(path, relPath);
+    final st = await saf.child(
+        path.scopedSafUri(), relPath == null ? '' : relPath.join('/'));
+    if (st == null) {
+      return null;
+    }
+    return _fromSAFEntity(st, dirRelPath: null);
   }
 
   Future<UpdatedBFPath> _safMove(
@@ -131,15 +136,6 @@ class BFSafEnv extends BFEnv {
       }
       rethrow;
     }
-  }
-
-  Future<BFEntity?> _locate(BFPath path, IList<String>? relPath) async {
-    final df = await saf.child(
-        path.scopedSafUri(), relPath == null ? '' : relPath.join('/'));
-    if (df == null) {
-      return null;
-    }
-    return _fromSAFEntity(df, dirRelPath: null);
   }
 
   @override
