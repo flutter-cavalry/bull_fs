@@ -116,10 +116,10 @@ packages:
     dependency: "direct main"
     description:
       name: fc_file_picker_util
-      sha256: "1de470c7fe56c07c63437d68f4a761508a5681a37a18a9538bba5bbd45be0716"
+      sha256: "7f756e6f0d77b30cc35d85ee660ac0fde0642749496364d832735eda48dc9fcf"
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0"
+    version: "0.3.0"
   fc_material_alert:
     dependency: "direct main"
     description:
@@ -355,10 +355,10 @@ packages:
     dependency: transitive
     description:
       name: mg_shared_storage
-      sha256: a253a0e2438a60221e9e2cbed01f610c21f61c1ff3afe98c8a736eeae19d2d74
+      sha256: "7188ff0e553eb6be599243cf24c56d2c59c680007e1266a764de0870c75825de"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.2"
+    version: "0.9.0"
   mime:
     dependency: transitive
     description:
@@ -396,10 +396,10 @@ packages:
     dependency: transitive
     description:
       name: saf_stream
-      sha256: "65e58a343fb30d18d3805f10926493d909d647f38e3e394fd7c6e9a0e87c0258"
+      sha256: "49a7707b14f977a69f7b4aa010e82c4b850acebfe05bec32660e53f963765d12"
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.0"
+    version: "0.8.1"
   sky_engine:
     dependency: transitive
     description: flutter
