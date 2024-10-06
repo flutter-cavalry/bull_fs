@@ -156,10 +156,10 @@ packages:
     dependency: transitive
     description:
       name: file_selector_android
-      sha256: cc4fbee97384ad0d5d08abfc92b4b3effa473783c9a372927ad857b46e8951d2
+      sha256: "00aafa9ae05a8663d0b4f17abd2a02316911ca0f46f9b9dacb9578b324d99590"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.1+8"
+    version: "0.5.1+9"
   file_selector_ios:
     dependency: transitive
     description:
@@ -233,10 +233,10 @@ packages:
     dependency: transitive
     description:
       name: flutter_plugin_android_lifecycle
-      sha256: "9ee02950848f61c4129af3d6ec84a1cfc0e47931abc746b03e7a3bc3e8ff6eda"
+      sha256: "9b78450b89f059e96c9ebb355fa6b3df1d6b330436e0b885fb49594c41721398"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.22"
+    version: "2.0.23"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -355,10 +355,10 @@ packages:
     dependency: transitive
     description:
       name: mg_shared_storage
-      sha256: "900e8848fadbef88e6d37ddc6f80bdfb657e12fbfb783b00614bf9609ccf771b"
+      sha256: "19a042f3416013e5b66747685964130915252ee1805c13495fd9443f66c25811"
       url: "https://pub.dev"
     source: hosted
-    version: "0.9.1"
+    version: "0.9.3"
   mime:
     dependency: transitive
     description:
