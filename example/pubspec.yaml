@@ -40,8 +40,8 @@ dependencies:
   fast_immutable_collections: ^10.0.0
   tmp_path: ^1.2.2
   path: ^1.8.3
-  fc_file_picker_util: ^0.3.0
-  fc_material_alert: ^0.0.2
+  fc_file_picker_util: ^0.4.0
+  fc_quick_dialog: ^0.0.2
   collection: ^1.18.0
   darwin_url: ^0.5.0
 

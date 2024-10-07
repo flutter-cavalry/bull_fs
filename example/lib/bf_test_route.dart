@@ -7,7 +7,7 @@ import 'package:example/util/fc_file_picker_util_bf_ext.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:fc_file_picker_util/fc_file_picker_util.dart';
 import 'package:bull_fs/bull_fs.dart';
-import 'package:fc_material_alert/fc_material_alert.dart';
+import 'package:fc_quick_dialog/fc_quick_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:tmp_path/tmp_path.dart';
 import 'package:path/path.dart' as p;
@@ -1377,7 +1377,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> showErrorAlert(BuildContext context, Object err) async {
-    await FcMaterialAlert.error(context, err, title: 'Error', okText: 'OK');
+    await FcQuickDialog.error(context,
+        error: err, title: 'Error', okText: 'OK');
   }
 }
 

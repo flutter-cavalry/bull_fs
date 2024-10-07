@@ -1,3 +1,4 @@
+// v5: Update to `fc_file_picker_util` 0.4.0.
 // v4: Update to BF 240923.
 // v3: Update to latest `bull_fs`.
 // v2: Migrate to new `FilePickerXResult`.
@@ -23,30 +24,29 @@ extension FilePickerUtilExtension on FcFilePickerXResult {
     var isIcloud = false;
 
     if (Platform.isAndroid) {
-      if (androidUri == null) {
+      if (uri == null) {
         throw Exception('Unexpected null androidUri from FilePickerXResult');
       }
       return ResolveBFPathResult(
-          BFScopedPath(androidUri!.toString()), BFSafEnv(), false);
+          BFScopedPath(uri!.toString()), BFSafEnv(), false);
     }
     if (Platform.isIOS) {
-      if (iosUrl == null) {
+      if (uri == null) {
         throw Exception('Unexpected null iosUrl from FilePickerXResult');
       }
-      isIcloud = await _darwinUrl.isUbiquitousUrlItem(iosUrl!);
-      return ResolveBFPathResult(BFScopedPath(iosUrl!), BFNsfcEnv(), isIcloud);
+      isIcloud = await _darwinUrl.isUbiquitousUrlItem(uri!);
+      return ResolveBFPathResult(BFScopedPath(uri!), BFNsfcEnv(), isIcloud);
     }
     if (Platform.isMacOS) {
-      if (iosUrl != null) {
-        isIcloud = macosIcloud ?? await _darwinUrl.isUbiquitousUrlItem(iosUrl!);
+      if (uri != null) {
+        isIcloud = macosIcloud ?? await _darwinUrl.isUbiquitousUrlItem(uri!);
       } else if (path != null) {
         isIcloud = macosIcloud ?? await _darwinUrl.isUbiquitousPathItem(path!);
       } else {
         throw Exception('iosUrl and path are both null');
       }
       if (isIcloud) {
-        return ResolveBFPathResult(
-            BFScopedPath(iosUrl!), BFNsfcEnv(), isIcloud);
+        return ResolveBFPathResult(BFScopedPath(uri!), BFNsfcEnv(), isIcloud);
       }
       return ResolveBFPathResult(BFLocalPath(path!), BFLocalEnv(), isIcloud);
     }
