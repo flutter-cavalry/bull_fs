@@ -140,7 +140,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       });
       // Clean up.
       if (cleanUpPath != null) {
-        await env.deletePathIfExists(root, null);
+        await env.deletePathIfExists(root, true, null);
       }
     }
   }
@@ -175,10 +175,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
     return list.map((e) => e.toStringWithLength()).join('|');
   }
 
-  Future<String> _formatPathInfoList(
+  Future<String> _formatPathInfoFileList(
       BFEnv env, List<BFPathAndDirRelPath> list) async {
     final entities = await Future.wait(list.map((e) async {
-      final st = await env.stat(e.path);
+      final st = await env.stat(e.path, false);
       if (st == null) {
         throw Exception('Stat failed: ${e.path}');
       }
@@ -212,7 +212,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newDir = await env.mkdirp(r, ['space 一 二 三'].lock);
 
       // Test return value.
-      final st = await env.stat(newDir);
+      final st = await env.stat(newDir, true);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, 'space 一 二 三');
@@ -235,20 +235,20 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       var newDir = await env.mkdirp(r, ['space 一 二 三', '22'].lock);
       // Test return value.
-      var st = await env.stat(newDir);
+      var st = await env.stat(newDir, true);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '22');
 
       // Do it again with a new subdir.
       newDir = await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
-      st = await env.stat(newDir);
+      st = await env.stat(newDir, true);
       h.equals(st!.isDir, true);
       h.equals(st.name, '3 33');
 
       // Do it again.
       newDir = await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
-      st = await env.stat(newDir);
+      st = await env.stat(newDir, true);
       h.equals(st!.isDir, true);
       h.equals(st.name, '3 33');
 
@@ -284,12 +284,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Test return value.
       final path = await env.directoryExists(
           await _getPath(env, r, '一/22'), ['3 3', '4'].lock);
-      final st = await env.stat(path!);
+      final st = await env.stat(path!, true);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '4');
 
-      final basename = await env.findBasename(path);
+      final basename = await env.findBasename(path, true);
       h.equals(basename, '4');
 
       final conflictType = await env.fileExists(
@@ -309,12 +309,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Test return value.
       final path =
           await env.fileExists(await _getPath(env, r, '一'), ['22', '3 3'].lock);
-      final st = await env.stat(path!);
+      final st = await env.stat(path!, false);
       h.notNull(st);
       h.equals(st!.isDir, false);
       h.equals(st.name, '3 3');
 
-      final basename = await env.findBasename(path);
+      final basename = await env.findBasename(path, false);
       h.equals(basename, '3 3');
 
       final conflictType = await env.directoryExists(
@@ -331,7 +331,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newDir = await env.createDir(r, 'space 一 二 三');
 
       // Test return value.
-      final st = await env.stat(newDir.path);
+      final st = await env.stat(newDir.path, true);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, 'space 一 二 三');
@@ -347,7 +347,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newDir = await env.createDir(r, 'space 一 二 三');
 
       // Test return value.
-      final st = await env.stat(newDir.path);
+      final st = await env.stat(newDir.path, true);
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, 'space 一 二 三 (1)');
@@ -371,7 +371,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
         // Test `getPath`.
         var destUri = outStream.getPath();
-        var destUriStat = await env.stat(destUri);
+        var destUriStat = await env.stat(destUri, false);
         h.notNull(destUriStat);
         h.equals(destUriStat!.isDir, false);
         h.equals(destUriStat.name, fileName);
@@ -387,7 +387,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
           // Test `getPath`.
           destUri = outStream.getPath();
-          destUriStat = await env.stat(destUri);
+          destUriStat = await env.stat(destUri, false);
           h.notNull(destUriStat);
           h.equals(destUriStat!.isDir, false);
           h.equals(
@@ -413,7 +413,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
           // Test `getPath`.
           destUri = outStream.getPath();
-          destUriStat = await env.stat(destUri);
+          destUriStat = await env.stat(destUri, false);
           h.notNull(destUriStat);
           h.equals(destUriStat!.isDir, false);
           h.equals(
@@ -479,7 +479,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           nameUpdater: _testNameUpdater);
       await out.write(_defStringContentsBytes);
       await out.close();
-      var st = await env.stat(out.getPath());
+      var st = await env.stat(out.getPath(), false);
       h.equals(st!.name, 'NU-一 二.txt.png-false-1');
       h.equals(st.name, out.getFileName());
     });
@@ -566,7 +566,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         // Add first test.txt
         var pasteRes = await env.pasteLocalFile(tmpFile, r, fileName,
             overwrite: overwrite);
-        var st = await env.stat(pasteRes.path);
+        var st = await env.stat(pasteRes.path, false);
         h.equals(st!.name, fileName);
         h.equals(st.name, pasteRes.newName);
         h.equals(st.length, 17);
@@ -576,7 +576,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await File(tmpFile).writeAsString('$_defStringContents 2');
           pasteRes = await env.pasteLocalFile(tmpFile, r, fileName,
               overwrite: overwrite);
-          st = await env.stat(pasteRes.path);
+          st = await env.stat(pasteRes.path, false);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 2));
           h.equals(st.name, pasteRes.newName);
           h.equals(st.length, 17);
@@ -585,7 +585,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await File(tmpFile).writeAsString('$_defStringContents 3');
           pasteRes = await env.pasteLocalFile(tmpFile, r, fileName,
               overwrite: overwrite);
-          st = await env.stat(pasteRes.path);
+          st = await env.stat(pasteRes.path, false);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 3));
           h.equals(st.name, pasteRes.newName);
           h.equals(st.length, 17);
@@ -648,7 +648,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       // Add second which triggers the name updater.
       var pasteRes = await env.pasteLocalFile(tmpFile, r, '一 二.txt.png',
           nameUpdater: _testNameUpdater);
-      var st = await env.stat(pasteRes.path);
+      var st = await env.stat(pasteRes.path, false);
       h.equals(st!.name, 'NU-一 二.txt.png-false-1');
       h.equals(st.name, pasteRes.newName);
     });
@@ -673,7 +673,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         var pasteRes = await env.writeFileSync(
             r, fileName, utf8.encode('$_defStringContents 1'),
             overwrite: overwrite);
-        var st = await env.stat(pasteRes.path);
+        var st = await env.stat(pasteRes.path, false);
         h.equals(st!.name, fileName);
         h.equals(st.name, pasteRes.newName);
         h.equals(st.length, 17);
@@ -683,7 +683,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           pasteRes = await env.writeFileSync(
               r, fileName, utf8.encode('$_defStringContents 2'),
               overwrite: overwrite);
-          st = await env.stat(pasteRes.path);
+          st = await env.stat(pasteRes.path, false);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 2));
           h.equals(st.name, pasteRes.newName);
           h.equals(st.length, 17);
@@ -692,7 +692,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           // Write a smaller string to test that the file is truncated.
           pasteRes = await env.writeFileSync(r, fileName, utf8.encode('ABCD'),
               overwrite: overwrite);
-          st = await env.stat(pasteRes.path);
+          st = await env.stat(pasteRes.path, false);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 3));
           h.equals(st.name, pasteRes.newName);
           h.equals(st.length, 4);
@@ -752,48 +752,47 @@ class _BFTestRouteState extends State<BFTestRoute> {
       var writeRes = await env.writeFileSync(
           r, '一 二.txt.png', _defStringContentsBytes,
           nameUpdater: _testNameUpdater);
-      var st = await env.stat(writeRes.path);
+      var st = await env.stat(writeRes.path, false);
       h.equals(st!.name, 'NU-一 二.txt.png-false-1');
       h.equals(st.name, writeRes.newName);
     });
 
-    ns.add('stat (folder)', (h) async {
+    ns.add('stat and child (folder)', (h) async {
       final r = h.data as BFPath;
       final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
-      final st = await env.stat(newDir);
+      final st = await env.stat(newDir, true);
 
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, '一 二');
       h.equals(st.length, -1);
 
-      final st2 = await env.stat(r, extendedPath: ['a', '一 二'].lock);
+      final st2 = await env.child(r, ['a', '一 二'].lock);
       _statEquals(st, st2!);
 
       final subPath = await env.directoryExists(r, ['a'].lock);
-      final st3 = await env.stat(subPath!, extendedPath: ['一 二'].lock);
+      final st3 = await env.child(subPath!, ['一 二'].lock);
       _statEquals(st, st3!);
     });
 
-    ns.add('stat (file)', (h) async {
+    ns.add('stat and child (file)', (h) async {
       final r = h.data as BFPath;
       final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
       final fileUri = (await env.writeFileSync(
               newDir, 'test 仨.txt', _defStringContentsBytes))
           .path;
-      final st = await env.stat(fileUri);
+      final st = await env.stat(fileUri, false);
 
       h.notNull(st);
       h.equals(st!.isDir, false);
       h.equals(st.name, 'test 仨.txt');
       h.equals(st.length, 15);
 
-      final st2 =
-          await env.stat(r, extendedPath: ['a', '一 二', 'test 仨.txt'].lock);
+      final st2 = await env.child(r, ['a', '一 二', 'test 仨.txt'].lock);
       _statEquals(st, st2!);
 
       final subPath = await env.directoryExists(r, ['a', '一 二'].lock);
-      final st3 = await env.stat(subPath!, extendedPath: ['test 仨.txt'].lock);
+      final st3 = await env.child(subPath!, ['test 仨.txt'].lock);
       _statEquals(st, st3!);
     });
 
@@ -830,7 +829,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _createNestedDir(env, r);
 
       final contents = await env.listDirContentFiles(r);
-      h.equals(await _formatPathInfoList(env, contents),
+      h.equals(await _formatPathInfoFileList(env, contents),
           '一 二/a.txt | 一 二/b.txt | 一 二/deep/c.txt | root.txt | root2.txt');
     });
 
@@ -839,7 +838,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await env.mkdirp(r, ['a', '一 二'].lock);
       final newPath = await env.rename(await _getPath(env, r, 'a/一 二'),
           await _getPath(env, r, 'a'), 'test 仨 2.txt', true);
-      final st = await env.stat(newPath);
+      final st = await env.stat(newPath, true);
       h.equals(st!.name, 'test 仨 2.txt');
 
       h.mapEquals(await env.directoryToMap(r), {
@@ -870,7 +869,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await _getPath(env, r, 'a/一 二'),
           'test 仨 2.txt',
           false);
-      final st = await env.stat(newPath);
+      final st = await env.stat(newPath, false);
       h.equals(st!.name, 'test 仨 2.txt');
 
       h.mapEquals(await env.directoryToMap(r), {
@@ -916,7 +915,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), true,
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
-      final st = await e.stat(newPath.path);
+      final st = await e.stat(newPath.path, true);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
 
@@ -955,7 +954,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), true,
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
-      final st = await e.stat(newPath.path);
+      final st = await e.stat(newPath.path, false);
       h.equals(st!.name, _dupSuffix('a', 2));
       h.equals(st.name, newPath.newName);
 
@@ -996,7 +995,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), true,
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
-      final st = await e.stat(newPath.path);
+      final st = await e.stat(newPath.path, true);
       h.equals(st!.name, 'a (1)');
       h.equals(st.name, newPath.newName);
 
@@ -1030,7 +1029,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), false,
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
-      final st = await e.stat(newPath.path);
+      final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
 
@@ -1064,7 +1063,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), false,
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
-      final st = await e.stat(newPath.path);
+      final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a (1)');
       h.equals(st.name, newPath.newName);
 
@@ -1098,7 +1097,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), false,
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
-      final st = await e.stat(newPath.path);
+      final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a (1)');
       h.equals(st.name, newPath.newName);
 
@@ -1130,7 +1129,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), false,
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'),
           overwrite: true);
-      final st = await e.stat(newPath.path);
+      final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
 
@@ -1164,7 +1163,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), false,
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'),
           overwrite: true);
-      final st = await e.stat(newPath.path);
+      final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
 
@@ -1196,7 +1195,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), false,
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'),
           overwrite: true);
-      final st = await e.stat(newPath.path);
+      final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
 
@@ -1231,7 +1230,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), false,
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'),
           overwrite: true);
-      final st = await e.stat(newPath.path);
+      final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a');
       h.equals(st.name, newPath.newName);
 
@@ -1345,7 +1344,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<BFEntity> _getStat(BFEnv e, BFPath root, String relPath) async {
-    final stat = await e.stat(root, extendedPath: _genRelPath(relPath));
+    final stat = await e.child(root, _genRelPath(relPath));
     if (stat == null) {
       throw Exception('stat is null for "$relPath"');
     }
@@ -1379,16 +1378,6 @@ class _BFTestRouteState extends State<BFTestRoute> {
   Future<void> showErrorAlert(BuildContext context, Object err) async {
     await FcQuickDialog.error(context,
         error: err, title: 'Error', okText: 'OK');
-  }
-}
-
-extension BFTestExtension on BFEnv {
-  Future<BFEntity> mustGetStat(BFPath path, {IList<String>? relPath}) async {
-    final st = await stat(path, extendedPath: relPath);
-    if (st == null) {
-      throw Exception('Item not found');
-    }
-    return st;
   }
 }
 

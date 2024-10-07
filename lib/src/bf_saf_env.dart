@@ -71,13 +71,22 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<BFEntity?> stat(BFPath path, {IList<String>? extendedPath}) async {
-    final st = await _utilPlugin.child(path.scopedSafUri(),
-        extendedPath == null ? '' : extendedPath.join('/'));
-    if (st == null) {
+  Future<BFEntity?> stat(BFPath path, bool isDir) async {
+    final df =
+        await _utilPlugin.documentFileFromUri(path.scopedSafUri(), isDir);
+    if (df == null) {
       return null;
     }
-    return _fromSAFEntity(st, dirRelPath: null);
+    return _fromSAFEntity(df, dirRelPath: null);
+  }
+
+  @override
+  Future<BFEntity?> child(BFPath path, IList<String> names) async {
+    final df = await _utilPlugin.child(path.scopedSafUri(), names.unlock);
+    if (df == null) {
+      return null;
+    }
+    return _fromSAFEntity(df, dirRelPath: null);
   }
 
   Future<UpdatedBFPath> _safMove(
@@ -94,7 +103,7 @@ class BFSafEnv extends BFEnv {
     // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
     // Then move the file to dest and rename it back to the desired name.
     BFPath? srcTmpUri;
-    final srcName = await findBasename(src);
+    final srcName = await findBasename(src, isDir);
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
     }
@@ -118,7 +127,7 @@ class BFSafEnv extends BFEnv {
       return UpdatedBFPath(destUri, safeDestName);
     } catch (err) {
       // Try reverting changes if exception happened.
-      if (srcTmpUri != null && await stat(srcTmpUri) != null) {
+      if (srcTmpUri != null && await child(srcDir, [srcTmpName].lock) != null) {
         try {
           await rename(srcTmpUri, srcDir, srcName, isDir);
         } catch (_) {
@@ -225,18 +234,36 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<BFItemExistsResult?> itemExists(
-      BFPath path, IList<String>? extendedPath) async {
-    final st = await stat(path, extendedPath: extendedPath);
-    if (st == null) {
-      return null;
-    }
-    return BFItemExistsResult(st.path, st.isDir);
+  Future<BFPath?> fileExists(BFPath path, IList<String>? extendedPath) async {
+    return _itemExists(path, false, extendedPath);
   }
 
   @override
-  Future<String?> findBasename(BFPath path) async {
-    final st = await stat(path);
+  Future<BFPath?> directoryExists(
+      BFPath path, IList<String>? extendedPath) async {
+    return _itemExists(path, true, extendedPath);
+  }
+
+  Future<BFPath?> _itemExists(
+      BFPath path, bool isDir, IList<String>? extendedPath) async {
+    if (extendedPath == null || extendedPath.isEmpty) {
+      final res =
+          await _utilPlugin.documentFileFromUri(path.scopedSafUri(), isDir);
+      if (res == null) {
+        return null;
+      }
+      return BFScopedPath(res.uri.toString());
+    }
+    final st = await child(path, extendedPath);
+    if (st == null) {
+      return null;
+    }
+    return st.path;
+  }
+
+  @override
+  Future<String?> findBasename(BFPath path, bool isDir) async {
+    final st = await stat(path, isDir);
     if (st == null) {
       return null;
     }

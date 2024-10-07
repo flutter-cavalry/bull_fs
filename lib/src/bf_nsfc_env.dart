@@ -70,20 +70,22 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<BFEntity?> stat(BFPath path, {IList<String>? extendedPath}) async {
-    if (extendedPath != null) {
-      // Use file URI for unknown paths.
-      path = await path.iosJoinRelPath(extendedPath, false);
-    }
-    try {
-      final e = await _plugin.stat(path.scopedID());
-      if (e == null) {
-        return null;
-      }
-      return _fromIcloudEntity(e, dirRelPath: null);
-    } catch (_) {
+  Future<BFEntity?> stat(BFPath path, bool isDir) async {
+    final e = await _plugin.stat(path.scopedID());
+    if (e == null) {
       return null;
     }
+    return _fromIcloudEntity(e, dirRelPath: null);
+  }
+
+  @override
+  Future<BFEntity?> child(BFPath path, IList<String> names) async {
+    path = await path.iosJoinRelPath(names, false);
+    final e = await _plugin.stat(path.scopedID());
+    if (e == null) {
+      return null;
+    }
+    return _fromIcloudEntity(e, dirRelPath: names);
   }
 
   @override
@@ -105,7 +107,7 @@ class BFNsfcEnv extends BFEnv {
   Future<UpdatedBFPath> moveToDirSafe(
       BFPath src, bool isDir, BFPath srcDir, BFPath destDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
-    final srcName = await findBasename(src);
+    final srcName = await findBasename(src, isDir);
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
     }
@@ -184,19 +186,30 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<BFItemExistsResult?> itemExists(
-      BFPath path, IList<String>? extendedPath) async {
-    final newPath = await _darwinUrlPlugin
+  Future<BFPath?> fileExists(BFPath path, IList<String>? extendedPath) async {
+    final finalPath = await _darwinUrlPlugin
         .append(path.toString(), extendedPath?.unlock ?? [], isDir: false);
-    final isDirRes = await _plugin.isDirectory(newPath);
-    if (isDirRes == null) {
-      return null;
+    final isDirRes = await _plugin.isDirectory(finalPath);
+    if (isDirRes == false) {
+      return BFScopedPath(finalPath);
     }
-    return BFItemExistsResult(BFScopedPath(newPath), isDirRes);
+    return null;
   }
 
   @override
-  Future<String?> findBasename(BFPath path) async {
+  Future<BFPath?> directoryExists(
+      BFPath path, IList<String>? extendedPath) async {
+    final finalPath = await _darwinUrlPlugin
+        .append(path.toString(), extendedPath?.unlock ?? [], isDir: true);
+    final isDirRes = await _plugin.isDirectory(finalPath);
+    if (isDirRes == true) {
+      return BFScopedPath(finalPath);
+    }
+    return null;
+  }
+
+  @override
+  Future<String?> findBasename(BFPath path, bool isDir) async {
     return _darwinUrlPlugin.basename(path.toString());
   }
 

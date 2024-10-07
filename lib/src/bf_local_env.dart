@@ -73,15 +73,21 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<BFEntity?> stat(BFPath path, {IList<String>? extendedPath}) async {
-    var filePath = path.localPath();
-    if (extendedPath != null) {
-      filePath = p.joinAll([filePath, ...extendedPath]);
-    }
+  Future<BFEntity?> stat(BFPath path, bool isDir) async {
+    return _stat(path.localPath());
+  }
+
+  @override
+  Future<BFEntity?> child(BFPath path, IList<String> names) async {
+    var filePath = p.joinAll([path.localPath(), ...names]);
     // Remove the last /.
     if (filePath.endsWith('/')) {
       filePath = filePath.substring(0, filePath.length - 1);
     }
+    return _stat(filePath);
+  }
+
+  Future<BFEntity?> _stat(String filePath) async {
     final ioType = await FileSystemEntity.type(filePath);
     if (ioType == FileSystemEntityType.notFound) {
       return null;
@@ -215,21 +221,28 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<BFItemExistsResult?> itemExists(
-      BFPath path, IList<String>? extendedPath) async {
+  Future<BFPath?> fileExists(BFPath path, IList<String>? extendedPath) async {
     final finalPath = p.joinAll([path.localPath(), ...(extendedPath ?? [])]);
     final ioType = await FileSystemEntity.type(finalPath);
     if (ioType == FileSystemEntityType.file) {
-      return BFItemExistsResult(BFLocalPath(finalPath), false);
-    }
-    if (ioType == FileSystemEntityType.directory) {
-      return BFItemExistsResult(BFLocalPath(finalPath), true);
+      return BFLocalPath(finalPath);
     }
     return null;
   }
 
   @override
-  Future<String?> findBasename(BFPath path) async {
+  Future<BFPath?> directoryExists(
+      BFPath path, IList<String>? extendedPath) async {
+    final finalPath = p.joinAll([path.localPath(), ...(extendedPath ?? [])]);
+    final ioType = await FileSystemEntity.type(finalPath);
+    if (ioType == FileSystemEntityType.directory) {
+      return BFLocalPath(finalPath);
+    }
+    return null;
+  }
+
+  @override
+  Future<String?> findBasename(BFPath path, bool isDir) async {
     return p.basename(path.localPath());
   }
 }

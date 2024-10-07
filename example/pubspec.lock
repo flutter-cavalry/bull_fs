@@ -115,10 +115,11 @@ packages:
   fc_file_picker_util:
     dependency: "direct main"
     description:
-      name: fc_file_picker_util
-      sha256: "3448ec238b600f6874db8b94a41dacf3ee8767bb76b0d32f0a4c48ee299481f7"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: d89de405ce8a78dafbae102e5d61053d91dba459
+      url: "https://github.com/flutter-cavalry/fc_file_picker_util.git"
+    source: git
     version: "0.4.0"
   fc_quick_dialog:
     dependency: "direct main"
@@ -395,10 +396,11 @@ packages:
   saf_util:
     dependency: transitive
     description:
-      name: saf_util
-      sha256: aa75c3788337d38e8f7a3a07be818a2f9a0e839a4a1c8cf00eb73e9e5762a16b
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "67f1f0215ec48f5ca7c38512956c7cc3dc7087d9"
+      url: "https://github.com/flutter-cavalry/saf_util.git"
+    source: git
     version: "0.0.2"
   sky_engine:
     dependency: transitive

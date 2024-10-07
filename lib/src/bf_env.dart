@@ -15,14 +15,6 @@ enum BFEnvType {
   icloud
 }
 
-/// Result type of [BFEnv.itemExists].
-class BFItemExistsResult {
-  final BFPath path;
-  final bool isDir;
-
-  BFItemExistsResult(this.path, this.isDir);
-}
-
 typedef BFNameUpdaterFunc = String Function(
     String fileName, bool isDir, int attempt);
 
@@ -72,9 +64,15 @@ abstract class BFEnv {
 
   /// Gets the stat of a file or directory.
   ///
+  /// [path] is the path to delete.
+  /// [isDir] is whether the path is a directory.
+  Future<BFEntity?> stat(BFPath path, bool isDir);
+
+  /// Gets a child identified by [path] + [names].
+  ///
   /// [path] starting path.
-  /// [extendedPath] extended path components to be appended to the path.
-  Future<BFEntity?> stat(BFPath path, {IList<String>? extendedPath});
+  /// [names] path components to be appended to the path.
+  Future<BFEntity?> child(BFPath path, IList<String> names);
 
   /// Like mkdir -p. Makes sure [dir]/[components]/ is created.
   ///
@@ -113,7 +111,7 @@ abstract class BFEnv {
   /// [isDir] is whether the source is a directory.
   Future<BFPath> rename(
       BFPath path, BFPath parentDir, String newName, bool isDir) async {
-    final newSt = await stat(parentDir, extendedPath: [newName].lock);
+    final newSt = await child(parentDir, [newName].lock);
     if (newSt != null) {
       throw Exception('Path already exists: ${newSt.path}');
     }
@@ -133,7 +131,7 @@ abstract class BFEnv {
       BFPath src, bool isDir, BFPath srcDir, BFPath destDir,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) {
     if (overwrite == true) {
-      return _moveToDirByForce(src, srcDir, destDir, isDir);
+      return _moveToDirByForce(src, isDir, srcDir, destDir);
     }
     return moveToDirSafe(src, isDir, srcDir, destDir, nameUpdater: nameUpdater);
   }
@@ -155,12 +153,12 @@ abstract class BFEnv {
   /// Moves a file or directory to a directory and overwrites the existing item.
   /// This is called by [moveToDir] when [overwrite] is `true`.
   Future<UpdatedBFPath> _moveToDirByForce(
-      BFPath src, BFPath srcDir, BFPath destDir, bool isDir) async {
-    final srcName = await findBasename(src);
+      BFPath src, bool isDir, BFPath srcDir, BFPath destDir) async {
+    final srcName = await findBasename(src, isDir);
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
     }
-    final destItemStat = await stat(destDir, extendedPath: [srcName].lock);
+    final destItemStat = await child(destDir, [srcName].lock);
 
     // Call `moveToDir` if the destination item does not exist and no new name assigned.
     if (destItemStat == null) {
@@ -223,34 +221,14 @@ abstract class BFEnv {
       BFPath dir, String unsafeName, Uint8List bytes,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite});
 
-  /// Returns a [BFItemExistsResult] if the specified [path]/[extendedPath] exists.
-  ///
-  /// [path] the staring path.
-  /// [extendedPath] the list of components to append after the path.
-  Future<BFItemExistsResult?> itemExists(
-      BFPath path, IList<String>? extendedPath);
-
   /// Returns a [BFPath] if the specified [path]/[extendedPath] exists and is a file.
-  Future<BFPath?> fileExists(BFPath path, IList<String>? extendedPath) async {
-    final res = await itemExists(path, extendedPath);
-    if (res == null || res.isDir) {
-      return null;
-    }
-    return res.path;
-  }
+  Future<BFPath?> fileExists(BFPath path, IList<String>? extendedPath);
 
   /// Returns a [BFPath] if the specified [path]/[extendedPath] exists and is a directory.
-  Future<BFPath?> directoryExists(
-      BFPath path, IList<String>? extendedPath) async {
-    final res = await itemExists(path, extendedPath);
-    if (res == null || !res.isDir) {
-      return null;
-    }
-    return res.path;
-  }
+  Future<BFPath?> directoryExists(BFPath path, IList<String>? extendedPath);
 
   /// Gets the basename of a path.
   ///
   /// [path] is the path to get the basename.
-  Future<String?> findBasename(BFPath path);
+  Future<String?> findBasename(BFPath path, bool isDir);
 }
