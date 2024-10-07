@@ -107,7 +107,7 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<BFPath> renameInternal(BFPath path, String newName, bool isDir) async {
+  Future<BFPath> renameInternal(BFPath path, bool isDir, String newName) async {
     final filePath = path.localPath();
     final newPath = p.join(p.dirname(filePath), newName);
     await _move(filePath, newPath, isDir);

@@ -149,7 +149,7 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<BFPath> renameInternal(BFPath path, String newName, bool isDir) async {
+  Future<BFPath> renameInternal(BFPath path, bool isDir, String newName) async {
     final uriInfo =
         await _utilPlugin.rename(path.scopedSafUri(), isDir, newName);
     return BFScopedPath(uriInfo.uri.toString());
@@ -256,6 +256,9 @@ class BFSafEnv extends BFEnv {
     }
     final st = await child(path, extendedPath);
     if (st == null) {
+      return null;
+    }
+    if (st.isDir != isDir) {
       return null;
     }
     return st.path;

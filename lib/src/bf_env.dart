@@ -101,7 +101,7 @@ abstract class BFEnv {
   /// [newName] is the new name.
   /// [isDir] is whether the source is a directory.
   @protected
-  Future<BFPath> renameInternal(BFPath path, String newName, bool isDir);
+  Future<BFPath> renameInternal(BFPath path, bool isDir, String newName);
 
   /// Renames a file or directory.
   ///
@@ -115,7 +115,7 @@ abstract class BFEnv {
     if (newSt != null) {
       throw Exception('Path already exists: ${newSt.path}');
     }
-    return renameInternal(path, newName, isDir);
+    return renameInternal(path, isDir, newName);
   }
 
   /// Moves a file or directory to a directory.

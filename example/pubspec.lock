@@ -398,10 +398,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "67f1f0215ec48f5ca7c38512956c7cc3dc7087d9"
+      resolved-ref: "8c6f8d0866a29652584d7acd18f8e526f5e99920"
       url: "https://github.com/flutter-cavalry/saf_util.git"
     source: git
-    version: "0.0.2"
+    version: "0.0.3"
   sky_engine:
     dependency: transitive
     description: flutter
