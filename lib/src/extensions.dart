@@ -6,7 +6,7 @@ import 'types.dart';
 extension BFEnvExtension on BFEnv {
   /// Deletes a path if it exists.
   Future<void> deletePathIfExists(
-      BFPath path, bool isDir, IList<String>? extendedPath) async {
+      BFPath path, IList<String>? extendedPath, bool isDir) async {
     final finalPath = isDir
         ? await directoryExists(path, extendedPath)
         : await fileExists(path, extendedPath);

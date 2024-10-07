@@ -75,7 +75,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _startNative() async {
-    FcFilePickerXResult? rootRaw = await FcFilePickerUtil.pickFolder();
+    FcFilePickerXResult? rootRaw =
+        await FcFilePickerUtil.pickFolder(writePermission: true);
     if (rootRaw == null) {
       return;
     }
@@ -140,7 +141,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
       });
       // Clean up.
       if (cleanUpPath != null) {
-        await env.deletePathIfExists(root, true, null);
+        await env.deletePathIfExists(
+          root,
+          null,
+          true,
+        );
       }
     }
   }
