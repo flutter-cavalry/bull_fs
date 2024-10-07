@@ -1,14 +1,17 @@
+import 'package:saf_util/saf_util.dart';
+import 'package:saf_util/saf_util_platform_interface.dart';
+
 import '../bull_fs.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mime/mime.dart';
 import 'package:saf_stream/saf_stream.dart';
-import 'package:mg_shared_storage/shared_storage.dart' as saf;
 import 'package:path/path.dart' as p;
 import 'package:tmp_path/tmp_path.dart';
 
 class BFSafEnv extends BFEnv {
-  final _plugin = SafStream();
+  final _streamPlugin = SafStream();
+  final _utilPlugin = SafUtil();
 
   @override
   BFEnvType envType() {
@@ -22,12 +25,10 @@ class BFSafEnv extends BFEnv {
 
   Future<void> _listDirectChildren(
       BFPath path, List<BFEntity> collector, List<String>? dirRelPath) async {
-    final objs = await saf.listFiles2(path.scopedSafUri());
-    if (objs != null) {
-      collector.addAll(objs
-          .map((e) => _fromSAFEntity(e, dirRelPath: dirRelPath?.lock))
-          .whereType<BFEntity>());
-    }
+    final objs = await _utilPlugin.list(path.scopedSafUri());
+    collector.addAll(objs
+        .map((e) => _fromSAFEntity(e, dirRelPath: dirRelPath?.lock))
+        .whereType<BFEntity>());
   }
 
   Future<void> _listRecursiveChildren(
@@ -66,12 +67,12 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<void> delete(BFPath path, bool isDir) async {
-    await saf.delete(path.scopedSafUri());
+    await _utilPlugin.delete(path.scopedSafUri(), isDir);
   }
 
   @override
   Future<BFEntity?> stat(BFPath path, {IList<String>? extendedPath}) async {
-    final st = await saf.child(path.scopedSafUri(),
+    final st = await _utilPlugin.child(path.scopedSafUri(),
         extendedPath == null ? '' : extendedPath.join('/'));
     if (st == null) {
       return null;
@@ -80,22 +81,15 @@ class BFSafEnv extends BFEnv {
   }
 
   Future<UpdatedBFPath> _safMove(
-      BFPath srcPath, BFPath srcDir, BFPath destDir) async {
-    final res = await saf.moveEx(
-        srcPath.scopedSafUri(), srcDir.scopedSafUri(), destDir.scopedSafUri());
-    if (res == null) {
-      throw Exception('Unexpected null result from moveEx');
-    }
-    final fileName = res.name;
-    if (fileName == null || fileName.isEmpty) {
-      throw Exception('Unexpected null or empty name from item stat');
-    }
-    return UpdatedBFPath(BFScopedPath(res.uri.toString()), fileName);
+      BFPath srcPath, bool isDir, BFPath srcDir, BFPath destDir) async {
+    final df = await _utilPlugin.moveTo(srcPath.scopedSafUri(), isDir,
+        srcDir.scopedSafUri(), destDir.scopedSafUri());
+    return UpdatedBFPath(BFScopedPath(df.uri.toString()), df.name);
   }
 
   @override
   Future<UpdatedBFPath> moveToDirSafe(
-      BFPath src, BFPath srcDir, BFPath destDir, bool isDir,
+      BFPath src, bool isDir, BFPath srcDir, BFPath destDir,
       {BFNameUpdaterFunc? nameUpdater}) async {
     // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
     // Then move the file to dest and rename it back to the desired name.
@@ -116,7 +110,7 @@ class BFSafEnv extends BFEnv {
           isDir,
           nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
 
-      final tmpDestInfo = await _safMove(srcTmpUri, srcDir, destDir);
+      final tmpDestInfo = await _safMove(srcTmpUri, isDir, srcDir, destDir);
 
       // Rename it back to desired name.
       final destUri =
@@ -140,32 +134,22 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<BFPath> mkdirp(BFPath dir, IList<String> components) async {
-    final stat = await saf.mkdirp(dir.scopedSafUri(), components.unlock);
-    if (stat == null) {
-      throw Exception('mkdirp of $dir + $components has failed');
-    }
-    if (stat.name == null || stat.name!.isEmpty) {
-      throw Exception('Unexpected null or empty name from item stat');
-    }
-    return BFScopedPath(stat.uri.toString());
+    final uriInfo =
+        await _utilPlugin.mkdirp(dir.scopedSafUri(), components.unlock);
+    return BFScopedPath(uriInfo.uri);
   }
 
   @override
   Future<BFPath> renameInternal(BFPath path, String newName, bool isDir) async {
-    final newDF = await saf.renameTo(path.scopedSafUri(), newName);
-    if (newDF == null) {
-      throw Exception('rename failed at $path');
-    }
-    if (newDF.name == null || newDF.name!.isEmpty) {
-      throw Exception('Unexpected null or empty name from item stat');
-    }
-    return BFScopedPath(newDF.uri.toString());
+    final uriInfo =
+        await _utilPlugin.rename(path.scopedSafUri(), isDir, newName);
+    return BFScopedPath(uriInfo.uri.toString());
   }
 
   @override
   Future<Stream<List<int>>> readFileStream(BFPath path,
       {int? bufferSize, int? start}) async {
-    return _plugin.readFileStream(path.scopedSafUri(),
+    return _streamPlugin.readFileStream(path.scopedSafUri(),
         bufferSize: bufferSize, start: start);
   }
 
@@ -176,14 +160,14 @@ class BFSafEnv extends BFEnv {
         ? unsafeName
         : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
             nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-    final res = await _plugin.startWriteStream(
+    final res = await _streamPlugin.startWriteStream(
         dir.scopedSafUri(), safeName, _getMime(safeName),
         overwrite: overwrite);
     final newFileName = res.fileResult.fileName;
     if (newFileName == null || newFileName.isEmpty) {
       throw Exception('Unexpected null fileName from writeFileStream');
     }
-    return BFSafOutStream(res.session, _plugin,
+    return BFSafOutStream(res.session, _streamPlugin,
         BFScopedPath(res.fileResult.uri.toString()), newFileName);
   }
 
@@ -195,7 +179,7 @@ class BFSafEnv extends BFEnv {
         ? unsafeName
         : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
             nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-    final res = await _plugin.writeFileSync(
+    final res = await _streamPlugin.writeFileSync(
         dir.scopedSafUri(), safeName, _getMime(safeName), bytes,
         overwrite: overwrite);
     final fileName = res.fileName;
@@ -219,7 +203,7 @@ class BFSafEnv extends BFEnv {
         ? unsafeName
         : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
             nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-    final res = await _plugin.pasteLocalFile(
+    final res = await _streamPlugin.pasteLocalFile(
         localSrc, dir.scopedSafUri(), safeName, _getMime(safeName),
         overwrite: overwrite);
     final fileName = res.fileName;
@@ -231,12 +215,12 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<void> copyToLocalFile(BFPath src, String dest) async {
-    await _plugin.copyToLocalFile(src.scopedSafUri(), dest);
+    await _streamPlugin.copyToLocalFile(src.scopedSafUri(), dest);
   }
 
   @override
   Future<Uint8List> readFileSync(BFPath path, {int? start, int? count}) async {
-    return _plugin.readFileSync(path.scopedSafUri(),
+    return _streamPlugin.readFileSync(path.scopedSafUri(),
         start: start, count: count);
   }
 
@@ -259,14 +243,18 @@ class BFSafEnv extends BFEnv {
     return st.name;
   }
 
-  BFEntity? _fromSAFEntity(saf.DocumentFile e,
+  BFEntity? _fromSAFEntity(SafDocumentFile e,
       {required IList<String>? dirRelPath}) {
     final eName = e.name;
-    if (eName == null) {
-      return null;
-    }
-    return BFEntity(BFScopedPath(e.uri.toString()), eName,
-        e.isDirectory ?? false, e.size ?? 0, e.lastModified, false,
+    return BFEntity(
+        BFScopedPath(e.uri.toString()),
+        eName,
+        e.isDir,
+        e.length,
+        e.lastModified == 0
+            ? null
+            : DateTime.fromMillisecondsSinceEpoch(e.lastModified),
+        false,
         dirRelPath: dirRelPath);
   }
 }

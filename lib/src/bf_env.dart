@@ -130,12 +130,12 @@ abstract class BFEnv {
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
   Future<UpdatedBFPath> moveToDir(
-      BFPath src, BFPath srcDir, BFPath destDir, bool isDir,
+      BFPath src, bool isDir, BFPath srcDir, BFPath destDir,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) {
     if (overwrite == true) {
       return _moveToDirByForce(src, srcDir, destDir, isDir);
     }
-    return moveToDirSafe(src, srcDir, destDir, isDir, nameUpdater: nameUpdater);
+    return moveToDirSafe(src, isDir, srcDir, destDir, nameUpdater: nameUpdater);
   }
 
   /// Moves a file or directory to a directory.
@@ -149,7 +149,7 @@ abstract class BFEnv {
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   @protected
   Future<UpdatedBFPath> moveToDirSafe(
-      BFPath src, BFPath srcDir, BFPath destDir, bool isDir,
+      BFPath src, bool isDir, BFPath srcDir, BFPath destDir,
       {BFNameUpdaterFunc? nameUpdater});
 
   /// Moves a file or directory to a directory and overwrites the existing item.
@@ -164,7 +164,7 @@ abstract class BFEnv {
 
     // Call `moveToDir` if the destination item does not exist and no new name assigned.
     if (destItemStat == null) {
-      final newPath = await moveToDirSafe(src, srcDir, destDir, isDir);
+      final newPath = await moveToDirSafe(src, isDir, srcDir, destDir);
       if (newPath.newName != srcName) {
         throw Exception(
             'Unexpected new name: ${newPath.newName}, expected: $srcName');
@@ -178,7 +178,7 @@ abstract class BFEnv {
         destItemStat.path, destDir, tmpDestName, destItemStat.isDir);
 
     // Move the source item to the destination.
-    final newPath = await moveToDirSafe(src, srcDir, destDir, isDir);
+    final newPath = await moveToDirSafe(src, isDir, srcDir, destDir);
     if (newPath.newName != srcName) {
       throw Exception(
           'Unexpected new name: ${newPath.newName}, expected: $srcName');

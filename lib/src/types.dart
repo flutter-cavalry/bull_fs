@@ -82,9 +82,9 @@ extension BFPathExtension on BFPath {
     return BFScopedPath(url);
   }
 
-  Uri scopedSafUri() {
+  String scopedSafUri() {
     if (this is BFScopedPath) {
-      return Uri.parse((this as BFScopedPath).id);
+      return (this as BFScopedPath).id;
     }
     throw Exception('$this is not a scoped path');
   }
