@@ -15,7 +15,7 @@ dependencies:
   flutter:
     sdk: flutter
   io: ^1.0.4
-  mime: ^2.0.0
+  mime: ">=1.0.4 <3.0.0"
   ns_file_coordinator_util:
     git:
       url: https://github.com/flutter-cavalry/ns_file_coordinator_util.git
