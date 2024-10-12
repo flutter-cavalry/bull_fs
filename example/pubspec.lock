@@ -116,10 +116,10 @@ packages:
     dependency: "direct main"
     description:
       name: fc_file_picker_util
-      sha256: e93739b1c94c800a47c71160923e76069e7ca1954641bf9e1fecda4dd36c7af9
+      sha256: "0af434918da37cf781d6027b5f6cf8c0211e6659171872a60153cf93d7fe2634"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.0"
+    version: "0.6.1"
   fc_quick_dialog:
     dependency: "direct main"
     description:
@@ -396,10 +396,10 @@ packages:
     dependency: transitive
     description:
       name: saf_util
-      sha256: a41b4f7617618e196d932307b9cdc3e067d564c8826045c9872e05be32064599
+      sha256: f18b7e23a62f3c89835b6c0357f69450af2fd581e24411fec8f430780d1cff2a
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0"
+    version: "0.3.0"
   sky_engine:
     dependency: transitive
     description: flutter
