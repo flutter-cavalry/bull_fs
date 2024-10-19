@@ -1,39 +1,35 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# bull_fs
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
+Unified file system APIs for local file system, Android SAF, and iOS / macOS `NSFileCoordinator`.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
+## Get started
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+### `BFEnv`
 
-## Features
+`BFEnv` is the core of this package. All supported environments are sub-classes of `BFEnv`, which defines the common APIs for file system operations. `bull_fs` has 3 implementations:
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- `BFLocalEnv`: for local file system, which is a wrapper around Dart file system APIs.
+- `BFSafEnv`: for Android Storage Access Framework (SAF).
+- `BFNsfcEnv`: for iOS / macOS `NSFileCoordinator`.
 
-## Getting started
+Below is a good summary of when to use which on different platforms:
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+| Platform        | Which `BFEnv` to use                                            |
+| --------------- | --------------------------------------------------------------- |
+| iOS             | You need `BFNsfcEnv` to access directories                      |
+| Android         | Use `BFSafEnv` if you need SAF.                                 |
+| macOS           | Use `BFNsfcEnv` for iCloud folders and `BFLocalEnv` for others. |
+| Windows / Linux | Use `BFLocalEnv`                                                |
 
-## Usage
+### `BFPath`
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+Due to the differences in file system APIs on different platforms. Paths are represented by `BFPath` instead of `String`. `BFPath` is a platform-independent representation of a file path. It can be the following types:
 
-```dart
-const like = 'sample';
-```
+- `BFLocalPath`: for local file system. Wrapping a path like `/path/to/file`.
+- `BFScopedPath`: a scoped path.
+  - When used with `BFSafEnv`, it's a URI like `content://com.android.externalstorage.documents/document/primary:Download/file.txt`.
+  - When used with `BFNsfcEnv`, it's a iOS / macOS file URL like `file:///path/to/file`.
 
-## Additional information
+### Get a `BFEnv` instance (from a user directory)
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+You can always create an instance of `BFEnv` directly, feed it with some `BFPath` and call its APIs. But in most cases, especially on mobile, you only have directory access permission when the user selects a directory. Remember the purpose of this package is to provide a unified API for file system operations, so it's recommended to create a `BFEnv` from a user directory.
