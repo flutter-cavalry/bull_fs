@@ -842,8 +842,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('rename (folder)', (h) async {
       final r = h.data as BFPath;
       await env.mkdirp(r, ['a', '一 二'].lock);
-      final newPath = await env.rename(await _getPath(env, r, 'a/一 二'),
-          await _getPath(env, r, 'a'), 'test 仨 2.txt', true);
+      final newPath = await env.rename(await _getPath(env, r, 'a/一 二'), true,
+          await _getPath(env, r, 'a'), 'test 仨 2.txt');
       final st = await env.stat(newPath, true);
       h.equals(st!.name, 'test 仨 2.txt');
 
@@ -858,7 +858,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         await env.mkdirp(r, ['一 二'].lock);
         await env.writeFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
 
-        await env.rename(await _getPath(env, r, '一 二'), r, 'test 仨.txt', true);
+        await env.rename(await _getPath(env, r, '一 二'), true, r, 'test 仨.txt');
         throw Error();
       } on Exception catch (_) {
         h.mapEquals(await env.directoryToMap(r),
@@ -872,9 +872,9 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await env.writeFileBytes(newDir, 'test 仨.txt', _defStringContentsBytes);
       final newPath = await env.rename(
           await _getPath(env, r, 'a/一 二/test 仨.txt'),
+          false,
           await _getPath(env, r, 'a/一 二'),
-          'test 仨 2.txt',
-          false);
+          'test 仨 2.txt');
       final st = await env.stat(newPath, false);
       h.equals(st!.name, 'test 仨 2.txt');
 
@@ -893,7 +893,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         await env.writeFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
 
         await env.rename(await _getPath(env, r, 'test 仨 2.txt/test 仨.txt'),
-            await _getPath(env, r, 'test 仨 2.txt'), 'test 仨 2.txt', false);
+            false, await _getPath(env, r, 'test 仨 2.txt'), 'test 仨 2.txt');
         throw Error();
       } on Exception catch (_) {
         h.mapEquals(await env.directoryToMap(r), {

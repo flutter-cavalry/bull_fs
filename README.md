@@ -87,13 +87,12 @@ APIs supported by `BFEnv`:
 - List directory content:
   - `list`: Lists sub-directories and files in a directory.
   - `listDirContentFiles`: a platform optimized version of `list` that only lists files recursively.
-- Get info
+- Get stats:
   - `stat`: Gets file or directory info.
   - `child`: Gets a child file or directory.
-- Delete / rename files or directories:
-  - `delete`: Deletes a file or directory.
-  - `rename`: Renames a file or directory.
-- File operations:
+  - `fileExists`: Checks if a file exists.
+  - `directoryExists`: Checks if a directory exists.
+- Read / write files:
   - With local files:
     - `copyToLocalFile`: Copies a [BFPath] to a local file.
     - `pasteLocalFile`: Copies a local file to a [BFPath].
@@ -106,5 +105,7 @@ APIs supported by `BFEnv`:
 - Create directories:
   - `mkdirp`: Creates directories recursively.
   - `createDir`: Creates a directory. Unlike `mkdirp`, it always creates a new directory.
-- Move files or directories:
+- Delete / rename / move files or directories:
+  - `delete`: Deletes a file or directory.
+  - `rename`: Renames a file or directory.
   - `moveToDir`: Moves a file or directory to another directory.

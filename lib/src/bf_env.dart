@@ -38,6 +38,8 @@ abstract class BFEnv {
   /// You can achieve the same thing with [listDir] with [recursive] and
   /// [relativePathInfo] set to `true`. But this function is much faster as it
   /// doesn't fetch file stats.
+  ///
+  /// [path] is the directory to list.
   Future<List<BFPathAndDirRelPath>> listDirContentFiles(BFPath path);
 
   /// Copies a [BFPath] to a local file.
@@ -100,19 +102,19 @@ abstract class BFEnv {
   /// Platform implementation of [BFEnv.rename].
   ///
   /// [path] is the item path.
-  /// [newName] is the new name.
   /// [isDir] is whether the source is a directory.
+  /// [newName] is the new name.
   @protected
   Future<BFPath> renameInternal(BFPath path, bool isDir, String newName);
 
   /// Renames a file or directory.
   ///
   /// [path] is the item path.
+  /// [isDir] is whether the source is a directory.
   /// [parentDir] is the parent directory.
   /// [newName] is the new name.
-  /// [isDir] is whether the source is a directory.
   Future<BFPath> rename(
-      BFPath path, BFPath parentDir, String newName, bool isDir) async {
+      BFPath path, bool isDir, BFPath parentDir, String newName) async {
     final newSt = await child(parentDir, [newName].lock);
     if (newSt != null) {
       throw Exception('Path already exists: ${newSt.path}');
@@ -124,9 +126,9 @@ abstract class BFEnv {
   /// Use [nameUpdater] to update the file name if it conflicts with existing files.
   ///
   /// [src] is the source path.
-  /// [srcName] is the source name.
-  /// [destDir] is the destination directory.
   /// [isDir] is whether the source is a directory.
+  /// [srcDir] is the parent directory of the source.
+  /// [destDir] is the destination directory.
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
   Future<UpdatedBFPath> moveToDir(
@@ -142,10 +144,10 @@ abstract class BFEnv {
   /// This is called by [moveToDir] when [overwrite] is `false`.
   /// Use [nameUpdater] to update the file name if it conflicts with existing files.
   ///
-  /// [root] is the root directory.
   /// [src] is the source path.
+  /// [isDir] whether the source is a directory.
+  /// [srcDir] is the parent directory of the source.
   /// [destDir] is the destination directory.
-  /// [isDir] is whether the source is a directory.
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   @protected
   Future<UpdatedBFPath> moveToDirSafe(
@@ -175,7 +177,7 @@ abstract class BFEnv {
     final tmpDestName = tmpFileName();
     // Rename the destination item to a temporary name if it exists.
     final tmpDestPath = await rename(
-        destItemStat.path, destDir, tmpDestName, destItemStat.isDir);
+        destItemStat.path, destItemStat.isDir, destDir, tmpDestName);
 
     // Move the source item to the destination.
     final newPath = await moveToDirSafe(src, isDir, srcDir, destDir);
@@ -210,6 +212,8 @@ abstract class BFEnv {
   /// Reads a file as a byte array.
   ///
   /// [path] is the file path.
+  /// [start] is the start position.
+  /// [count] is the number of bytes to read.
   Future<Uint8List> readFileBytes(BFPath path, {int? start, int? count});
 
   /// Writes a file as a byte array.
@@ -232,5 +236,6 @@ abstract class BFEnv {
   /// Gets the basename of a path.
   ///
   /// [path] is the path to get the basename.
+  /// [isDir] whether the path is a directory.
   Future<String?> findBasename(BFPath path, bool isDir);
 }
