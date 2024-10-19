@@ -26,7 +26,7 @@ class BFSafEnv extends BFEnv {
 
   Future<void> _listDirectChildren(
       BFPath path, List<BFEntity> collector, List<String>? dirRelPath) async {
-    final objs = await _utilPlugin.list(path.scopedSafUri());
+    final objs = await _utilPlugin.list(path.scopedID());
     collector.addAll(objs
         .map((e) => _fromSAFEntity(e, dirRelPath: dirRelPath?.lock))
         .whereType<BFEntity>());
@@ -68,13 +68,12 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<void> delete(BFPath path, bool isDir) async {
-    await _utilPlugin.delete(path.scopedSafUri(), isDir);
+    await _utilPlugin.delete(path.scopedID(), isDir);
   }
 
   @override
   Future<BFEntity?> stat(BFPath path, bool isDir) async {
-    final df =
-        await _utilPlugin.documentFileFromUri(path.scopedSafUri(), isDir);
+    final df = await _utilPlugin.documentFileFromUri(path.scopedID(), isDir);
     if (df == null) {
       return null;
     }
@@ -83,7 +82,7 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<BFEntity?> child(BFPath path, IList<String> names) async {
-    final df = await _utilPlugin.child(path.scopedSafUri(), names.unlock);
+    final df = await _utilPlugin.child(path.scopedID(), names.unlock);
     if (df == null) {
       return null;
     }
@@ -92,8 +91,8 @@ class BFSafEnv extends BFEnv {
 
   Future<UpdatedBFPath> _safMove(
       BFPath srcPath, bool isDir, BFPath srcDir, BFPath destDir) async {
-    final df = await _utilPlugin.moveTo(srcPath.scopedSafUri(), isDir,
-        srcDir.scopedSafUri(), destDir.scopedSafUri());
+    final df = await _utilPlugin.moveTo(
+        srcPath.scopedID(), isDir, srcDir.scopedID(), destDir.scopedID());
     return UpdatedBFPath(BFScopedPath(df.uri.toString()), df.name);
   }
 
@@ -144,22 +143,20 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<BFPath> mkdirp(BFPath dir, IList<String> components) async {
-    final uriInfo =
-        await _utilPlugin.mkdirp(dir.scopedSafUri(), components.unlock);
+    final uriInfo = await _utilPlugin.mkdirp(dir.scopedID(), components.unlock);
     return BFScopedPath(uriInfo.uri);
   }
 
   @override
   Future<BFPath> renameInternal(BFPath path, bool isDir, String newName) async {
-    final uriInfo =
-        await _utilPlugin.rename(path.scopedSafUri(), isDir, newName);
+    final uriInfo = await _utilPlugin.rename(path.scopedID(), isDir, newName);
     return BFScopedPath(uriInfo.uri.toString());
   }
 
   @override
   Future<Stream<List<int>>> readFileStream(BFPath path,
       {int? bufferSize, int? start}) async {
-    return _streamPlugin.readFileStream(path.scopedSafUri(),
+    return _streamPlugin.readFileStream(path.scopedID(),
         bufferSize: bufferSize, start: start);
   }
 
@@ -171,7 +168,7 @@ class BFSafEnv extends BFEnv {
         : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
             nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _streamPlugin.startWriteStream(
-        dir.scopedSafUri(), safeName, _getMime(safeName),
+        dir.scopedID(), safeName, _getMime(safeName),
         overwrite: overwrite);
     final newFileName = res.fileResult.fileName;
     if (newFileName == null || newFileName.isEmpty) {
@@ -190,7 +187,7 @@ class BFSafEnv extends BFEnv {
         : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
             nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _streamPlugin.writeFileSync(
-        dir.scopedSafUri(), safeName, _getMime(safeName), bytes,
+        dir.scopedID(), safeName, _getMime(safeName), bytes,
         overwrite: overwrite);
     final fileName = res.fileName;
     if (fileName == null || fileName.isEmpty) {
@@ -214,7 +211,7 @@ class BFSafEnv extends BFEnv {
         : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
             nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final res = await _streamPlugin.pasteLocalFile(
-        localSrc, dir.scopedSafUri(), safeName, _getMime(safeName),
+        localSrc, dir.scopedID(), safeName, _getMime(safeName),
         overwrite: overwrite);
     final fileName = res.fileName;
     if (fileName == null || fileName.isEmpty) {
@@ -225,12 +222,12 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<void> copyToLocalFile(BFPath src, String dest) async {
-    await _streamPlugin.copyToLocalFile(src.scopedSafUri(), dest);
+    await _streamPlugin.copyToLocalFile(src.scopedID(), dest);
   }
 
   @override
   Future<Uint8List> readFileSync(BFPath path, {int? start, int? count}) async {
-    return _streamPlugin.readFileSync(path.scopedSafUri(),
+    return _streamPlugin.readFileSync(path.scopedID(),
         start: start, count: count);
   }
 
@@ -248,8 +245,7 @@ class BFSafEnv extends BFEnv {
   Future<BFPath?> _itemExists(
       BFPath path, bool isDir, IList<String>? extendedPath) async {
     if (extendedPath == null || extendedPath.isEmpty) {
-      final res =
-          await _utilPlugin.documentFileFromUri(path.scopedSafUri(), isDir);
+      final res = await _utilPlugin.documentFileFromUri(path.scopedID(), isDir);
       if (res == null) {
         return null;
       }
