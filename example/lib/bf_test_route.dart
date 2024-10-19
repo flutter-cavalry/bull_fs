@@ -53,7 +53,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
                   const SizedBox(
                     height: 10,
                   ),
-                  Text(_env),
+                  Text('Env: $_env'),
                   const SizedBox(
                     height: 10,
                   ),
@@ -103,6 +103,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     setState(() {
       _output = 'Running...';
+      _durations = [];
     });
 
     BFPath? cleanUpPath;
@@ -114,7 +115,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
         await Directory(localDir).create(recursive: true);
         cleanUpPath = BFLocalPath(localDir);
         setState(() {
-          _env = 'Local';
+          _env = env.envType().toString();
         });
         await _runEnvTests(
           suite,
@@ -124,7 +125,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       } else {
         cleanUpPath = await env.mkdirp(root, ['native'].lock);
         setState(() {
-          _env = 'Native';
+          _env = env.envType().toString();
         });
         await _runEnvTests(suite, env, cleanUpPath);
       }
