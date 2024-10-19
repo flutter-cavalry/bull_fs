@@ -74,8 +74,11 @@ class BFUiUtil {
 
 /// The result of [BFUiUtil.initFromUserDirectory].
 class BFInitResult {
+  // The [BFPath] of the directory.
   final BFPath path;
+  // The [BFEnv] created.
   final BFEnv env;
+  // Whether the directory is in iCloud.
   final bool isIcloud;
 
   BFInitResult(this.path, this.env, this.isIcloud);

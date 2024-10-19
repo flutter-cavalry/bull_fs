@@ -51,7 +51,7 @@ extension BFEnvExtension on BFEnv {
       if (hideFileContents) {
         map[name] = null;
       } else {
-        final bytes = await readFileSync(ent.path);
+        final bytes = await readFileBytes(ent.path);
         map[name] = hex.encode(bytes);
       }
     }

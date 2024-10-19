@@ -159,7 +159,7 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> writeFileSync(
+  Future<UpdatedBFPath> writeFileBytes(
       BFPath dir, String unsafeName, Uint8List bytes,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
     final dirPath = dir.localPath();
@@ -193,7 +193,7 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<Uint8List> readFileSync(BFPath path, {int? start, int? count}) async {
+  Future<Uint8List> readFileBytes(BFPath path, {int? start, int? count}) async {
     if (start != null && count != null) {
       final randomAccessFile = await File(path.localPath()).open();
       try {

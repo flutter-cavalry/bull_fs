@@ -37,6 +37,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             padding: const EdgeInsets.all(10),
             child: SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   OutlinedButton(
                       onPressed: _startLocal,
@@ -74,7 +75,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _startNative() async {
-    FcFilePickerXResult? pickerResult =
+    final pickerResult =
         await FcFilePickerUtil.pickFolder(writePermission: true);
     if (pickerResult == null) {
       return;
@@ -82,13 +83,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
     if (!mounted) {
       return;
     }
-    final bfRes = await BFUiUtil.initFromUserDirectory(
+    final bfInit = await BFUiUtil.initFromUserDirectory(
         path: pickerResult.path, uri: pickerResult.uri);
-    final env = bfRes.env;
+    final env = bfInit.env;
     final appleResScope = AppleResScope(env);
     try {
-      await appleResScope.requestAccess(bfRes.path);
-      await _runTests(env, bfRes.path);
+      await appleResScope.requestAccess(bfInit.path);
+      await _runTests(env, bfInit.path);
     } finally {
       await appleResScope.release();
     }
@@ -162,17 +163,17 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {
     final subDir1 = await env.mkdirp(r, ['一 二'].lock);
-    await env.writeFileSync(subDir1, 'a.txt', Uint8List.fromList([1]));
-    await env.writeFileSync(subDir1, 'b.txt', Uint8List.fromList([2]));
+    await env.writeFileBytes(subDir1, 'a.txt', Uint8List.fromList([1]));
+    await env.writeFileBytes(subDir1, 'b.txt', Uint8List.fromList([2]));
 
     // b is empty.
     await env.mkdirp(r, ['b'].lock);
 
     final subDir11 = await env.mkdirp(subDir1, ['deep'].lock);
-    await env.writeFileSync(subDir11, 'c.txt', Uint8List.fromList([3]));
+    await env.writeFileBytes(subDir11, 'c.txt', Uint8List.fromList([3]));
 
-    await env.writeFileSync(r, 'root.txt', Uint8List.fromList([4]));
-    await env.writeFileSync(r, 'root2.txt', Uint8List.fromList([5]));
+    await env.writeFileBytes(r, 'root.txt', Uint8List.fromList([4]));
+    await env.writeFileBytes(r, 'root2.txt', Uint8List.fromList([5]));
   }
 
   String _formatEntityList(List<BFEntity> list) {
@@ -228,7 +229,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('ensureDir (failed)', (h) async {
       final r = h.data as BFPath;
       try {
-        await env.writeFileSync(r, 'space 一 二 三', Uint8List.fromList([1]));
+        await env.writeFileBytes(r, 'space 一 二 三', Uint8List.fromList([1]));
         await env.mkdirp(r, ['space 一 二 三'].lock);
         throw Error();
       } on Exception catch (_) {
@@ -268,7 +269,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       try {
         await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
-        await env.writeFileSync(
+        await env.writeFileBytes(
             (await env.directoryExists(r, ['space 一 二 三', '22'].lock))!,
             'file',
             Uint8List.fromList([1]));
@@ -309,7 +310,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('exists and findBasename (file)', (h) async {
       final r = h.data as BFPath;
       final dir = await env.mkdirp(r, ['一', '22'].lock);
-      await env.writeFileSync(dir, '3 3', Uint8List.fromList([1]));
+      await env.writeFileBytes(dir, '3 3', Uint8List.fromList([1]));
 
       // Test return value.
       final path =
@@ -347,7 +348,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('createDir (with conflict)', (h) async {
       final r = h.data as BFPath;
-      await env.writeFileSync(r, 'space 一 二 三', Uint8List.fromList([1]));
+      await env.writeFileBytes(r, 'space 一 二 三', Uint8List.fromList([1]));
 
       final newDir = await env.createDir(r, 'space 一 二 三');
 
@@ -546,7 +547,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await File(tmpFile).writeAsString(_defStringContents);
       final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
 
-      final bytes = await env.readFileSync(pasteRes.path);
+      final bytes = await env.readFileBytes(pasteRes.path);
       h.equals(utf8.decode(bytes), _defStringContents);
     });
 
@@ -556,7 +557,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await File(tmpFile).writeAsString(_defStringContents);
       final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
 
-      final bytes = await env.readFileSync(pasteRes.path, start: 3, count: 2);
+      final bytes = await env.readFileBytes(pasteRes.path, start: 3, count: 2);
       h.equals(utf8.decode(bytes), 'de');
     });
 
@@ -664,18 +665,18 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await File(tmpFile).writeAsString(_defStringContents);
       final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
 
-      final bytes = await env.readFileSync(pasteRes.path);
+      final bytes = await env.readFileBytes(pasteRes.path);
       h.equals(utf8.decode(bytes), _defStringContents);
     });
 
-    void testWriteFileSync(String fileName, bool multiple, bool overwrite,
+    void testwriteFileBytes(String fileName, bool multiple, bool overwrite,
         Map<String, dynamic> fs) {
       ns.add(
           'writeFileSync  $fileName multiple: $multiple, overwrite: $overwrite',
           (h) async {
         final r = h.data as BFPath;
         // Add first test.txt
-        var pasteRes = await env.writeFileSync(
+        var pasteRes = await env.writeFileBytes(
             r, fileName, utf8.encode('$_defStringContents 1'),
             overwrite: overwrite);
         var st = await env.stat(pasteRes.path, false);
@@ -685,7 +686,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
         if (multiple) {
           // Add second test.txt
-          pasteRes = await env.writeFileSync(
+          pasteRes = await env.writeFileBytes(
               r, fileName, utf8.encode('$_defStringContents 2'),
               overwrite: overwrite);
           st = await env.stat(pasteRes.path, false);
@@ -695,7 +696,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
           // Add third test.txt
           // Write a smaller string to test that the file is truncated.
-          pasteRes = await env.writeFileSync(r, fileName, utf8.encode('ABCD'),
+          pasteRes = await env.writeFileBytes(r, fileName, utf8.encode('ABCD'),
               overwrite: overwrite);
           st = await env.stat(pasteRes.path, false);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 3));
@@ -708,53 +709,53 @@ class _BFTestRouteState extends State<BFTestRoute> {
     }
 
     // Known extension.
-    testWriteFileSync('test 三.txt', false, false,
+    testwriteFileBytes('test 三.txt', false, false,
         {"test 三.txt": "61626364656620f09f8d89f09f8c8f2031"});
-    testWriteFileSync('test 三.txt', true, false, {
+    testwriteFileBytes('test 三.txt', true, false, {
       _dupSuffix('test 三.txt', 2): "61626364656620f09f8d89f09f8c8f2032",
       _dupSuffix('test 三.txt', 3): "41424344",
       "test 三.txt": "61626364656620f09f8d89f09f8c8f2031"
     });
-    testWriteFileSync('test 三.txt', true, true, {"test 三.txt": "41424344"});
+    testwriteFileBytes('test 三.txt', true, true, {"test 三.txt": "41424344"});
     // Unknown extension.
-    testWriteFileSync('test 三.elephant', false, false,
+    testwriteFileBytes('test 三.elephant', false, false,
         {"test 三.elephant": "61626364656620f09f8d89f09f8c8f2031"});
-    testWriteFileSync('test 三.elephant', true, false, {
+    testwriteFileBytes('test 三.elephant', true, false, {
       _dupSuffix('test 三.elephant', 2): "61626364656620f09f8d89f09f8c8f2032",
       "test 三.elephant": "61626364656620f09f8d89f09f8c8f2031",
       _dupSuffix('test 三.elephant', 3): "41424344"
     });
-    testWriteFileSync(
+    testwriteFileBytes(
         'test 三.elephant', true, true, {"test 三.elephant": "41424344"});
     // Multiple extensions.
-    testWriteFileSync('test 三.elephant.xyz', false, false,
+    testwriteFileBytes('test 三.elephant.xyz', false, false,
         {"test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2031"});
-    testWriteFileSync('test 三.elephant.xyz', true, false, {
+    testwriteFileBytes('test 三.elephant.xyz', true, false, {
       _dupSuffix('test 三.elephant.xyz', 2):
           "61626364656620f09f8d89f09f8c8f2032",
       "test 三.elephant.xyz": "61626364656620f09f8d89f09f8c8f2031",
       _dupSuffix('test 三.elephant.xyz', 3): "41424344"
     });
-    testWriteFileSync(
+    testwriteFileBytes(
         'test 三.elephant.xyz', true, true, {"test 三.elephant.xyz": "41424344"});
     // No extension.
-    testWriteFileSync('test 三', false, false,
+    testwriteFileBytes('test 三', false, false,
         {"test 三": "61626364656620f09f8d89f09f8c8f2031"});
-    testWriteFileSync('test 三', true, false, {
+    testwriteFileBytes('test 三', true, false, {
       "test 三": "61626364656620f09f8d89f09f8c8f2031",
       _dupSuffix('test 三', 2): "61626364656620f09f8d89f09f8c8f2032",
       _dupSuffix('test 三', 3): "41424344"
     });
-    testWriteFileSync('test 三', true, true, {"test 三": "41424344"});
+    testwriteFileBytes('test 三', true, true, {"test 三": "41424344"});
 
     ns.add('writeFileSync (name updater)', (h) async {
       final r = h.data as BFPath;
 
       // Add first.
-      await env.writeFileSync(r, '一 二.txt.png', _defStringContentsBytes,
+      await env.writeFileBytes(r, '一 二.txt.png', _defStringContentsBytes,
           nameUpdater: _testNameUpdater);
       // Add second which triggers the name updater.
-      var writeRes = await env.writeFileSync(
+      var writeRes = await env.writeFileBytes(
           r, '一 二.txt.png', _defStringContentsBytes,
           nameUpdater: _testNameUpdater);
       var st = await env.stat(writeRes.path, false);
@@ -783,7 +784,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('stat and child (file)', (h) async {
       final r = h.data as BFPath;
       final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
-      final fileUri = (await env.writeFileSync(
+      final fileUri = (await env.writeFileBytes(
               newDir, 'test 仨.txt', _defStringContentsBytes))
           .path;
       final st = await env.stat(fileUri, false);
@@ -855,7 +856,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       try {
         await env.mkdirp(r, ['一 二'].lock);
-        await env.writeFileSync(r, 'test 仨.txt', _defStringContentsBytes);
+        await env.writeFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
 
         await env.rename(await _getPath(env, r, '一 二'), r, 'test 仨.txt', true);
         throw Error();
@@ -868,7 +869,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('rename (file)', (h) async {
       final r = h.data as BFPath;
       final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
-      await env.writeFileSync(newDir, 'test 仨.txt', _defStringContentsBytes);
+      await env.writeFileBytes(newDir, 'test 仨.txt', _defStringContentsBytes);
       final newPath = await env.rename(
           await _getPath(env, r, 'a/一 二/test 仨.txt'),
           await _getPath(env, r, 'a/一 二'),
@@ -889,7 +890,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       try {
         await env.mkdirp(r, ['test 仨 2.txt'].lock);
 
-        await env.writeFileSync(r, 'test 仨.txt', _defStringContentsBytes);
+        await env.writeFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
 
         await env.rename(await _getPath(env, r, 'test 仨 2.txt/test 仨.txt'),
             await _getPath(env, r, 'test 仨 2.txt'), 'test 仨 2.txt', false);
@@ -1336,7 +1337,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _checkManyChunks(BFEnv e, BFPath path, String prefix) async {
-    final bytes = await e.readFileSync(path);
+    final bytes = await e.readFileBytes(path);
     final str = utf8.decode(bytes);
     final sb = StringBuffer();
     for (var i = 0; i < 50; i++) {
@@ -1364,7 +1365,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   Future<BFPath> _createFile(
       BFEnv e, BFPath dir, String fileName, List<int> content) async {
     final res =
-        await e.writeFileSync(dir, fileName, Uint8List.fromList(content));
+        await e.writeFileBytes(dir, fileName, Uint8List.fromList(content));
     return res.path;
   }
 

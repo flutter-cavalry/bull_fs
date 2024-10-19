@@ -34,8 +34,10 @@ abstract class BFEnv {
   Future<List<BFEntity>> listDir(BFPath path,
       {bool? recursive, bool? relativePathInfo});
 
-  /// Unlike [listDir] with [recursive] and [relativePathInfo] set to `true`,
-  /// this function doesn't fetch item stats. So it's faster.
+  /// Lists only sub-files and their relative paths in a directory recursively.
+  /// You can achieve the same thing with [listDir] with [recursive] and
+  /// [relativePathInfo] set to `true`. But this function is much faster as it
+  /// doesn't fetch file stats.
   Future<List<BFPathAndDirRelPath>> listDirContentFiles(BFPath path);
 
   /// Copies a [BFPath] to a local file.
@@ -208,7 +210,7 @@ abstract class BFEnv {
   /// Reads a file as a byte array.
   ///
   /// [path] is the file path.
-  Future<Uint8List> readFileSync(BFPath path, {int? start, int? count});
+  Future<Uint8List> readFileBytes(BFPath path, {int? start, int? count});
 
   /// Writes a file as a byte array.
   ///
@@ -217,7 +219,7 @@ abstract class BFEnv {
   /// with existing files and may change.
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
-  Future<UpdatedBFPath> writeFileSync(
+  Future<UpdatedBFPath> writeFileBytes(
       BFPath dir, String unsafeName, Uint8List bytes,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite});
 

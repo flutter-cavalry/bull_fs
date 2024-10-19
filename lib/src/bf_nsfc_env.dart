@@ -147,7 +147,7 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> writeFileSync(
+  Future<UpdatedBFPath> writeFileBytes(
       BFPath dir, String unsafeName, Uint8List bytes,
       {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
     final safeName = overwrite == true
@@ -182,7 +182,7 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<Uint8List> readFileSync(BFPath path, {int? start, int? count}) async {
+  Future<Uint8List> readFileBytes(BFPath path, {int? start, int? count}) async {
     return _plugin.readFileSync(path.scopedID(), start: start, count: count);
   }
 
