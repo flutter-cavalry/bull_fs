@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:example/ntr/ntr_suite.dart';
-import 'package:example/util/fc_file_picker_util_bf_ext.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:fc_file_picker_util/fc_file_picker_util.dart';
 import 'package:bull_fs/bull_fs.dart';
@@ -75,15 +74,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _startNative() async {
-    FcFilePickerXResult? rootRaw =
+    FcFilePickerXResult? pickerResult =
         await FcFilePickerUtil.pickFolder(writePermission: true);
-    if (rootRaw == null) {
+    if (pickerResult == null) {
       return;
     }
     if (!mounted) {
       return;
     }
-    final bfRes = await rootRaw.resolveBFPath(macosIcloud: true);
+    final bfRes = await BFUiUtil.initFromUserDirectory(
+        path: pickerResult.path, uri: pickerResult.uri);
     final env = bfRes.env;
     final appleResScope = AppleResScope(env);
     try {
