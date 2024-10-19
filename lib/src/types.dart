@@ -12,9 +12,12 @@ class BFTooManyDuplicateFilenamesExp implements Exception {}
 
 class BFNoPermissionExp implements Exception {}
 
+/// Abstract class for all file system paths.
 abstract class BFPath {}
 
+/// Local file system path.
 class BFLocalPath extends BFPath {
+  /// Local file system path string.
   final String path;
 
   BFLocalPath(this.path);
@@ -33,8 +36,13 @@ class BFLocalPath extends BFPath {
   int get hashCode => path.hashCode;
 }
 
+/// Scoped file system path. Used in [BFNsfcEnv] and [BFSfsEnv].
 class BFScopedPath extends BFPath {
+  /// Scoped ID.
+  /// In [BFNsfcEnv], it is the Apple file system URL.
+  /// In [BFSfsEnv], it is the Android file system URI.
   final String id;
+
   BFScopedPath(this.id);
 
   @override
@@ -54,6 +62,7 @@ class BFScopedPath extends BFPath {
 const _pathHeadLocal = 'L';
 const _pathHeadScoped = 'S';
 
+/// Decodes a string to a [BFPath].
 BFPath decodeStringToBFPath(String s) {
   if (s.startsWith(_pathHeadLocal)) {
     return BFLocalPath(s.substring(1));
@@ -62,6 +71,7 @@ BFPath decodeStringToBFPath(String s) {
 }
 
 extension BFPathExtension on BFPath {
+  /// Returns the local path if it is a [BFLocalPath]. Otherwise, throws an exception.
   String localPath() {
     if (this is BFLocalPath) {
       return (this as BFLocalPath).path;
@@ -69,6 +79,7 @@ extension BFPathExtension on BFPath {
     throw Exception('$this is not a local path');
   }
 
+  /// Returns the scoped ID if it is a [BFScopedPath]. Otherwise, throws an exception.
   String scopedID() {
     if (this is BFScopedPath) {
       return (this as BFScopedPath).id;
@@ -76,24 +87,20 @@ extension BFPathExtension on BFPath {
     throw Exception('$this is not a scoped path');
   }
 
+  /// Only for Apple platforms. Joins a relative path to the scoped path.
   Future<BFPath> iosJoinRelPath(IList<String> relPath, bool isDir) async {
     final url =
         await _darwinUrlPlugin.append(scopedID(), relPath.unlock, isDir: isDir);
     return BFScopedPath(url);
   }
 
-  String scopedSafUri() {
-    if (this is BFScopedPath) {
-      return (this as BFScopedPath).id;
-    }
-    throw Exception('$this is not a scoped path');
-  }
-
+  /// Only for local paths. Joins a relative path to the local path.
   BFPath localJoinRelPath(String relPath) {
     final path = p.join(localPath(), relPath);
     return BFLocalPath(path);
   }
 
+  /// Encodes the path to a string.
   String encodeToString() {
     if (this is BFLocalPath) {
       return '$_pathHeadLocal${toString()}';
@@ -102,8 +109,12 @@ extension BFPathExtension on BFPath {
   }
 }
 
+// Stores a path and its relative path in a directory.
 class BFPathAndDirRelPath {
+  /// The path.
   final BFPath path;
+
+  /// The relative path in a directory.
   final IList<String> dirRelPath;
 
   BFPathAndDirRelPath(this.path, this.dirRelPath);
@@ -118,15 +129,28 @@ class BFPathAndDirRelPath {
   }
 }
 
+/// Represents a file or directory entity.
 class BFEntity {
+  /// The path of the entity.
   final BFPath path;
+
+  /// The name of the entity.
   final String name;
+
+  /// Whether the entity is a directory.
   final bool isDir;
+
+  /// The length of the entity. If it is a directory, the length is -1.
   late final int length;
+
+  /// The last modified time of the entity.
   final DateTime? lastMod;
+
+  /// Whether the entity is not available locally. (For example, not downloaded from iCloud).
   final bool notDownloaded;
 
-  // Automatically set when recursively listing a directory.
+  /// The relative path in a directory.
+  /// Automatically set when recursively listing a directory.
   IList<String> dirRelPath = <String>[].lock;
 
   BFEntity(this.path, this.name, this.isDir, int length, this.lastMod,
@@ -195,14 +219,25 @@ class BFEntity {
   }
 }
 
+/// Abstract class for file system out streams.
 abstract class BFOutStream {
+  /// Returns the [BFPath] of the stream.
   BFPath getPath();
+
+  /// Returns the file name of the stream.
   String getFileName();
+
+  /// Writes data to the stream.
   Future<void> write(Uint8List data);
+
+  /// Closes the stream.
   Future<void> close();
+
+  /// Flushes the stream.
   Future<void> flush();
 }
 
+/// Local file system out stream.
 class BFLocalRafOutStream extends BFOutStream {
   final RandomAccessFile _raf;
   final BFPath _path;
@@ -240,6 +275,7 @@ class BFLocalRafOutStream extends BFOutStream {
   }
 }
 
+/// In-memory out stream.
 class BFMemoryOutStream extends BFOutStream {
   // ignore: deprecated_export_use
   final _bb = BytesBuilder(copy: false);
@@ -270,8 +306,12 @@ class BFMemoryOutStream extends BFOutStream {
   }
 }
 
+/// Represents a path that has been updated.
 class UpdatedBFPath {
+  /// The updated path.
   final BFPath path;
+
+  /// The file name of the updated path.
   final String newName;
 
   UpdatedBFPath(this.path, this.newName);

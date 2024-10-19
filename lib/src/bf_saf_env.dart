@@ -9,6 +9,7 @@ import 'package:saf_stream/saf_stream.dart';
 import 'package:path/path.dart' as p;
 import 'package:tmp_path/tmp_path.dart';
 
+/// A [BFEnv] implementation for Android Storage Access Framework (SAF).
 class BFSafEnv extends BFEnv {
   final _streamPlugin = SafStream();
   final _utilPlugin = SafUtil();

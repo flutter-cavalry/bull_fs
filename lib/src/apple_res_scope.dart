@@ -3,7 +3,8 @@ import '../bull_fs.dart';
 
 final _plugin = AccessingSecurityScopedResource();
 
-// Makes sure Apple resources are correctly released.
+/// This class is used to manage the access to the security scoped resource
+/// on Apple platforms.
 class AppleResScope {
   BFPath? _path;
   bool _granted = false;
@@ -13,6 +14,7 @@ class AppleResScope {
 
   AppleResScope(this.env);
 
+  /// Request access to the security scoped resource.
   Future<void> requestAccess(BFPath path) async {
     if (env is! BFNsfcEnv) {
       return;
@@ -33,6 +35,7 @@ class AppleResScope {
     }
   }
 
+  /// Release the access to the security scoped resource.
   Future<void> release() async {
     if (env is! BFNsfcEnv) {
       return;

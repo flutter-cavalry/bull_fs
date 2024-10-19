@@ -16,6 +16,7 @@ extension BFEnvExtension on BFEnv {
     await delete(finalPath, isDir);
   }
 
+  /// Lists the directory and returns a map of the directory.
   Future<Map<String, dynamic>> directoryToMap(BFPath dir,
       {bool Function(String name, BFEntity entity)? filter,
       bool? hideFileContents}) async {

@@ -10,7 +10,8 @@ import 'package:ns_file_coordinator_util/ns_file_coordinator_util.dart';
 
 final _darwinUrlPlugin = DarwinUrl();
 
-/// [BFEnv] for NSFileCoordinator.
+/// A [BFEnv] implementation for Apple system [NSFileCoordinator], which is used
+/// for access iOS directories or iCloud directories.
 class BFNsfcEnv extends BFEnv {
   final _plugin = NsFileCoordinatorUtil();
 

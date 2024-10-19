@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import 'types.dart';
 
+/// Utility class for UI.
 class BFUiUtil {
+  /// Translates the error thrown in [bull_fs] to a human-readable message.
   static String? translateError(
     BuildContext context,
     Object err, {
