@@ -186,7 +186,7 @@ class BFSafEnv extends BFEnv {
         ? unsafeName
         : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
             nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-    final res = await _streamPlugin.writeFileSync(
+    final res = await _streamPlugin.writeFileBytes(
         dir.scopedID(), safeName, _getMime(safeName), bytes,
         overwrite: overwrite);
     final fileName = res.fileName;
@@ -227,7 +227,7 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<Uint8List> readFileBytes(BFPath path, {int? start, int? count}) async {
-    return _streamPlugin.readFileSync(path.scopedID(),
+    return _streamPlugin.readFileBytes(path.scopedID(),
         start: start, count: count);
   }
 
