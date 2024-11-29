@@ -1,23 +1,23 @@
 # bull_fs
 
-Unified file system APIs for user-selected directories on different platform. Supports local file system, Android SAF, and iOS / macOS `NSFileCoordinator`.
+Unified file system APIs for user-selected directories. Supports local file system, Android SAF, and iOS / macOS `NSFileCoordinator` (mostly for iCloud access).
 
 ## Get started
 
 ### `BFEnv`
 
-`BFEnv` is the core of this package. All supported environments are sub-classes of `BFEnv`, which defines the common APIs for file system operations. `bull_fs` has 3 implementations:
+`BFEnv` is the core of this package. All supported environments are sub-classes of `BFEnv`. This class defines the common APIs for file system operations. `bull_fs` has 3 implementations:
 
 - `BFLocalEnv`: for local file system, which is a wrapper around Dart file system APIs.
 - `BFSafEnv`: for Android Storage Access Framework (SAF).
-- `BFNsfcEnv`: for iOS / macOS `NSFileCoordinator`.
+- `BFNsfcEnv`: for iOS / macOS `NSFileCoordinator` (mostly for iCloud access).
 
-Below is a good summary of when to use which on different platforms:
+Below is a good summary of which to use on different platforms:
 
 | Platform        | Which `BFEnv` to use                                            |
 | --------------- | --------------------------------------------------------------- |
-| iOS             | You need `BFNsfcEnv` to access directories                      |
-| Android         | Use `BFSafEnv` if you need SAF.                                 |
+| iOS             | Always recommended to use `BFNsfcEnv` to access directories     |
+| Android         | Use `BFSafEnv` if you need SAF access.                          |
 | macOS           | Use `BFNsfcEnv` for iCloud folders and `BFLocalEnv` for others. |
 | Windows / Linux | Use `BFLocalEnv`                                                |
 
