@@ -1,8 +1,8 @@
 name: bull_fs
 publish_to: none
-description: "A new Flutter package project."
+description: "Unified file system APIs for user-selected directories."
 version: 0.0.1
-homepage: https://github.com/mgenware/bull_fs
+homepage: https://github.com/flutter-cavalry/bull_fs
 
 environment:
   sdk: ">=3.2.3 <4.0.0"
