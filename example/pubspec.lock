@@ -116,10 +116,10 @@ packages:
     dependency: "direct main"
     description:
       name: fc_file_picker_util
-      sha256: "601501521fa3eea14adde7000836f768abbcd34a9bec7aa22ac209397b480b0c"
+      sha256: f0b80ed073aea79d467fd382f2afd6e6cd96a7891d7b282ff1eaf3fb572a0fa0
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.0"
+    version: "0.8.0"
   fc_quick_dialog:
     dependency: "direct main"
     description:
@@ -251,10 +251,10 @@ packages:
     dependency: transitive
     description:
       name: ios_document_picker
-      sha256: d47151d0f4638b49b2323c4d1c90b19baed67cb8815bc7333581ef451aef0da7
+      sha256: fbf1936ccebcd5a8d563c9335ca80006f2d9ce619a68b7ec6a06e799782ac2ee
       url: "https://pub.dev"
     source: hosted
-    version: "0.2.0"
+    version: "0.3.0"
   leak_tracker:
     dependency: transitive
     description:
@@ -291,10 +291,10 @@ packages:
     dependency: transitive
     description:
       name: macos_file_picker
-      sha256: fa310bbac0ec6ac6918777488e7621b3aec674a268ff593b7354d7bd5d9304e8
+      sha256: d5a2e4791ec356134fb57e7719e3c0e3f8d81ffc7bdc948c14dbd2792280fa86
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.1"
+    version: "0.4.0"
   matcher:
     dependency: transitive
     description:
@@ -371,10 +371,10 @@ packages:
     dependency: transitive
     description:
       name: saf_util
-      sha256: "061fe3c81adc12b4228efaf73b3394ab5b614bbfd16307d1cc1150f1931fc1d1"
+      sha256: d0a3c7a023a02bc6d10f5eff02ec714b6834393ec39a9c1f7e3662ac30e5f909
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.6.1"
   sky_engine:
     dependency: transitive
     description: flutter
