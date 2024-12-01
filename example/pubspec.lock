@@ -104,6 +104,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.1"
+  fast_file_picker:
+    dependency: "direct main"
+    description:
+      name: fast_file_picker
+      sha256: e7defc9f6d4f965b3ffd5aeae9dedbe6ecab45cc85b43c6871f7c09126665fde
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1"
   fast_immutable_collections:
     dependency: "direct main"
     description:
@@ -112,14 +120,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "11.0.0"
-  fc_file_picker_util:
-    dependency: "direct main"
-    description:
-      name: fc_file_picker_util
-      sha256: f0b80ed073aea79d467fd382f2afd6e6cd96a7891d7b282ff1eaf3fb572a0fa0
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.8.0"
   fc_quick_dialog:
     dependency: "direct main"
     description:

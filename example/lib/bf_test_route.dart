@@ -3,8 +3,8 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:example/ntr/ntr_suite.dart';
+import 'package:fast_file_picker/fast_file_picker.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:fc_file_picker_util/fc_file_picker_util.dart';
 import 'package:bull_fs/bull_fs.dart';
 import 'package:fc_quick_dialog/fc_quick_dialog.dart';
 import 'package:flutter/material.dart';
@@ -75,8 +75,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 
   Future<void> _startNative() async {
-    final pickerResult =
-        await FcFilePickerUtil.pickFolder(writePermission: true);
+    final pickerResult = await FastFilePicker.pickFolder(writePermission: true);
     if (pickerResult == null) {
       return;
     }
