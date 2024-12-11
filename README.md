@@ -3,19 +3,19 @@
 
 # bull_fs
 
-Unified file system APIs for local file system (Dart IO), Android SAF, and iOS / macOS `NSFileCoordinator` (mostly for iCloud access).
+Unified file system APIs for Dart IO, Android SAF, and iOS / macOS `NSFileCoordinator` (mostly for iCloud access).
 
 ## APIs
 
 ### `BFEnv`
 
-`BFEnv` is the core of this package. All supported environments are sub-classes of `BFEnv`. This class defines the common APIs for file system operations. `bull_fs` has 3 implementations:
+`BFEnv` is the core of this package. Each support platform has its own implementation of `BFEnv`. This class defines a set of supported file-system APIs. There are 3 implementations:
 
-- `BFLocalEnv`: for local file system, which is a wrapper around Dart IO.
+- `BFLocalEnv`: for local file system, a wrapper around Dart IO.
 - `BFSafEnv`: for Android Storage Access Framework (SAF).
 - `BFNsfcEnv`: for iOS / macOS `NSFileCoordinator` (mostly for iCloud access).
 
-Below is a good summary of which to use on different platforms:
+Below is a good summary of what to use on different platforms:
 
 | Platform        | Which `BFEnv` to use                                                 |
 | --------------- | -------------------------------------------------------------------- |
@@ -26,16 +26,14 @@ Below is a good summary of which to use on different platforms:
 
 ### `BFPath`
 
-Due to the differences in file system APIs on different platforms. Paths are represented by `BFPath` instead of `String`. `BFPath` is a platform-independent representation of a file path. It can be the following types:
+Due to platform differences. Platform paths are represented by `BFPath` instead of `String`. It can be the following types:
 
-- `BFLocalPath`: for local file system. Wrapping a path like `/path/to/file`.
+- `BFLocalPath`: for Dart IO. e.g `/path/to/file`.
 - `BFScopedPath`: a scoped path.
-  - When used with `BFSafEnv`, it's a URI like `content://com.android.externalstorage.documents/document/primary:Download/file.txt`.
-  - When used with `BFNsfcEnv`, it's a iOS / macOS file URL like `file:///path/to/file`.
+  - When used with `BFSafEnv`, it's a URI. e.g `content://com.android.externalstorage.documents/document/primary:Download/file.txt`.
+  - When used with `BFNsfcEnv`, it's an iOS / macOS file URL. e.g. `file:///path/to/file`.
 
-### File system APIs
-
-APIs supported by `BFEnv`:
+### Supported APIs
 
 - List directory content:
   - `list`: Lists sub-directories and files in a directory.
@@ -65,7 +63,7 @@ APIs supported by `BFEnv`:
 
 ## Examples
 
-Clone and run the repo. Click `example` button. You can see how a single API works on different platforms.
+Clone this repo and run example project. Click `example` button. You can see how a single set of APIs work on different platforms.
 
 | iOS                          | Android                              | macOS                            |
 | ---------------------------- | ------------------------------------ | -------------------------------- |
