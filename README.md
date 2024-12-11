@@ -5,7 +5,7 @@
 
 Unified file system APIs for local file system (Dart IO), Android SAF, and iOS / macOS `NSFileCoordinator` (mostly for iCloud access).
 
-## Get started
+## APIs
 
 ### `BFEnv`
 
@@ -62,3 +62,15 @@ APIs supported by `BFEnv`:
   - `delete`: Deletes a file or directory.
   - `rename`: Renames a file or directory.
   - `moveToDir`: Moves a file or directory to another directory.
+
+## Examples
+
+Clone and run the repo. Click `example` button. You can see how a single API works on different platforms.
+
+| iOS                          | Android                              | macOS                            |
+| ---------------------------- | ------------------------------------ | -------------------------------- |
+| ![ios](screenshots/ios.webp) | ![android](screenshots/android.webp) | ![macos](screenshots/macos.webp) |
+
+## Tests
+
+`bull_fs` tests can run on device. To run tests, run example project and click `tests` button.
