@@ -82,7 +82,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     if (!mounted) {
       return;
     }
-    final bfInit = await BFUiUtil.initFromUserDirectory(
+    final bfInit = await BFEnvUtil.envFromDirectory(
         path: pickerResult.path, uri: pickerResult.uri);
     final env = bfInit.env;
     final appleResScope = AppleResScope(env);
