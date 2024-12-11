@@ -1,3 +1,6 @@
+> [!WARNING]  
+> Experimental. Expect breaking changes and don't use it in production.
+
 # bull_fs
 
 Unified file system APIs for local file system (Dart IO), Android SAF, and iOS / macOS `NSFileCoordinator` (mostly for iCloud access).
