@@ -13,12 +13,17 @@ class BFTooManyDuplicateFilenamesExp implements Exception {}
 class BFNoPermissionExp implements Exception {}
 
 /// Abstract class for all file system paths.
-abstract class BFPath {}
+abstract class BFPath {
+  bool get isUri;
+}
 
 /// Local file system path.
 class BFLocalPath extends BFPath {
   /// Local file system path string.
   final String path;
+
+  @override
+  bool get isUri => false;
 
   BFLocalPath(this.path);
 
@@ -42,6 +47,9 @@ class BFScopedPath extends BFPath {
   /// In [BFNsfcEnv], it is the Apple file system URL.
   /// In [BFSfsEnv], it is the Android file system URI.
   final String id;
+
+  @override
+  bool get isUri => true;
 
   BFScopedPath(this.id);
 
