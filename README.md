@@ -17,14 +17,12 @@ Unified file system APIs for Dart IO, Android SAF, and iOS / macOS `NSFileCoordi
 
 Below is a good summary of what to use on different platforms:
 
-| Platform        | Which `BFEnv` to use                                                              |
-| --------------- | --------------------------------------------------------------------------------- |
-| iOS             | Use `BFNsfcEnv` for directory access and `BFLocalEnv` for file picker results ⚠️. |
-| Android         | Use `BFSafEnv` if you need SAF access.                                            |
-| macOS           | Use `BFNsfcEnv` for iCloud directory access and `BFLocalEnv` for others.          |
-| Windows / Linux | Use `BFLocalEnv`                                                                  |
-
-- ⚠️: On iOS, file picker results can be used as local file paths. But they are sandboxed, you have to call [accessing_security_scoped_resource](https://pub.dev/packages/accessing_security_scoped_resource) before accessing them.
+| Platform        | Which `BFEnv` to use                                                 |
+| --------------- | -------------------------------------------------------------------- |
+| iOS             | Use `BFNsfcEnv` if you need access to user-selected folders or files |
+| Android         | Use `BFSafEnv` if you need SAF access.                               |
+| macOS           | Use `BFNsfcEnv` for iCloud folders and `BFLocalEnv` for others.      |
+| Windows / Linux | Use `BFLocalEnv`                                                     |
 
 ### `BFPath`
 
