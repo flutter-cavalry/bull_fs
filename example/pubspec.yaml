@@ -22,10 +22,10 @@ dependencies:
   fast_immutable_collections: ^11.0.0
   tmp_path: ^1.2.2
   path: ^1.8.3
-  fast_file_picker: ^0.0.1
+  fast_file_picker: ^0.3.0
   fc_quick_dialog: ^0.1.0
   collection: ^1.18.0
-  darwin_url: ^0.5.0
+  darwin_url: ^0.6.0
 
 dev_dependencies:
   flutter_test:

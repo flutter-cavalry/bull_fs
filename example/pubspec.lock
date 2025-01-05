@@ -5,10 +5,10 @@ packages:
     dependency: transitive
     description:
       name: accessing_security_scoped_resource
-      sha256: ca9697ebd4028d3b400891af7a5174933b28494d16bdb5f8b2ddccb22a949273
+      sha256: a12cb68de969f4366e61d37e7030d82b4d16ff6a089910d2aced4e1d5461344f
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "3.0.1"
   async:
     dependency: transitive
     description:
@@ -92,10 +92,10 @@ packages:
     dependency: "direct main"
     description:
       name: darwin_url
-      sha256: e9756387f9e33097083160fe9e0c092fc98bf9f78506a552bb1f30b0c5a671b1
+      sha256: bd0638d409cb6244757e7715108e766a1ecbc7aae0444fed3e1d317ad7cd21d5
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.6.0"
   fake_async:
     dependency: transitive
     description:
@@ -108,10 +108,10 @@ packages:
     dependency: "direct main"
     description:
       name: fast_file_picker
-      sha256: e7defc9f6d4f965b3ffd5aeae9dedbe6ecab45cc85b43c6871f7c09126665fde
+      sha256: d92935bb853266e1743839fdfb96f47cff0a818dea2d8a361e260840134380aa
       url: "https://pub.dev"
     source: hosted
-    version: "0.0.1"
+    version: "0.3.0"
   fast_immutable_collections:
     dependency: "direct main"
     description:
@@ -251,10 +251,10 @@ packages:
     dependency: transitive
     description:
       name: ios_document_picker
-      sha256: fbf1936ccebcd5a8d563c9335ca80006f2d9ce619a68b7ec6a06e799782ac2ee
+      sha256: d7cbc61366602f6fd74a5bfeeecf68ad553ef91a6b1bb6d406dd7808d694d5c4
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.0"
+    version: "0.4.0"
   leak_tracker:
     dependency: transitive
     description:
@@ -291,10 +291,10 @@ packages:
     dependency: transitive
     description:
       name: macos_file_picker
-      sha256: d5a2e4791ec356134fb57e7719e3c0e3f8d81ffc7bdc948c14dbd2792280fa86
+      sha256: "336cfa134727d0a123856e666f833a2c219bb2d2c1a7554538a610b52b7fcf4e"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.0"
+    version: "0.5.0"
   matcher:
     dependency: transitive
     description:
@@ -339,10 +339,10 @@ packages:
     dependency: transitive
     description:
       name: ns_file_coordinator_util
-      sha256: d80bd85018774f84f987b9391cd551cc74d114a4b3820e70c1f439af262c512c
+      sha256: "733fdd5b6850011ed7541d5795d60c0a6ab6cad79470455988d26ef7a152b5d5"
       url: "https://pub.dev"
     source: hosted
-    version: "0.22.1"
+    version: "0.23.0"
   path:
     dependency: "direct main"
     description:
@@ -363,10 +363,10 @@ packages:
     dependency: transitive
     description:
       name: saf_stream
-      sha256: "34be23c1313381f2d7e9f312f8c4d3a468418b1cfd65dd898e6cb8bcc36b37f3"
+      sha256: "197eeaf7f81825ac000a3ca18c3a8ca690b9a88988de73acb27a69634cb32156"
       url: "https://pub.dev"
     source: hosted
-    version: "0.10.1"
+    version: "0.10.2"
   saf_util:
     dependency: transitive
     description:
