@@ -5,10 +5,10 @@ packages:
     dependency: transitive
     description:
       name: accessing_security_scoped_resource
-      sha256: a12cb68de969f4366e61d37e7030d82b4d16ff6a089910d2aced4e1d5461344f
+      sha256: "62689a6db2775f7341755cf26c8a29d41a02ce5e309e6cc518ac6991daf3d96e"
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.1"
+    version: "3.0.2"
   async:
     dependency: transitive
     description:
@@ -92,10 +92,10 @@ packages:
     dependency: "direct main"
     description:
       name: darwin_url
-      sha256: bd0638d409cb6244757e7715108e766a1ecbc7aae0444fed3e1d317ad7cd21d5
+      sha256: "6f2b3d60c3af85de99bde362d2a3efdb79e3419c20a0c821e938f7dd9eeb4de6"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.0"
+    version: "0.6.1"
   fake_async:
     dependency: transitive
     description:
@@ -339,10 +339,10 @@ packages:
     dependency: transitive
     description:
       name: ns_file_coordinator_util
-      sha256: "733fdd5b6850011ed7541d5795d60c0a6ab6cad79470455988d26ef7a152b5d5"
+      sha256: "492fad46b516805de33e3250f3dc5a035e3b23922bc6f8d9c3150e205c05b5bf"
       url: "https://pub.dev"
     source: hosted
-    version: "0.23.0"
+    version: "0.23.1"
   path:
     dependency: "direct main"
     description:
@@ -363,10 +363,10 @@ packages:
     dependency: transitive
     description:
       name: saf_stream
-      sha256: "197eeaf7f81825ac000a3ca18c3a8ca690b9a88988de73acb27a69634cb32156"
+      sha256: ef99215c0c3aaabc6a4b1ba403edf02244ffae727b6e1591d4681955f960750a
       url: "https://pub.dev"
     source: hosted
-    version: "0.10.2"
+    version: "0.11.0"
   saf_util:
     dependency: transitive
     description:
