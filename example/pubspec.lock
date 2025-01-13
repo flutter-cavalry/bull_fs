@@ -116,10 +116,10 @@ packages:
     dependency: "direct main"
     description:
       name: fast_immutable_collections
-      sha256: b044617c31fa3c80742308c032e39729ead75d808f7b53bc8129de59299f9875
+      sha256: "95a69b9380483dff49ae2c12c9eb92e2b4e1aeff481a33c2a20883471771598a"
       url: "https://pub.dev"
     source: hosted
-    version: "11.0.2"
+    version: "11.0.3"
   fc_quick_dialog:
     dependency: "direct main"
     description:
@@ -371,10 +371,10 @@ packages:
     dependency: transitive
     description:
       name: saf_util
-      sha256: d0a3c7a023a02bc6d10f5eff02ec714b6834393ec39a9c1f7e3662ac30e5f909
+      sha256: "4e07d11463a97cd3feecb66192e423e6d17f082f16f1acf2ce923a538cacced0"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.1"
+    version: "0.6.2"
   sky_engine:
     dependency: transitive
     description: flutter
