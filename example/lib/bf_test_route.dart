@@ -85,13 +85,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
     final bfInit = await BFEnvUtil.envFromDirectory(
         path: pickerResult.path, uri: pickerResult.uri);
     final env = bfInit.env;
-    final appleResScope = AppleResScope(env);
-    try {
-      await appleResScope.requestAccess(bfInit.path);
+    final resScope = BFResScope(env, bfInit.path);
+    await resScope.requestAccessWithAction(() async {
       await _runTests(env, bfInit.path);
-    } finally {
-      await appleResScope.release();
-    }
+    });
   }
 
   Future<void> _runTests(BFEnv env, BFPath root) async {

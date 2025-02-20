@@ -3,31 +3,31 @@ import '../bull_fs.dart';
 
 final _plugin = AccessingSecurityScopedResource();
 
-/// This class is used to manage the access to the security scoped resource
-/// on Apple platforms.
-class AppleResScope {
-  BFPath? _path;
+/// This class is used to manage the access to the security scoped resource.
+/// This class only has effect on [BFNsfcEnv].
+class BFResScope {
   bool _granted = false;
 
-  BFPath? get path => _path;
   final BFEnv env;
+  final BFPath path;
 
-  AppleResScope(this.env);
+  bool get granted => _granted;
+
+  BFResScope(this.env, this.path);
 
   /// Request access to the security scoped resource.
-  Future<void> requestAccess(BFPath path) async {
+  /// Throws [BFNoPermissionExp] if the access is denied.
+  Future<void> requestAccess() async {
     if (env is! BFNsfcEnv) {
       return;
     }
     if (path is BFLocalPath) {
       throw Exception('Local path not supported.');
     }
-    // This is important. No need release access when path is the same.
-    if (_path != null && _path.toString() == path.toString()) {
+    // No need to request access if already granted.
+    if (_granted) {
       return;
     }
-    await release();
-    _path = path;
     _granted = await _plugin
         .startAccessingSecurityScopedResourceWithURL(path.toString());
     if (!_granted) {
@@ -41,12 +41,19 @@ class AppleResScope {
       return;
     }
     // Release previous one if needed.
-    if (_granted && _path != null) {
-      await _plugin
-          .stopAccessingSecurityScopedResourceWithURL(_path!.toString());
-
+    if (_granted) {
+      await _plugin.stopAccessingSecurityScopedResourceWithURL(path.toString());
       _granted = false;
-      _path = null;
+    }
+  }
+
+  /// Request access to the security scoped resource and run the action.
+  Future<void> requestAccessWithAction(Future<void> Function() action) async {
+    await requestAccess();
+    try {
+      await action();
+    } finally {
+      await release();
     }
   }
 }

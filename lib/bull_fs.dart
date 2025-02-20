@@ -7,4 +7,4 @@ export 'src/bf_env_util.dart';
 export 'src/bf_local_env.dart';
 export 'src/bf_nsfc_env.dart';
 export 'src/bf_saf_env.dart';
-export 'src/apple_res_scope.dart';
+export 'src/bf_res_scope.dart';
