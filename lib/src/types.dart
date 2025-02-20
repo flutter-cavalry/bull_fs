@@ -88,7 +88,7 @@ extension BFPathExtension on BFPath {
   }
 
   /// Returns the scoped ID if it is a [BFScopedPath]. Otherwise, throws an exception.
-  String scopedID() {
+  String scopedUri() {
     if (this is BFScopedPath) {
       return (this as BFScopedPath).id;
     }
@@ -97,8 +97,8 @@ extension BFPathExtension on BFPath {
 
   /// Only for Apple platforms. Joins a relative path to the scoped path.
   Future<BFPath> iosJoinRelPath(IList<String> relPath, bool isDir) async {
-    final url =
-        await _darwinUrlPlugin.append(scopedID(), relPath.unlock, isDir: isDir);
+    final url = await _darwinUrlPlugin.append(scopedUri(), relPath.unlock,
+        isDir: isDir);
     return BFScopedPath(url);
   }
 

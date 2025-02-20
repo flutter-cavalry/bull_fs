@@ -28,7 +28,7 @@ class BFNsfcEnv extends BFEnv {
   @override
   Future<List<BFEntity>> listDir(BFPath path,
       {bool? recursive, bool? relativePathInfo}) async {
-    final icloudEntities = await _plugin.listContents(path.scopedID(),
+    final icloudEntities = await _plugin.listContents(path.scopedUri(),
         recursive: recursive,
         filesOnly: false,
         relativePathInfo: relativePathInfo);
@@ -49,7 +49,7 @@ class BFNsfcEnv extends BFEnv {
 
   @override
   Future<List<BFPathAndDirRelPath>> listDirContentFiles(BFPath path) async {
-    final icloudEntities = await _plugin.listContentFiles(path.scopedID());
+    final icloudEntities = await _plugin.listContentFiles(path.scopedUri());
     final paths = icloudEntities.map((e) {
       List<String>? dirRelPath;
       if (e.relativePath != null) {
@@ -67,12 +67,12 @@ class BFNsfcEnv extends BFEnv {
 
   @override
   Future<void> delete(BFPath path, bool isDir) async {
-    await _plugin.delete(path.scopedID());
+    await _plugin.delete(path.scopedUri());
   }
 
   @override
   Future<BFEntity?> stat(BFPath path, bool isDir) async {
-    final e = await _plugin.stat(path.scopedID());
+    final e = await _plugin.stat(path.scopedUri());
     if (e == null) {
       return null;
     }
@@ -82,7 +82,7 @@ class BFNsfcEnv extends BFEnv {
   @override
   Future<BFEntity?> child(BFPath path, IList<String> names) async {
     path = await path.iosJoinRelPath(names, false);
-    final e = await _plugin.stat(path.scopedID());
+    final e = await _plugin.stat(path.scopedUri());
     if (e == null) {
       return null;
     }
@@ -91,16 +91,16 @@ class BFNsfcEnv extends BFEnv {
 
   @override
   Future<BFPath> mkdirp(BFPath dir, IList<String> components) async {
-    final destPath = await _plugin.mkdirp(dir.scopedID(), components.unlock);
+    final destPath = await _plugin.mkdirp(dir.scopedUri(), components.unlock);
     return BFScopedPath(destPath);
   }
 
   @override
   Future<BFPath> renameInternal(BFPath path, bool isDir, String newName) async {
-    final dirUrl = await _darwinUrlPlugin.dirUrl(path.scopedID());
+    final dirUrl = await _darwinUrlPlugin.dirUrl(path.scopedUri());
     final destUrl =
         await _darwinUrlPlugin.append(dirUrl, [newName], isDir: isDir);
-    await _plugin.move(path.scopedID(), destUrl);
+    await _plugin.move(path.scopedUri(), destUrl);
     return BFScopedPath(destUrl);
   }
 
@@ -120,14 +120,14 @@ class BFNsfcEnv extends BFEnv {
         nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destItemPath =
         await destDir.iosJoinRelPath([destItemFileName].lock, isDir);
-    await _plugin.move(src.scopedID(), destItemPath.scopedID());
+    await _plugin.move(src.scopedUri(), destItemPath.scopedUri());
     return UpdatedBFPath(destItemPath, destItemFileName);
   }
 
   @override
   Future<Stream<List<int>>> readFileStream(BFPath path,
       {int? bufferSize, int? start}) async {
-    return _plugin.readFileStream(path.scopedID(),
+    return _plugin.readFileStream(path.scopedUri(),
         bufferSize: bufferSize, start: start);
   }
 
@@ -171,19 +171,19 @@ class BFNsfcEnv extends BFEnv {
             nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);
-    await _plugin.copyPath(srcUrl, destPath.scopedID(), overwrite: overwrite);
+    await _plugin.copyPath(srcUrl, destPath.scopedUri(), overwrite: overwrite);
     return UpdatedBFPath(destPath, safeName);
   }
 
   @override
   Future<void> copyToLocalFile(BFPath src, String dest) async {
     final destUrl = await _darwinUrlPlugin.filePathToUrl(dest);
-    await _plugin.copyPath(src.scopedID(), destUrl);
+    await _plugin.copyPath(src.scopedUri(), destUrl);
   }
 
   @override
   Future<Uint8List> readFileBytes(BFPath path, {int? start, int? count}) async {
-    return _plugin.readFileSync(path.scopedID(), start: start, count: count);
+    return _plugin.readFileSync(path.scopedUri(), start: start, count: count);
   }
 
   @override

@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import '../bull_fs.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
-import 'package:collection/collection.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 /// A [BFEnv] implementation for local file system.
@@ -36,7 +35,7 @@ class BFLocalEnv extends BFEnv {
       }
       return BFEntity.fromLocalEntityNE(e, dirRelPath: dirRelPath?.lock);
     })))
-        .whereNotNull()
+        .nonNulls
         .toList();
     return res;
   }
@@ -59,7 +58,7 @@ class BFLocalEnv extends BFEnv {
           return BFPathAndDirRelPath(
               BFLocalPath(e.path), (dirRelPath ?? []).lock);
         })
-        .whereNotNull()
+        .nonNulls
         .toList();
     return res;
   }
