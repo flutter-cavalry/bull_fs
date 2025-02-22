@@ -85,10 +85,17 @@ class _BFTestRouteState extends State<BFTestRoute> {
     final bfInit = await BFEnvUtil.envFromDirectory(
         path: pickerResult.path, uri: pickerResult.uri);
     final env = bfInit.env;
-    final resScope = BFResScope(env, bfInit.path);
-    await resScope.requestAccessWithAction(() async {
+
+    if (_env is BFNsfcEnv) {
+      final resScope = BFAppleScopedRes(bfInit.path.toString());
+      if (!await resScope.useAccess(() async {
+        await _runTests(env, bfInit.path);
+      })) {
+        throw Exception('Failed to get iOS folder access');
+      }
+    } else {
       await _runTests(env, bfInit.path);
-    });
+    }
   }
 
   Future<void> _runTests(BFEnv env, BFPath root) async {
