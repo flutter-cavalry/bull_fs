@@ -17,7 +17,7 @@ class BFEnvUtil {
     switch (type) {
       case BFEnvType.local:
         return BFLocalEnv();
-      case BFEnvType.icloud:
+      case BFEnvType.nsfc:
         return BFNsfcEnv();
       case BFEnvType.saf:
         return BFSafEnv();

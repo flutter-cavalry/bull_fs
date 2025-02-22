@@ -17,7 +17,7 @@ class BFNsfcEnv extends BFEnv {
 
   @override
   BFEnvType envType() {
-    return BFEnvType.icloud;
+    return BFEnvType.nsfc;
   }
 
   @override

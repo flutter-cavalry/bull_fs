@@ -11,8 +11,8 @@ enum BFEnvType {
   /// Android SAF.
   saf,
 
-  /// Apple iCloud.
-  icloud
+  /// NSFileCoordinator, which is used by iOS and macOS icloud documents.
+  nsfc
 }
 
 typedef BFNameUpdaterFunc = String Function(
@@ -24,7 +24,7 @@ abstract class BFEnv {
   BFEnvType envType();
 
   /// Whether the environment is Uri-based.
-  /// This is true when for [BFEnvType.saf] and [BFEnvType.icloud].
+  /// This is true when for [BFEnvType.saf] and [BFEnvType.nsfc].
   bool isScoped();
 
   /// Lists sub-directories and files in a directory.
