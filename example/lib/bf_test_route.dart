@@ -134,7 +134,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       }
 
       setState(() {
-        _output = 'Done';
+        _output = '✅ Done';
       });
     } catch (e) {
       setState(() {
@@ -545,7 +545,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           {"test.txt": "61626364656620f09f8d89f09f8c8f"});
     });
 
-    ns.add('readFileSync', (h) async {
+    ns.add('readFileBytes', (h) async {
       final r = h.data as BFPath;
       final tmpFile = tmpPath();
       await File(tmpFile).writeAsString(_defStringContents);
@@ -555,7 +555,27 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(utf8.decode(bytes), _defStringContents);
     });
 
-    ns.add('readFileSync (start and count)', (h) async {
+    ns.add('readFileBytes (start)', (h) async {
+      final r = h.data as BFPath;
+      final tmpFile = tmpPath();
+      await File(tmpFile).writeAsString(_defStringContents);
+      final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+
+      final bytes = await env.readFileBytes(pasteRes.path, start: 3);
+      h.equals(utf8.decode(bytes), _defStringContents.substring(3));
+    });
+
+    ns.add('readFileBytes (count)', (h) async {
+      final r = h.data as BFPath;
+      final tmpFile = tmpPath();
+      await File(tmpFile).writeAsString(_defStringContents);
+      final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+
+      final bytes = await env.readFileBytes(pasteRes.path, count: 2);
+      h.equals(utf8.decode(bytes), 'ab');
+    });
+
+    ns.add('readFileBytes (start and count)', (h) async {
       final r = h.data as BFPath;
       final tmpFile = tmpPath();
       await File(tmpFile).writeAsString(_defStringContents);
