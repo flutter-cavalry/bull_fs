@@ -363,10 +363,10 @@ packages:
     dependency: transitive
     description:
       name: saf_stream
-      sha256: f9258bc3b39256e0af3de7c05a70a4c7ac846d186a3ea8c1e5bef7b53876c566
+      sha256: f48b9f134d0cd1047a0f58539e967400f3a15846482911a2d892b1851385ce27
       url: "https://pub.dev"
     source: hosted
-    version: "0.11.1"
+    version: "0.11.2"
   saf_util:
     dependency: transitive
     description:
