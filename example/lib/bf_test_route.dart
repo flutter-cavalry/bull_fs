@@ -575,6 +575,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(utf8.decode(bytes), 'ab');
     });
 
+    ns.add('readFileBytes (count larger than length)', (h) async {
+      final r = h.data as BFPath;
+      final tmpFile = tmpPath();
+      await File(tmpFile).writeAsString(_defStringContents);
+      final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+
+      final bytes = await env.readFileBytes(pasteRes.path, count: 100);
+      h.equals(utf8.decode(bytes), _defStringContents);
+    });
+
     ns.add('readFileBytes (start and count)', (h) async {
       final r = h.data as BFPath;
       final tmpFile = tmpPath();
