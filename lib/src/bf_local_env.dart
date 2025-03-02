@@ -193,11 +193,13 @@ class BFLocalEnv extends BFEnv {
 
   @override
   Future<Uint8List> readFileBytes(BFPath path, {int? start, int? count}) async {
-    if (start != null && count != null) {
+    if (start != null || count != null) {
       final randomAccessFile = await File(path.localPath()).open();
       try {
-        await randomAccessFile.setPosition(start);
-        final bytes = await randomAccessFile.read(count);
+        await randomAccessFile.setPosition(start ?? 0);
+        final bytes = count != null
+            ? await randomAccessFile.read(count)
+            : await randomAccessFile.read(await randomAccessFile.length());
         return bytes;
       } finally {
         await randomAccessFile.close();
