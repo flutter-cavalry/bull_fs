@@ -7,6 +7,8 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 /// A [BFEnv] implementation for local file system.
 class BFLocalEnv extends BFEnv {
+  static final BFLocalEnv instance = BFLocalEnv();
+
   @override
   BFEnvType envType() {
     return BFEnvType.local;

@@ -13,6 +13,8 @@ final _darwinUrlPlugin = DarwinUrl();
 /// A [BFEnv] implementation for Apple system [NSFileCoordinator], which is used
 /// for access iOS directories or iCloud directories.
 class BFNsfcEnv extends BFEnv {
+  static final BFNsfcEnv instance = BFNsfcEnv();
+
   final _plugin = NsFileCoordinatorUtil();
 
   @override
