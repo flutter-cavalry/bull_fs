@@ -8,3 +8,4 @@ export 'src/bf_local_env.dart';
 export 'src/bf_nsfc_env.dart';
 export 'src/bf_saf_env.dart';
 export 'src/bf_apple_scoped_res.dart';
+export 'src/bf_path_bundle.dart';
