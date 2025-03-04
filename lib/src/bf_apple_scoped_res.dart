@@ -1,10 +1,11 @@
 import 'package:accessing_security_scoped_resource/accessing_security_scoped_resource.dart';
-import '../bull_fs.dart';
 
 /// A wrapper around [AppleScopedResource].
 class BFAppleScopedRes {
   final String url;
   final bool isFilePath;
+
+  bool get granted => _res.granted;
 
   late AppleScopedResource _res;
 
@@ -13,9 +14,8 @@ class BFAppleScopedRes {
   }
 
   /// Request access to the security scoped resource.
-  /// Throws [BFNoPermissionExp] if the access is denied.
-  Future<bool> requestAccess() async {
-    return await _res.requestAccess();
+  Future<void> requestAccess() async {
+    await _res.requestAccess();
   }
 
   /// Release the access to the security scoped resource.
