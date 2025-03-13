@@ -14,11 +14,13 @@ class BFAppleScopedRes {
   }
 
   /// Request access to the security scoped resource.
+  @Deprecated('Use [useAccess] instead.')
   Future<void> requestAccess() async {
     await _res.requestAccess();
   }
 
   /// Release the access to the security scoped resource.
+  @Deprecated('Use [useAccess] instead.')
   Future<void> release() async {
     await _res.release();
   }
