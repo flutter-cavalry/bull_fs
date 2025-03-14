@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
+
+import 'package:bull_fs/bull_fs.dart';
 import 'package:example/ntr/ntr_suite.dart';
 import 'package:fast_file_picker/fast_file_picker.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'package:bull_fs/bull_fs.dart';
 import 'package:fc_quick_dialog/fc_quick_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:tmp_path/tmp_path.dart';
 import 'package:path/path.dart' as p;
+import 'package:tmp_path/tmp_path.dart';
 
 const _defFolderContentFile = 'content.bin';
 const _defStringContents = 'abcdef 🍉🌏';
@@ -88,11 +89,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     if (_env is BFNsfcEnv) {
       final resScope = BFAppleScopedRes(bfInit.path.toString());
-      if (!await resScope.useAccess(() async {
+
+      await resScope.tryAccess((bool granted) async {
+        if (!granted) {
+          throw Exception('Failed to get iOS folder access');
+        }
         await _runTests(env, bfInit.path);
-      })) {
-        throw Exception('Failed to get iOS folder access');
-      }
+      });
     } else {
       await _runTests(env, bfInit.path);
     }
