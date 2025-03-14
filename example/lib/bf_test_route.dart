@@ -49,7 +49,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
                     ),
                     OutlinedButton(
                         onPressed: _startNative,
-                        child: const Text('Run native env'))
+                        child: const Text('Run platform env'))
                   ],
                   const SizedBox(
                     height: 10,
@@ -84,7 +84,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       return;
     }
     final bfInit = await BFEnvUtil.envFromDirectory(
-        path: pickerResult.path, uri: pickerResult.uri);
+        path: pickerResult.path, uri: pickerResult.uri, macosIcloud: true);
     final env = bfInit.env;
 
     if (_env is BFNsfcEnv) {
@@ -837,6 +837,19 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final subPath = await env.directoryExists(r, ['a', '一 二'].lock);
       final st3 = await env.child(subPath!, ['test 仨.txt'].lock);
       _statEquals(st, st3!);
+    });
+
+    ns.add('null stat for items that don\'t exist', (h) async {
+      final r = h.data as BFPath;
+      final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
+      final fileUri = (await env.writeFileBytes(
+              newDir, 'test 仨.txt', _defStringContentsBytes))
+          .path;
+      // Delete the created file to test null stat.
+      await env.delete(fileUri, false);
+      final st = await env.stat(fileUri, false);
+
+      h.isNull(st);
     });
 
     ns.add('listDir', (h) async {
