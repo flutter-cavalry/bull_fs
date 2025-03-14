@@ -13,7 +13,22 @@ class BFAppleScopedRes {
     _res = AppleScopedResource(url, isFilePath: isFilePath);
   }
 
-  /// Request access to the security scoped resource and run the action. This also releases the access after the action is done.
+  /// Calls [AppleScopedResource.requestAccess].
+  Future<void> requestAccess() async {
+    await _res.requestAccess();
+  }
+
+  /// Calls [AppleScopedResource.release].
+  Future<void> release() async {
+    await _res.release();
+  }
+
+  /// Calls [AppleScopedResource.useAccess].
+  Future<bool> useAccess(Future<void> Function() action) async {
+    return _res.useAccess(action);
+  }
+
+  /// Calls [AppleScopedResource.tryAccess].
   Future<void> tryAccess(Future<void> Function(bool granted) action) async {
     await _res.tryAccess(action);
   }
