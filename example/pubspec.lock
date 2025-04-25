@@ -116,10 +116,10 @@ packages:
     dependency: "direct main"
     description:
       name: fast_immutable_collections
-      sha256: "95a69b9380483dff49ae2c12c9eb92e2b4e1aeff481a33c2a20883471771598a"
+      sha256: d1aa3d7788fab06cce7f303f4969c7a16a10c865e1bd2478291a8ebcbee084e5
       url: "https://pub.dev"
     source: hosted
-    version: "11.0.3"
+    version: "11.0.4"
   fc_quick_dialog:
     dependency: "direct main"
     description:
@@ -140,10 +140,10 @@ packages:
     dependency: transitive
     description:
       name: file_selector_android
-      sha256: f3a3d48a36d1640b4dca22a086f26b426c246925a80eddc2953120775fbcf86a
+      sha256: "6bba3d590ee9462758879741abc132a19133600dd31832f55627442f1ebd7b54"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.1+13"
+    version: "0.5.1+14"
   file_selector_ios:
     dependency: transitive
     description:
@@ -315,10 +315,10 @@ packages:
     dependency: transitive
     description:
       name: media_mime
-      sha256: fdca72950238af8e47fad80d939ae737e96d10df1289e646ea39507046fb9a3d
+      sha256: "1be7503ffc6c4107560c6e3e55198a275fca8f4b3d25927d946d10fad2aa20ca"
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.0"
+    version: "1.4.3"
   meta:
     dependency: transitive
     description:
