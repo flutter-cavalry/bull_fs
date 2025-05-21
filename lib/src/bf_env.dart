@@ -1,7 +1,8 @@
-import '../bull_fs.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tmp_path/tmp_path.dart';
+
+import '../bull_fs.dart';
 
 /// Type of [BFEnv].
 enum BFEnvType {
@@ -76,8 +77,9 @@ abstract class BFEnv {
   /// Gets the stat of a file or directory.
   ///
   /// [path] is the path to delete.
-  /// [isDir] is whether the path is a directory.
-  Future<BFEntity?> stat(BFPath path, bool isDir);
+  /// [isDir] is whether the path is a directory. [null] means
+  /// auto-detect.
+  Future<BFEntity?> stat(BFPath path, bool? isDir);
 
   /// Gets a child identified by [path] + [names].
   ///

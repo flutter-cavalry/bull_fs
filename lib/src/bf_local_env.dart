@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:typed_data';
-import '../bull_fs.dart';
+
+import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
-import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+
+import '../bull_fs.dart';
 
 /// A [BFEnv] implementation for local file system.
 class BFLocalEnv extends BFEnv {
@@ -80,7 +82,7 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<BFEntity?> stat(BFPath path, bool isDir) async {
+  Future<BFEntity?> stat(BFPath path, bool? isDir) async {
     return _stat(path.localPath());
   }
 

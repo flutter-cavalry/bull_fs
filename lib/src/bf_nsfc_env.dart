@@ -2,11 +2,12 @@ import 'dart:typed_data';
 
 import 'package:darwin_url/darwin_url.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
-import 'bf_env.dart';
-import 'zbf_internal.dart';
-import 'types.dart';
-import 'package:ns_file_coordinator_util/ns_file_coordinator_util_platform_interface.dart';
 import 'package:ns_file_coordinator_util/ns_file_coordinator_util.dart';
+import 'package:ns_file_coordinator_util/ns_file_coordinator_util_platform_interface.dart';
+
+import 'bf_env.dart';
+import 'types.dart';
+import 'zbf_internal.dart';
 
 final _darwinUrlPlugin = DarwinUrl();
 
@@ -78,7 +79,7 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<BFEntity?> stat(BFPath path, bool isDir) async {
+  Future<BFEntity?> stat(BFPath path, bool? isDir) async {
     final e = await _plugin.stat(path.scopedUri());
     if (e == null) {
       return null;

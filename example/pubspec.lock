@@ -108,10 +108,10 @@ packages:
     dependency: "direct main"
     description:
       name: fast_file_picker
-      sha256: c2117115f294c4747a64a64f9955d31ef865d7107380d81d7af9d05a3d21eb4f
+      sha256: "2ffd3a349352d581e16a7ced47ea5c0a051ecf1c724eb02e9f921959496db61a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.2"
+    version: "0.4.3"
   fast_immutable_collections:
     dependency: "direct main"
     description:
@@ -371,10 +371,10 @@ packages:
     dependency: transitive
     description:
       name: saf_util
-      sha256: c2b5f0642059a11f4c41b056e2d5eabc7350f7bc3b1cadb6db187d2f84108330
+      sha256: af4c6e285b1b315eead6c8e210b0f45a8325238a0d8f827ebb1f59cc673ef139
       url: "https://pub.dev"
     source: hosted
-    version: "0.8.0"
+    version: "0.9.0"
   sky_engine:
     dependency: transitive
     description: flutter
