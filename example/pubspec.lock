@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: async
-      sha256: d2872f9c19731c2e5f10444b14686eb7cc85c76274bd6c16e1816bff9a3bab63
+      sha256: "758e6d74e971c3e5aceb4110bfd6698efc7f501675bcfe0c775459a8140750eb"
       url: "https://pub.dev"
     source: hosted
-    version: "2.12.0"
+    version: "2.13.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -100,18 +100,18 @@ packages:
     dependency: transitive
     description:
       name: fake_async
-      sha256: "6a95e56b2449df2273fd8c45a662d6947ce1ebb7aafe80e550a3f68297f3cacc"
+      sha256: "5368f224a74523e8d2e7399ea1638b37aecfca824a3cc4dfdf77bf1fa905ac44"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.2"
+    version: "1.3.3"
   fast_file_picker:
     dependency: "direct main"
     description:
       name: fast_file_picker
-      sha256: d4d068c2df69e71fde6780bc78bc2a45c751114385f8af54f8f0d3cbd14193a0
+      sha256: c2117115f294c4747a64a64f9955d31ef865d7107380d81d7af9d05a3d21eb4f
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.1"
+    version: "0.4.2"
   fast_immutable_collections:
     dependency: "direct main"
     description:
@@ -227,10 +227,10 @@ packages:
     dependency: transitive
     description:
       name: http
-      sha256: fe7ab022b76f3034adc518fb6ea04a82387620e19977665ea18d30a1cf43442f
+      sha256: "2c11f3f94c687ee9bad77c171151672986360b2b001d109814ee7140b2cf261b"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.0"
+    version: "1.4.0"
   http_parser:
     dependency: transitive
     description:
@@ -259,10 +259,10 @@ packages:
     dependency: transitive
     description:
       name: leak_tracker
-      sha256: c35baad643ba394b40aac41080300150a4f08fd0fd6a10378f8f7c6bc161acec
+      sha256: "6bb818ecbdffe216e81182c2f0714a2e62b593f4a4f13098713ff1685dfb6ab0"
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.8"
+    version: "10.0.9"
   leak_tracker_flutter_testing:
     dependency: transitive
     description:
@@ -291,10 +291,10 @@ packages:
     dependency: transitive
     description:
       name: macos_file_picker
-      sha256: "336cfa134727d0a123856e666f833a2c219bb2d2c1a7554538a610b52b7fcf4e"
+      sha256: "8999b125f8166b60f4693065ddec7770bfc5b5fe3e4e6cecd78b07a3b33e7701"
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.0"
+    version: "0.6.1"
   matcher:
     dependency: transitive
     description:
@@ -315,10 +315,10 @@ packages:
     dependency: transitive
     description:
       name: media_mime
-      sha256: "1be7503ffc6c4107560c6e3e55198a275fca8f4b3d25927d946d10fad2aa20ca"
+      sha256: "4b52244e04d0dda1d9d6db6cffab479f5c33bb6dc7771f75546489d61c9322db"
       url: "https://pub.dev"
     source: hosted
-    version: "1.4.3"
+    version: "1.4.4"
   meta:
     dependency: transitive
     description:
@@ -371,10 +371,10 @@ packages:
     dependency: transitive
     description:
       name: saf_util
-      sha256: "0f85e65770c0906fc38181deef93da375dabd957abaa5e8569b6984f6298cd84"
+      sha256: c2b5f0642059a11f4c41b056e2d5eabc7350f7bc3b1cadb6db187d2f84108330
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.0"
+    version: "0.8.0"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -472,10 +472,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: "0968250880a6c5fe7edc067ed0a13d4bae1577fe2771dcf3010d52c4a9d3ca14"
+      sha256: ddfa8d30d89985b96407efce8acbdd124701f96741f2d981ca860662f1c0dc02
       url: "https://pub.dev"
     source: hosted
-    version: "14.3.1"
+    version: "15.0.0"
   web:
     dependency: transitive
     description:
@@ -485,5 +485,5 @@ packages:
     source: hosted
     version: "1.1.1"
 sdks:
-  dart: ">=3.7.0-0 <4.0.0"
+  dart: ">=3.8.0 <4.0.0"
   flutter: ">=3.27.0"

@@ -1,1 +1,4 @@
 include: package:mgenware_dart_lints/lints.yaml
+
+formatter:
+  trailing_commas: preserve
