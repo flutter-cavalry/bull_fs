@@ -810,6 +810,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(st.name, '一 二');
       h.equals(st.length, -1);
 
+      final stAuto = await env.stat(newDir, null);
+      h.equals(stAuto!.isDir, true);
+      h.equals(stAuto.name, '一 二');
+      h.equals(stAuto.length, -1);
+
       final st2 = await env.child(r, ['a', '一 二'].lock);
       _statEquals(st, st2!);
 
@@ -830,6 +835,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(st!.isDir, false);
       h.equals(st.name, 'test 仨.txt');
       h.equals(st.length, 15);
+
+      final stAuto = await env.stat(fileUri, null);
+      h.equals(stAuto!.isDir, false);
+      h.equals(stAuto.name, 'test 仨.txt');
+      h.equals(stAuto.length, 15);
 
       final st2 = await env.child(r, ['a', '一 二', 'test 仨.txt'].lock);
       _statEquals(st, st2!);

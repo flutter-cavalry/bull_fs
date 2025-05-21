@@ -99,7 +99,7 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<BFEntity?> stat(BFPath path, bool? isDir) async {
-    final df = await _utilPlugin.documentFileFromUri(path.scopedUri(), isDir);
+    final df = await _utilPlugin.stat(path.scopedUri(), isDir);
     if (df == null) {
       return null;
     }
