@@ -6,7 +6,10 @@ import 'types.dart';
 extension BFEnvExtension on BFEnv {
   /// Deletes a path if it exists.
   Future<void> deletePathIfExists(
-      BFPath path, IList<String>? extendedPath, bool isDir) async {
+    BFPath path,
+    IList<String>? extendedPath,
+    bool isDir,
+  ) async {
     final finalPath = isDir
         ? await directoryExists(path, extendedPath)
         : await fileExists(path, extendedPath);
@@ -17,36 +20,46 @@ extension BFEnvExtension on BFEnv {
   }
 
   /// Lists the directory and returns a map of the directory.
-  Future<Map<String, dynamic>> directoryToMap(BFPath dir,
-      {bool Function(String name, BFEntity entity)? filter,
-      bool? hideFileContents}) async {
+  Future<Map<String, dynamic>> directoryToMap(
+    BFPath dir, {
+    bool Function(String name, BFEntity entity)? filter,
+    bool? hideFileContents,
+  }) async {
     final Map<String, dynamic> map = <String, dynamic>{};
     await _directoryToMapInternal(map, dir, hideFileContents ?? false, filter);
     return map;
   }
 
   Future<void> _directoryToMapInternal(
-      Map<String, dynamic> map,
-      BFPath dir,
-      bool hideFileContents,
-      bool Function(String name, BFEntity entity)? filter) async {
+    Map<String, dynamic> map,
+    BFPath dir,
+    bool hideFileContents,
+    bool Function(String name, BFEntity entity)? filter,
+  ) async {
     final entities = await listDir(dir);
-    await Future.wait(entities
-        .map((e) => _entityToMapInternal(map, e, hideFileContents, filter)));
+    await Future.wait(
+      entities.map(
+        (e) => _entityToMapInternal(map, e, hideFileContents, filter),
+      ),
+    );
   }
 
   Future<void> _entityToMapInternal(
-      Map<String, dynamic> map,
-      BFEntity ent,
-      bool hideFileContents,
-      bool Function(String name, BFEntity entity)? filter) async {
+    Map<String, dynamic> map,
+    BFEntity ent,
+    bool hideFileContents,
+    bool Function(String name, BFEntity entity)? filter,
+  ) async {
     final name = ent.name;
     if (filter != null && !filter(name, ent)) {
       return;
     }
     if (ent.isDir) {
-      map[name] = await directoryToMap(ent.path,
-          filter: filter, hideFileContents: hideFileContents);
+      map[name] = await directoryToMap(
+        ent.path,
+        filter: filter,
+        hideFileContents: hideFileContents,
+      );
     } else {
       if (hideFileContents) {
         map[name] = null;

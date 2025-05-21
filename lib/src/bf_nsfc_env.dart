@@ -28,12 +28,17 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<List<BFEntity>> listDir(BFPath path,
-      {bool? recursive, bool? relativePathInfo}) async {
-    final icloudEntities = await _plugin.listContents(path.scopedUri(),
-        recursive: recursive,
-        filesOnly: false,
-        relativePathInfo: relativePathInfo);
+  Future<List<BFEntity>> listDir(
+    BFPath path, {
+    bool? recursive,
+    bool? relativePathInfo,
+  }) async {
+    final icloudEntities = await _plugin.listContents(
+      path.scopedUri(),
+      recursive: recursive,
+      filesOnly: false,
+      relativePathInfo: relativePathInfo,
+    );
     final futures = icloudEntities.map((e) {
       List<String>? dirRelPath;
       if (e.relativePath != null) {
@@ -100,48 +105,72 @@ class BFNsfcEnv extends BFEnv {
   @override
   Future<BFPath> renameInternal(BFPath path, bool isDir, String newName) async {
     final dirUrl = await _darwinUrlPlugin.dirUrl(path.scopedUri());
-    final destUrl =
-        await _darwinUrlPlugin.append(dirUrl, [newName], isDir: isDir);
+    final destUrl = await _darwinUrlPlugin.append(dirUrl, [
+      newName,
+    ], isDir: isDir);
     await _plugin.move(path.scopedUri(), destUrl);
     return BFScopedPath(destUrl);
   }
 
   @override
   Future<UpdatedBFPath> moveToDirSafe(
-      BFPath src, bool isDir, BFPath srcDir, BFPath destDir,
-      {BFNameUpdaterFunc? nameUpdater}) async {
+    BFPath src,
+    bool isDir,
+    BFPath srcDir,
+    BFPath destDir, {
+    BFNameUpdaterFunc? nameUpdater,
+  }) async {
     final srcName = await findBasename(src, isDir);
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
     }
     final destItemFileName = await ZBFInternal.nextAvailableFileName(
-        this,
-        destDir,
-        srcName,
-        isDir,
-        nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-    final destItemPath =
-        await destDir.iosJoinRelPath([destItemFileName].lock, isDir);
+      this,
+      destDir,
+      srcName,
+      isDir,
+      nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+    );
+    final destItemPath = await destDir.iosJoinRelPath(
+      [destItemFileName].lock,
+      isDir,
+    );
     await _plugin.move(src.scopedUri(), destItemPath.scopedUri());
     return UpdatedBFPath(destItemPath, destItemFileName);
   }
 
   @override
-  Future<Stream<List<int>>> readFileStream(BFPath path,
-      {int? bufferSize, int? start}) async {
-    return _plugin.readFileStream(path.scopedUri(),
-        bufferSize: bufferSize, start: start);
+  Future<Stream<List<int>>> readFileStream(
+    BFPath path, {
+    int? bufferSize,
+    int? start,
+  }) async {
+    return _plugin.readFileStream(
+      path.scopedUri(),
+      bufferSize: bufferSize,
+      start: start,
+    );
   }
 
   @override
-  Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+  Future<BFOutStream> writeFileStream(
+    BFPath dir,
+    String unsafeName, {
+    BFNameUpdaterFunc? nameUpdater,
+    bool? overwrite,
+  }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-    final destPathUrl =
-        await _darwinUrlPlugin.append(dir.toString(), [safeName], isDir: false);
+        : await ZBFInternal.nextAvailableFileName(
+            this,
+            dir,
+            unsafeName,
+            false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+          );
+    final destPathUrl = await _darwinUrlPlugin.append(dir.toString(), [
+      safeName,
+    ], isDir: false);
     final destPath = BFScopedPath(destPathUrl);
 
     final session = await _plugin.startWriteStream(destPathUrl);
@@ -150,14 +179,24 @@ class BFNsfcEnv extends BFEnv {
 
   @override
   Future<UpdatedBFPath> writeFileBytes(
-      BFPath dir, String unsafeName, Uint8List bytes,
-      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    BFPath dir,
+    String unsafeName,
+    Uint8List bytes, {
+    BFNameUpdaterFunc? nameUpdater,
+    bool? overwrite,
+  }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
-    final destPathUrl =
-        await _darwinUrlPlugin.append(dir.toString(), [safeName], isDir: false);
+        : await ZBFInternal.nextAvailableFileName(
+            this,
+            dir,
+            unsafeName,
+            false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+          );
+    final destPathUrl = await _darwinUrlPlugin.append(dir.toString(), [
+      safeName,
+    ], isDir: false);
     final destPath = BFScopedPath(destPathUrl);
     await _plugin.writeFile(destPathUrl, bytes);
     return UpdatedBFPath(destPath, safeName);
@@ -165,12 +204,21 @@ class BFNsfcEnv extends BFEnv {
 
   @override
   Future<UpdatedBFPath> pasteLocalFile(
-      String localSrc, BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    String localSrc,
+    BFPath dir,
+    String unsafeName, {
+    BFNameUpdaterFunc? nameUpdater,
+    bool? overwrite,
+  }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+        : await ZBFInternal.nextAvailableFileName(
+            this,
+            dir,
+            unsafeName,
+            false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+          );
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);
     await _plugin.copyPath(srcUrl, destPath.scopedUri(), overwrite: overwrite);
@@ -190,8 +238,11 @@ class BFNsfcEnv extends BFEnv {
 
   @override
   Future<BFPath?> fileExists(BFPath path, IList<String>? extendedPath) async {
-    final finalPath = await _darwinUrlPlugin
-        .append(path.toString(), extendedPath?.unlock ?? [], isDir: false);
+    final finalPath = await _darwinUrlPlugin.append(
+      path.toString(),
+      extendedPath?.unlock ?? [],
+      isDir: false,
+    );
     final isDirRes = await _plugin.isDirectory(finalPath);
     if (isDirRes == false) {
       return BFScopedPath(finalPath);
@@ -201,9 +252,14 @@ class BFNsfcEnv extends BFEnv {
 
   @override
   Future<BFPath?> directoryExists(
-      BFPath path, IList<String>? extendedPath) async {
-    final finalPath = await _darwinUrlPlugin
-        .append(path.toString(), extendedPath?.unlock ?? [], isDir: true);
+    BFPath path,
+    IList<String>? extendedPath,
+  ) async {
+    final finalPath = await _darwinUrlPlugin.append(
+      path.toString(),
+      extendedPath?.unlock ?? [],
+      isDir: true,
+    );
     final isDirRes = await _plugin.isDirectory(finalPath);
     if (isDirRes == true) {
       return BFScopedPath(finalPath);
@@ -216,8 +272,10 @@ class BFNsfcEnv extends BFEnv {
     return _darwinUrlPlugin.basename(path.toString());
   }
 
-  Future<BFEntity> _fromIcloudEntity(NsFileCoordinatorEntity entity,
-      {required IList<String>? dirRelPath}) async {
+  Future<BFEntity> _fromIcloudEntity(
+    NsFileCoordinatorEntity entity, {
+    required IList<String>? dirRelPath,
+  }) async {
     const icloudExt = '.icloud';
     final eName = entity.name;
     final eUrl = entity.url;
@@ -225,16 +283,24 @@ class BFNsfcEnv extends BFEnv {
     // .ab.icloud
     // 0123456789
     //  []
-    final realName =
-        isOnCloud ? eName.substring(1, eName.length - icloudExt.length) : eName;
+    final realName = isOnCloud
+        ? eName.substring(1, eName.length - icloudExt.length)
+        : eName;
     final eDirUrl = await _darwinUrlPlugin.dirUrl(eUrl);
     final eRealUrl = isOnCloud
-        ? await _darwinUrlPlugin.append(eDirUrl, [realName],
-            isDir: entity.isDir)
+        ? await _darwinUrlPlugin.append(eDirUrl, [
+            realName,
+          ], isDir: entity.isDir)
         : eUrl;
-    return BFEntity(BFScopedPath(eRealUrl), realName, entity.isDir,
-        entity.length, entity.lastMod, isOnCloud,
-        dirRelPath: dirRelPath);
+    return BFEntity(
+      BFScopedPath(eRealUrl),
+      realName,
+      entity.isDir,
+      entity.length,
+      entity.lastMod,
+      isOnCloud,
+      dirRelPath: dirRelPath,
+    );
   }
 }
 

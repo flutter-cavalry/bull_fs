@@ -29,8 +29,11 @@ class BFEnvUtil {
   ///
   /// [path] is the local path of the directory.
   /// [uri] is the uri of the directory.
-  static Future<BFDirInitResult> envFromDirectory(
-      {required String? path, required String? uri, bool? macosIcloud}) async {
+  static Future<BFDirInitResult> envFromDirectory({
+    required String? path,
+    required String? uri,
+    bool? macosIcloud,
+  }) async {
     if (path == null && uri == null) {
       throw Exception('Both path and uri are null');
     }

@@ -7,8 +7,13 @@ import 'types.dart';
 const _maxNameAttempts = 200;
 
 class ZBFInternal {
-  static Future<String> nextAvailableFileName(BFEnv env, BFPath dir,
-      String unsafeFileName, bool isDir, BFNameUpdaterFunc nameUpdater) async {
+  static Future<String> nextAvailableFileName(
+    BFEnv env,
+    BFPath dir,
+    String unsafeFileName,
+    bool isDir,
+    BFNameUpdaterFunc nameUpdater,
+  ) async {
     // First attempt.
     if (await env.child(dir, [unsafeFileName].lock) == null) {
       return unsafeFileName;
@@ -24,7 +29,10 @@ class ZBFInternal {
   }
 
   static Future<BFEntity> mustGetStat(
-      BFEnv env, BFPath root, IList<String> relPath) async {
+    BFEnv env,
+    BFPath root,
+    IList<String> relPath,
+  ) async {
     final stat = await env.child(root, relPath);
     if (stat == null) {
       throw Exception('${relPath.join('/')} is not found in $root');
@@ -33,7 +41,10 @@ class ZBFInternal {
   }
 
   static String defaultFileNameUpdater(
-      String fileName, bool isDir, int attempt) {
+    String fileName,
+    bool isDir,
+    int attempt,
+  ) {
     if (isDir) {
       return '$fileName ($attempt)';
     }

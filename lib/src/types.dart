@@ -97,8 +97,11 @@ extension BFPathExtension on BFPath {
 
   /// Only for Apple platforms. Joins a relative path to the scoped path.
   Future<BFPath> iosJoinRelPath(IList<String> relPath, bool isDir) async {
-    final url = await _darwinUrlPlugin.append(scopedUri(), relPath.unlock,
-        isDir: isDir);
+    final url = await _darwinUrlPlugin.append(
+      scopedUri(),
+      relPath.unlock,
+      isDir: isDir,
+    );
     return BFScopedPath(url);
   }
 
@@ -161,9 +164,15 @@ class BFEntity {
   /// Automatically set when recursively listing a directory.
   IList<String> dirRelPath = <String>[].lock;
 
-  BFEntity(this.path, this.name, this.isDir, int length, this.lastMod,
-      this.notDownloaded,
-      {IList<String>? dirRelPath}) {
+  BFEntity(
+    this.path,
+    this.name,
+    this.isDir,
+    int length,
+    this.lastMod,
+    this.notDownloaded, {
+    IList<String>? dirRelPath,
+  }) {
     if (isDir) {
       this.length = -1;
     } else {
@@ -199,8 +208,10 @@ class BFEntity {
     return '[$res]';
   }
 
-  static Future<BFEntity> fromLocalEntity(FileSystemEntity entity,
-      {required IList<String>? dirRelPath}) async {
+  static Future<BFEntity> fromLocalEntity(
+    FileSystemEntity entity, {
+    required IList<String>? dirRelPath,
+  }) async {
     int length;
     bool isDir;
     DateTime? lastMod;
@@ -212,13 +223,21 @@ class BFEntity {
       isDir = true;
       length = 0;
     }
-    return BFEntity(BFLocalPath(entity.path), p.basename(entity.path), isDir,
-        length, lastMod, false,
-        dirRelPath: dirRelPath);
+    return BFEntity(
+      BFLocalPath(entity.path),
+      p.basename(entity.path),
+      isDir,
+      length,
+      lastMod,
+      false,
+      dirRelPath: dirRelPath,
+    );
   }
 
-  static Future<BFEntity?> fromLocalEntityNE(FileSystemEntity entity,
-      {required IList<String>? dirRelPath}) async {
+  static Future<BFEntity?> fromLocalEntityNE(
+    FileSystemEntity entity, {
+    required IList<String>? dirRelPath,
+  }) async {
     try {
       return await fromLocalEntity(entity, dirRelPath: dirRelPath);
     } catch (_) {

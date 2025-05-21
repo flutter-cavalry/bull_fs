@@ -12,11 +12,11 @@ enum BFEnvType {
   saf,
 
   /// NSFileCoordinator, which is used by iOS and macOS icloud documents.
-  nsfc
+  nsfc,
 }
 
-typedef BFNameUpdaterFunc = String Function(
-    String fileName, bool isDir, int attempt);
+typedef BFNameUpdaterFunc =
+    String Function(String fileName, bool isDir, int attempt);
 
 /// Base class for file system environments.
 abstract class BFEnv {
@@ -31,8 +31,11 @@ abstract class BFEnv {
   ///
   /// [path] is the directory to list.
   /// [recursive] is whether to list recursively.
-  Future<List<BFEntity>> listDir(BFPath path,
-      {bool? recursive, bool? relativePathInfo});
+  Future<List<BFEntity>> listDir(
+    BFPath path, {
+    bool? recursive,
+    bool? relativePathInfo,
+  });
 
   /// Lists only sub-files and their relative paths in a directory recursively.
   /// You can achieve the same thing with [listDir] with [recursive] and
@@ -57,8 +60,12 @@ abstract class BFEnv {
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
   Future<UpdatedBFPath> pasteLocalFile(
-      String localSrc, BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater, bool? overwrite});
+    String localSrc,
+    BFPath dir,
+    String unsafeName, {
+    BFNameUpdaterFunc? nameUpdater,
+    bool? overwrite,
+  });
 
   /// Deletes a file or directory.
   ///
@@ -91,10 +98,18 @@ abstract class BFEnv {
   /// [unsafeName] is the directory name. It's unsafe because it may conflict
   /// with existing files and may change.
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
-  Future<UpdatedBFPath> createDir(BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater}) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(this, dir,
-        unsafeName, true, nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+  Future<UpdatedBFPath> createDir(
+    BFPath dir,
+    String unsafeName, {
+    BFNameUpdaterFunc? nameUpdater,
+  }) async {
+    final safeName = await ZBFInternal.nextAvailableFileName(
+      this,
+      dir,
+      unsafeName,
+      true,
+      nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+    );
     final newDir = await mkdirp(dir, [safeName].lock);
     return UpdatedBFPath(newDir, safeName);
   }
@@ -114,7 +129,11 @@ abstract class BFEnv {
   /// [parentDir] is the parent directory.
   /// [newName] is the new name.
   Future<BFPath> rename(
-      BFPath path, bool isDir, BFPath parentDir, String newName) async {
+    BFPath path,
+    bool isDir,
+    BFPath parentDir,
+    String newName,
+  ) async {
     final newSt = await child(parentDir, [newName].lock);
     if (newSt != null) {
       throw Exception('Path already exists: ${newSt.path}');
@@ -132,8 +151,13 @@ abstract class BFEnv {
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
   Future<UpdatedBFPath> moveToDir(
-      BFPath src, bool isDir, BFPath srcDir, BFPath destDir,
-      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) {
+    BFPath src,
+    bool isDir,
+    BFPath srcDir,
+    BFPath destDir, {
+    BFNameUpdaterFunc? nameUpdater,
+    bool? overwrite,
+  }) {
     if (overwrite == true) {
       return _moveToDirByForce(src, isDir, srcDir, destDir);
     }
@@ -151,13 +175,21 @@ abstract class BFEnv {
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   @protected
   Future<UpdatedBFPath> moveToDirSafe(
-      BFPath src, bool isDir, BFPath srcDir, BFPath destDir,
-      {BFNameUpdaterFunc? nameUpdater});
+    BFPath src,
+    bool isDir,
+    BFPath srcDir,
+    BFPath destDir, {
+    BFNameUpdaterFunc? nameUpdater,
+  });
 
   /// Moves a file or directory to a directory and overwrites the existing item.
   /// This is called by [moveToDir] when [overwrite] is `true`.
   Future<UpdatedBFPath> _moveToDirByForce(
-      BFPath src, bool isDir, BFPath srcDir, BFPath destDir) async {
+    BFPath src,
+    bool isDir,
+    BFPath srcDir,
+    BFPath destDir,
+  ) async {
     final srcName = await findBasename(src, isDir);
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
@@ -169,7 +201,8 @@ abstract class BFEnv {
       final newPath = await moveToDirSafe(src, isDir, srcDir, destDir);
       if (newPath.newName != srcName) {
         throw Exception(
-            'Unexpected new name: ${newPath.newName}, expected: $srcName');
+          'Unexpected new name: ${newPath.newName}, expected: $srcName',
+        );
       }
       return newPath;
     }
@@ -177,13 +210,18 @@ abstract class BFEnv {
     final tmpDestName = tmpFileName();
     // Rename the destination item to a temporary name if it exists.
     final tmpDestPath = await rename(
-        destItemStat.path, destItemStat.isDir, destDir, tmpDestName);
+      destItemStat.path,
+      destItemStat.isDir,
+      destDir,
+      tmpDestName,
+    );
 
     // Move the source item to the destination.
     final newPath = await moveToDirSafe(src, isDir, srcDir, destDir);
     if (newPath.newName != srcName) {
       throw Exception(
-          'Unexpected new name: ${newPath.newName}, expected: $srcName');
+        'Unexpected new name: ${newPath.newName}, expected: $srcName',
+      );
     }
 
     // Remove the tmp file after it's been overwritten.
@@ -196,8 +234,11 @@ abstract class BFEnv {
   /// [path] is the file path.
   /// [bufferSize] is the buffer size.
   /// [start] is the start position.
-  Future<Stream<List<int>>> readFileStream(BFPath path,
-      {int? bufferSize, int? start});
+  Future<Stream<List<int>>> readFileStream(
+    BFPath path, {
+    int? bufferSize,
+    int? start,
+  });
 
   /// Writes a file as a stream of bytes.
   ///
@@ -206,8 +247,12 @@ abstract class BFEnv {
   /// with existing files and may change.
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
-  Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater, bool? overwrite});
+  Future<BFOutStream> writeFileStream(
+    BFPath dir,
+    String unsafeName, {
+    BFNameUpdaterFunc? nameUpdater,
+    bool? overwrite,
+  });
 
   /// Reads a file as a byte array.
   ///
@@ -224,8 +269,12 @@ abstract class BFEnv {
   /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
   Future<UpdatedBFPath> writeFileBytes(
-      BFPath dir, String unsafeName, Uint8List bytes,
-      {BFNameUpdaterFunc? nameUpdater, bool? overwrite});
+    BFPath dir,
+    String unsafeName,
+    Uint8List bytes, {
+    BFNameUpdaterFunc? nameUpdater,
+    bool? overwrite,
+  });
 
   /// Returns a [BFPath] if the specified [path]/[extendedPath] exists and is a file.
   Future<BFPath?> fileExists(BFPath path, IList<String>? extendedPath);

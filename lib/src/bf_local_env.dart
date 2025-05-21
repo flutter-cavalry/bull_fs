@@ -20,25 +20,28 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<List<BFEntity>> listDir(BFPath path,
-      {bool? recursive, bool? relativePathInfo}) async {
+  Future<List<BFEntity>> listDir(
+    BFPath path, {
+    bool? recursive,
+    bool? relativePathInfo,
+  }) async {
     final rootPath = path.localPath();
     final dirObj = Directory(rootPath);
     final entities = await dirObj.list(recursive: recursive ?? false).toList();
-    final res = (await Future.wait(entities.map((e) {
-      List<String>? dirRelPath;
-      if (relativePathInfo == true) {
-        final relPath = p.relative(e.path, from: rootPath).split(p.separator);
-        if (relPath.length == 1) {
-          dirRelPath = [];
-        } else if (relPath.length > 1) {
-          dirRelPath = relPath.sublist(0, relPath.length - 1);
+    final res = (await Future.wait(
+      entities.map((e) {
+        List<String>? dirRelPath;
+        if (relativePathInfo == true) {
+          final relPath = p.relative(e.path, from: rootPath).split(p.separator);
+          if (relPath.length == 1) {
+            dirRelPath = [];
+          } else if (relPath.length > 1) {
+            dirRelPath = relPath.sublist(0, relPath.length - 1);
+          }
         }
-      }
-      return BFEntity.fromLocalEntityNE(e, dirRelPath: dirRelPath?.lock);
-    })))
-        .nonNulls
-        .toList();
+        return BFEntity.fromLocalEntityNE(e, dirRelPath: dirRelPath?.lock);
+      }),
+    )).nonNulls.toList();
     return res;
   }
 
@@ -58,7 +61,9 @@ class BFLocalEnv extends BFEnv {
             dirRelPath = relPath.sublist(0, relPath.length - 1);
           }
           return BFPathAndDirRelPath(
-              BFLocalPath(e.path), (dirRelPath ?? []).lock);
+            BFLocalPath(e.path),
+            (dirRelPath ?? []).lock,
+          );
         })
         .nonNulls
         .toList();
@@ -118,15 +123,20 @@ class BFLocalEnv extends BFEnv {
 
   @override
   Future<UpdatedBFPath> moveToDirSafe(
-      BFPath src, bool isDir, BFPath srcDir, BFPath destDir,
-      {BFNameUpdaterFunc? nameUpdater}) async {
+    BFPath src,
+    bool isDir,
+    BFPath srcDir,
+    BFPath destDir, {
+    BFNameUpdaterFunc? nameUpdater,
+  }) async {
     final srcName = p.basename(src.localPath());
     final destItemFileName = await ZBFInternal.nextAvailableFileName(
-        this,
-        destDir,
-        srcName,
-        isDir,
-        nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+      this,
+      destDir,
+      srcName,
+      isDir,
+      nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+    );
     final destItemPath = p.join(destDir.toString(), destItemFileName);
 
     await _move(src.localPath(), destItemPath, isDir);
@@ -142,32 +152,53 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<Stream<List<int>>> readFileStream(BFPath path,
-      {int? bufferSize, int? start}) async {
+  Future<Stream<List<int>>> readFileStream(
+    BFPath path, {
+    int? bufferSize,
+    int? start,
+  }) async {
     return File(path.localPath()).openRead(start);
   }
 
   @override
-  Future<BFOutStream> writeFileStream(BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+  Future<BFOutStream> writeFileStream(
+    BFPath dir,
+    String unsafeName, {
+    BFNameUpdaterFunc? nameUpdater,
+    bool? overwrite,
+  }) async {
     final dirPath = dir.localPath();
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+        : await ZBFInternal.nextAvailableFileName(
+            this,
+            dir,
+            unsafeName,
+            false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+          );
     final destPath = p.join(dirPath, safeName);
     return await outStreamForLocalPath(destPath);
   }
 
   @override
   Future<UpdatedBFPath> writeFileBytes(
-      BFPath dir, String unsafeName, Uint8List bytes,
-      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    BFPath dir,
+    String unsafeName,
+    Uint8List bytes, {
+    BFNameUpdaterFunc? nameUpdater,
+    bool? overwrite,
+  }) async {
     final dirPath = dir.localPath();
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+        : await ZBFInternal.nextAvailableFileName(
+            this,
+            dir,
+            unsafeName,
+            false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+          );
     final destPath = p.join(dirPath, safeName);
     await File(destPath).writeAsBytes(bytes);
     return UpdatedBFPath(BFLocalPath(destPath), safeName);
@@ -175,12 +206,21 @@ class BFLocalEnv extends BFEnv {
 
   @override
   Future<UpdatedBFPath> pasteLocalFile(
-      String localSrc, BFPath dir, String unsafeName,
-      {BFNameUpdaterFunc? nameUpdater, bool? overwrite}) async {
+    String localSrc,
+    BFPath dir,
+    String unsafeName, {
+    BFNameUpdaterFunc? nameUpdater,
+    bool? overwrite,
+  }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(this, dir, unsafeName, false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater);
+        : await ZBFInternal.nextAvailableFileName(
+            this,
+            dir,
+            unsafeName,
+            false,
+            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+          );
     final dirPath = dir.localPath();
     final destPath = p.join(dirPath, safeName);
     final destBFPath = BFLocalPath(destPath);
@@ -212,8 +252,9 @@ class BFLocalEnv extends BFEnv {
 
   Future<BFOutStream> outStreamForLocalPath(String filePath) async {
     return BFLocalRafOutStream(
-        await File(filePath).open(mode: FileMode.writeOnly),
-        BFLocalPath(filePath));
+      await File(filePath).open(mode: FileMode.writeOnly),
+      BFLocalPath(filePath),
+    );
   }
 
   Future<void> _copy(String src, String dest, bool isDir) async {
@@ -236,7 +277,9 @@ class BFLocalEnv extends BFEnv {
 
   @override
   Future<BFPath?> directoryExists(
-      BFPath path, IList<String>? extendedPath) async {
+    BFPath path,
+    IList<String>? extendedPath,
+  ) async {
     final finalPath = p.joinAll([path.localPath(), ...(extendedPath ?? [])]);
     final ioType = await FileSystemEntity.type(finalPath);
     if (ioType == FileSystemEntityType.directory) {
