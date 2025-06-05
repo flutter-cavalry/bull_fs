@@ -12,16 +12,19 @@ class ZBFInternal {
     BFPath dir,
     String unsafeFileName,
     bool isDir,
-    BFNameUpdaterFunc nameUpdater,
-  ) async {
+    BFNameUpdaterFunc nameUpdater, {
+
+    /// Optional registry to save generated file names.
+    Set<String>? registry,
+  }) async {
     // First attempt.
-    if (await env.child(dir, [unsafeFileName].lock) == null) {
+    if (await _checkNameAvailable(env, dir, unsafeFileName, registry)) {
       return unsafeFileName;
     }
 
     for (var i = 1; i <= _maxNameAttempts; i++) {
       final newName = nameUpdater(unsafeFileName, isDir, i);
-      if (await env.child(dir, [newName].lock) == null) {
+      if (await _checkNameAvailable(env, dir, newName, registry)) {
         return newName;
       }
     }
@@ -52,4 +55,18 @@ class ZBFInternal {
     final ext = p.extension(fileName);
     return '$basename ($attempt)$ext';
   }
+}
+
+Future<bool> _checkNameAvailable(
+  BFEnv env,
+  BFPath dir,
+  String fileName,
+  Set<String>? registry,
+) async {
+  if (registry?.contains(fileName) == true) {
+    // Already registered, so it is not available.
+    return false;
+  }
+  final stat = await env.child(dir, [fileName].lock);
+  return stat == null;
 }

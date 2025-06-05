@@ -1382,6 +1382,15 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.equals(name, 'b.zz.abc -> 1');
     });
 
+    ns.add('nextAvailableFile (registry)', (h) async {
+      final r = h.data as BFPath;
+      await _createFile(env, r, 'a 二', [1]);
+      var name = await ZBFInternal.nextAvailableFileName(
+          env, r, 'a 二', false, ZBFInternal.defaultFileNameUpdater,
+          registry: {'a 二', 'a 二 (1)'});
+      h.equals(name, 'a 二 (2)');
+    });
+
     final failedNames = await ns.run();
     if (failedNames.isNotEmpty) {
       throw Exception('Failed tests: $failedNames');
