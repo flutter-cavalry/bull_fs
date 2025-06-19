@@ -108,10 +108,10 @@ packages:
     dependency: "direct main"
     description:
       name: fast_file_picker
-      sha256: dc8ed2f41abcb077958ade3251d40728a95eaa047be68d1a1b2d584cd51f87e5
+      sha256: "9f1b00c7dbb3aba71e78551b5759a159d318c9e59a3a1461ae65abb596d02a86"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.4"
+    version: "0.4.5"
   fast_immutable_collections:
     dependency: "direct main"
     description:
@@ -339,10 +339,10 @@ packages:
     dependency: transitive
     description:
       name: ns_file_coordinator_util
-      sha256: e46a519a311351a01dff5b5e4ef677f6b2e64df20951901b2ab56195875f46e9
+      sha256: edb59f5ef2deb0c3c26dabfefe139803e14a59369efe84648c34c54aa95c8b6b
       url: "https://pub.dev"
     source: hosted
-    version: "0.24.2"
+    version: "0.25.0"
   path:
     dependency: "direct main"
     description:
