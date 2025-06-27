@@ -11,6 +11,11 @@ class BFDuplicateItemExp implements Exception {
   final String itemName;
 
   BFDuplicateItemExp(this.itemName);
+
+  @override
+  String toString() {
+    return 'BFDuplicateItemExp(itemName: $itemName)';
+  }
 }
 
 class BFTooManyDuplicateFilenamesExp implements Exception {}
