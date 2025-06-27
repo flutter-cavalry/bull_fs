@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:darwin_url/darwin_url.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
@@ -6,7 +7,11 @@ import 'package:path/path.dart' as p;
 
 final DarwinUrl _darwinUrlPlugin = DarwinUrl();
 
-class BFDuplicateItemExp implements Exception {}
+class BFDuplicateItemExp implements Exception {
+  final String itemName;
+
+  BFDuplicateItemExp(this.itemName);
+}
 
 class BFTooManyDuplicateFilenamesExp implements Exception {}
 
