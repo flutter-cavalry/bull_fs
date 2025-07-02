@@ -92,10 +92,10 @@ packages:
     dependency: "direct main"
     description:
       name: darwin_url
-      sha256: "6f2b3d60c3af85de99bde362d2a3efdb79e3419c20a0c821e938f7dd9eeb4de6"
+      sha256: "4c598673949aed667f92e7725071aebd385dfb4103b72f0dca8d8121fbf9bd3b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.1"
+    version: "0.6.2"
   fake_async:
     dependency: transitive
     description:
@@ -108,10 +108,10 @@ packages:
     dependency: "direct main"
     description:
       name: fast_file_picker
-      sha256: "9f1b00c7dbb3aba71e78551b5759a159d318c9e59a3a1461ae65abb596d02a86"
+      sha256: "29e3eb17901f2c4e17326e86b2fdf43d07d0d9b20e053ee082f24c78323bf780"
       url: "https://pub.dev"
     source: hosted
-    version: "0.4.5"
+    version: "0.4.6"
   fast_immutable_collections:
     dependency: "direct main"
     description:
@@ -363,10 +363,10 @@ packages:
     dependency: transitive
     description:
       name: saf_stream
-      sha256: f48b9f134d0cd1047a0f58539e967400f3a15846482911a2d892b1851385ce27
+      sha256: "417501ced1caeb98958524e1a93e64be87af203395a7ba7bb1da47b19234ccf1"
       url: "https://pub.dev"
     source: hosted
-    version: "0.11.2"
+    version: "0.11.3"
   saf_util:
     dependency: transitive
     description:
