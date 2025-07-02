@@ -136,7 +136,7 @@ class BFSafEnv extends BFEnv {
     bool isDir,
     BFPath srcDir,
     BFPath destDir, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
   }) async {
     // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
     // Then move the file to dest and rename it back to the desired name.
@@ -155,7 +155,7 @@ class BFSafEnv extends BFEnv {
         destDir,
         unsafeDestName,
         isDir,
-        nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+        nameUpdater ?? bfDefaultNameUpdater,
       );
 
       final tmpDestInfo = await _safMove(srcTmpUri, isDir, srcDir, destDir);
@@ -216,7 +216,7 @@ class BFSafEnv extends BFEnv {
   Future<BFOutStream> writeFileStream(
     BFPath dir,
     String unsafeName, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
@@ -226,7 +226,7 @@ class BFSafEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+            nameUpdater ?? bfDefaultNameUpdater,
           );
     final res = await _streamPlugin.startWriteStream(
       dir.scopedUri(),
@@ -251,7 +251,7 @@ class BFSafEnv extends BFEnv {
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
@@ -261,7 +261,7 @@ class BFSafEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+            nameUpdater ?? bfDefaultNameUpdater,
           );
     final res = await _streamPlugin.writeFileBytes(
       dir.scopedUri(),
@@ -288,7 +288,7 @@ class BFSafEnv extends BFEnv {
     String localSrc,
     BFPath dir,
     String unsafeName, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
@@ -298,7 +298,7 @@ class BFSafEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+            nameUpdater ?? bfDefaultNameUpdater,
           );
     final res = await _streamPlugin.pasteLocalFile(
       localSrc,

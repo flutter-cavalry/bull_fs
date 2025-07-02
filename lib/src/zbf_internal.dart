@@ -6,25 +6,49 @@ import 'types.dart';
 
 const _maxNameAttempts = 200;
 
+final bfDefaultNameUpdater = BFNameUpdater(
+  bfDefaultFileNameUpdaterFn,
+);
+
+String bfDefaultFileNameUpdaterFn(
+  String fileName,
+  bool isDir,
+  int attempt,
+) {
+  if (isDir) {
+    return '$fileName ($attempt)';
+  }
+  final basename = p.basenameWithoutExtension(fileName);
+  final ext = p.extension(fileName);
+  return '$basename ($attempt)$ext';
+}
+
 class ZBFInternal {
   static Future<String> nextAvailableFileName(
     BFEnv env,
     BFPath dir,
     String unsafeFileName,
     bool isDir,
-    BFNameUpdaterFunc nameUpdater, {
-
-    /// Optional name registry to save generated file names.
-    Set<String>? nameRegistry,
-  }) async {
+    BFNameUpdater nameUpdater,
+  ) async {
     // First attempt.
-    if (await _checkNameAvailable(env, dir, unsafeFileName, nameRegistry)) {
+    if (await _checkNameAvailable(
+      env,
+      dir,
+      unsafeFileName,
+      nameUpdater.nameRegistry,
+    )) {
       return unsafeFileName;
     }
 
     for (var i = 1; i <= _maxNameAttempts; i++) {
-      final newName = nameUpdater(unsafeFileName, isDir, i);
-      if (await _checkNameAvailable(env, dir, newName, nameRegistry)) {
+      final newName = nameUpdater.updateFn(unsafeFileName, isDir, i);
+      if (await _checkNameAvailable(
+        env,
+        dir,
+        newName,
+        nameUpdater.nameRegistry,
+      )) {
         return newName;
       }
     }
@@ -42,28 +66,15 @@ class ZBFInternal {
     }
     return stat;
   }
-
-  static String defaultFileNameUpdater(
-    String fileName,
-    bool isDir,
-    int attempt,
-  ) {
-    if (isDir) {
-      return '$fileName ($attempt)';
-    }
-    final basename = p.basenameWithoutExtension(fileName);
-    final ext = p.extension(fileName);
-    return '$basename ($attempt)$ext';
-  }
 }
 
 Future<bool> _checkNameAvailable(
   BFEnv env,
   BFPath dir,
   String fileName,
-  Set<String>? registry,
+  Set<String>? nameRegistry,
 ) async {
-  if (registry?.contains(fileName) == true) {
+  if (nameRegistry?.contains(fileName) == true) {
     // Already registered, so it is not available.
     return false;
   }

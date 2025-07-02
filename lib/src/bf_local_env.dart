@@ -129,7 +129,7 @@ class BFLocalEnv extends BFEnv {
     bool isDir,
     BFPath srcDir,
     BFPath destDir, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
   }) async {
     final srcName = p.basename(src.localPath());
     final destItemFileName = await ZBFInternal.nextAvailableFileName(
@@ -137,7 +137,7 @@ class BFLocalEnv extends BFEnv {
       destDir,
       srcName,
       isDir,
-      nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+      nameUpdater ?? bfDefaultNameUpdater,
     );
     final destItemPath = p.join(destDir.toString(), destItemFileName);
 
@@ -166,7 +166,7 @@ class BFLocalEnv extends BFEnv {
   Future<BFOutStream> writeFileStream(
     BFPath dir,
     String unsafeName, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
     bool? overwrite,
   }) async {
     final dirPath = dir.localPath();
@@ -177,7 +177,7 @@ class BFLocalEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+            nameUpdater ?? bfDefaultNameUpdater,
           );
     final destPath = p.join(dirPath, safeName);
     return await outStreamForLocalPath(destPath);
@@ -188,7 +188,7 @@ class BFLocalEnv extends BFEnv {
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
     bool? overwrite,
   }) async {
     final dirPath = dir.localPath();
@@ -199,7 +199,7 @@ class BFLocalEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+            nameUpdater ?? bfDefaultNameUpdater,
           );
     final destPath = p.join(dirPath, safeName);
     await File(destPath).writeAsBytes(bytes);
@@ -211,7 +211,7 @@ class BFLocalEnv extends BFEnv {
     String localSrc,
     BFPath dir,
     String unsafeName, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
@@ -221,7 +221,7 @@ class BFLocalEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+            nameUpdater ?? bfDefaultNameUpdater,
           );
     final dirPath = dir.localPath();
     final destPath = p.join(dirPath, safeName);

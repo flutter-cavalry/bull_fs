@@ -19,6 +19,13 @@ enum BFEnvType {
 typedef BFNameUpdaterFunc =
     String Function(String fileName, bool isDir, int attempt);
 
+class BFNameUpdater {
+  final BFNameUpdaterFunc updateFn;
+  final Set<String>? nameRegistry;
+
+  BFNameUpdater(this.updateFn, {this.nameRegistry});
+}
+
 /// Base class for file system environments.
 abstract class BFEnv {
   /// Type of the environment.
@@ -64,7 +71,7 @@ abstract class BFEnv {
     String localSrc,
     BFPath dir,
     String unsafeName, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
     bool? overwrite,
   });
 
@@ -103,14 +110,14 @@ abstract class BFEnv {
   Future<UpdatedBFPath> createDir(
     BFPath dir,
     String unsafeName, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
   }) async {
     final safeName = await ZBFInternal.nextAvailableFileName(
       this,
       dir,
       unsafeName,
       true,
-      nameUpdater ?? ZBFInternal.defaultFileNameUpdater,
+      nameUpdater ?? bfDefaultNameUpdater,
     );
     final newDir = await mkdirp(dir, [safeName].lock);
     return UpdatedBFPath(newDir, safeName);
@@ -157,7 +164,7 @@ abstract class BFEnv {
     bool isDir,
     BFPath srcDir,
     BFPath destDir, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
     bool? overwrite,
   }) {
     if (overwrite == true) {
@@ -181,7 +188,7 @@ abstract class BFEnv {
     bool isDir,
     BFPath srcDir,
     BFPath destDir, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
   });
 
   /// Moves a file or directory to a directory and overwrites the existing item.
@@ -252,7 +259,7 @@ abstract class BFEnv {
   Future<BFOutStream> writeFileStream(
     BFPath dir,
     String unsafeName, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
     bool? overwrite,
   });
 
@@ -274,7 +281,7 @@ abstract class BFEnv {
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {
-    BFNameUpdaterFunc? nameUpdater,
+    BFNameUpdater? nameUpdater,
     bool? overwrite,
   });
 

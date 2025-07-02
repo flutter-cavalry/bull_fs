@@ -164,10 +164,6 @@ class _BFTestRouteState extends State<BFTestRoute> {
     return '$name (${c - 1})$ext';
   }
 
-  String _testNameUpdater(String fileName, bool isDir, int attempt) {
-    return 'NU-$fileName-$isDir-$attempt';
-  }
-
   Future<void> _createNestedDir(BFEnv env, BFPath r) async {
     final subDir1 = await env.mkdirp(r, ['一 二'].lock);
     await env.writeFileBytes(subDir1, 'a.txt', Uint8List.fromList([1]));
@@ -1315,16 +1311,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二', [1]);
       var name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'a 二', false, ZBFInternal.defaultFileNameUpdater);
+          env, r, 'a 二', false, bfDefaultNameUpdater);
       h.equals(name, 'a 二 (1)');
 
       name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b', false, ZBFInternal.defaultFileNameUpdater);
+          env, r, 'b', false, bfDefaultNameUpdater);
       h.equals(name, 'b');
       await _createFile(env, r, 'b', [2]);
 
       name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b', false, ZBFInternal.defaultFileNameUpdater);
+          env, r, 'b', false, bfDefaultNameUpdater);
       h.equals(name, 'b (1)');
     });
 
@@ -1332,16 +1328,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二.zz', [1]);
       var name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'a 二.zz', false, ZBFInternal.defaultFileNameUpdater);
+          env, r, 'a 二.zz', false, bfDefaultNameUpdater);
       h.equals(name, 'a 二 (1).zz');
 
       name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b.zz', false, ZBFInternal.defaultFileNameUpdater);
+          env, r, 'b.zz', false, bfDefaultNameUpdater);
       h.equals(name, 'b.zz');
       await _createFile(env, r, 'b.zz', [2]);
 
       name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b.zz', false, ZBFInternal.defaultFileNameUpdater);
+          env, r, 'b.zz', false, bfDefaultNameUpdater);
       h.equals(name, 'b (1).zz');
     });
 
@@ -1349,23 +1345,23 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       await env.mkdirp(r, ['a 二.zz'].lock);
       var name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'a 二.zz', true, ZBFInternal.defaultFileNameUpdater);
+          env, r, 'a 二.zz', true, bfDefaultNameUpdater);
       h.equals(name, 'a 二.zz (1)');
 
       name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b.zz', true, ZBFInternal.defaultFileNameUpdater);
+          env, r, 'b.zz', true, bfDefaultNameUpdater);
       h.equals(name, 'b.zz');
       await env.mkdirp(r, ['b.zz'].lock);
 
       name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b.zz', true, ZBFInternal.defaultFileNameUpdater);
+          env, r, 'b.zz', true, bfDefaultNameUpdater);
       h.equals(name, 'b.zz (1)');
     });
 
     ns.add('nextAvailableFile (custom name updater)', (h) async {
       // ignore: prefer_function_declarations_over_variables
-      final nameUpdater =
-          (String name, bool isDir, int count) => '$name -> $count';
+      final nameUpdater = BFNameUpdater(
+          (String name, bool isDir, int count) => '$name -> $count');
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二.zz.abc', [1]);
       var name = await ZBFInternal.nextAvailableFileName(
@@ -1386,8 +1382,13 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二', [1]);
       var name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'a 二', false, ZBFInternal.defaultFileNameUpdater,
-          nameRegistry: {'a 二', 'a 二 (1)'});
+        env,
+        r,
+        'a 二',
+        false,
+        BFNameUpdater(bfDefaultFileNameUpdaterFn,
+            nameRegistry: {'a 二', 'a 二 (1)'}),
+      );
       h.equals(name, 'a 二 (2)');
     });
 
@@ -1454,6 +1455,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
     await FcQuickDialog.error(context,
         error: err, title: 'Error', okText: 'OK');
   }
+}
+
+final _testNameUpdater = BFNameUpdater(_testNameUpdaterFn);
+
+String _testNameUpdaterFn(String fileName, bool isDir, int attempt) {
+  return 'NU-$fileName-$isDir-$attempt';
 }
 
 extension BFOutStreamExtension on BFOutStream {
