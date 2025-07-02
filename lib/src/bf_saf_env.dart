@@ -155,7 +155,7 @@ class BFSafEnv extends BFEnv {
         destDir,
         unsafeDestName,
         isDir,
-        nameUpdater ?? bfDefaultNameUpdater,
+        nameUpdater ?? BFDefaultNameUpdater.noRegistry,
       );
 
       final tmpDestInfo = await _safMove(srcTmpUri, isDir, srcDir, destDir);
@@ -226,7 +226,7 @@ class BFSafEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? bfDefaultNameUpdater,
+            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
           );
     final res = await _streamPlugin.startWriteStream(
       dir.scopedUri(),
@@ -261,7 +261,7 @@ class BFSafEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? bfDefaultNameUpdater,
+            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
           );
     final res = await _streamPlugin.writeFileBytes(
       dir.scopedUri(),
@@ -298,7 +298,7 @@ class BFSafEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? bfDefaultNameUpdater,
+            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
           );
     final res = await _streamPlugin.pasteLocalFile(
       localSrc,

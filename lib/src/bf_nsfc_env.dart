@@ -130,7 +130,7 @@ class BFNsfcEnv extends BFEnv {
       destDir,
       srcName,
       isDir,
-      nameUpdater ?? bfDefaultNameUpdater,
+      nameUpdater ?? BFDefaultNameUpdater.noRegistry,
     );
     final destItemPath = await destDir.iosJoinRelPath(
       [destItemFileName].lock,
@@ -167,7 +167,7 @@ class BFNsfcEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? bfDefaultNameUpdater,
+            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
           );
     final destPathUrl = await _darwinUrlPlugin.append(dir.toString(), [
       safeName,
@@ -193,7 +193,7 @@ class BFNsfcEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? bfDefaultNameUpdater,
+            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
           );
     final destPathUrl = await _darwinUrlPlugin.append(dir.toString(), [
       safeName,
@@ -218,7 +218,7 @@ class BFNsfcEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? bfDefaultNameUpdater,
+            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
           );
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);

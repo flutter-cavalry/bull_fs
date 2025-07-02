@@ -16,16 +16,6 @@ enum BFEnvType {
   nsfc,
 }
 
-typedef BFNameUpdaterFunc =
-    String Function(String fileName, bool isDir, int attempt);
-
-class BFNameUpdater {
-  final BFNameUpdaterFunc updateFn;
-  final Set<String>? nameRegistry;
-
-  BFNameUpdater(this.updateFn, {this.nameRegistry});
-}
-
 /// Base class for file system environments.
 abstract class BFEnv {
   /// Type of the environment.
@@ -117,7 +107,7 @@ abstract class BFEnv {
       dir,
       unsafeName,
       true,
-      nameUpdater ?? bfDefaultNameUpdater,
+      nameUpdater ?? BFDefaultNameUpdater.noRegistry,
     );
     final newDir = await mkdirp(dir, [safeName].lock);
     return UpdatedBFPath(newDir, safeName);

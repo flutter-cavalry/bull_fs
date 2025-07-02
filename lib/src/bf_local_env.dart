@@ -137,7 +137,7 @@ class BFLocalEnv extends BFEnv {
       destDir,
       srcName,
       isDir,
-      nameUpdater ?? bfDefaultNameUpdater,
+      nameUpdater ?? BFDefaultNameUpdater.noRegistry,
     );
     final destItemPath = p.join(destDir.toString(), destItemFileName);
 
@@ -177,7 +177,7 @@ class BFLocalEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? bfDefaultNameUpdater,
+            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
           );
     final destPath = p.join(dirPath, safeName);
     return await outStreamForLocalPath(destPath);
@@ -199,7 +199,7 @@ class BFLocalEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? bfDefaultNameUpdater,
+            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
           );
     final destPath = p.join(dirPath, safeName);
     await File(destPath).writeAsBytes(bytes);
@@ -221,7 +221,7 @@ class BFLocalEnv extends BFEnv {
             dir,
             unsafeName,
             false,
-            nameUpdater ?? bfDefaultNameUpdater,
+            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
           );
     final dirPath = dir.localPath();
     final destPath = p.join(dirPath, safeName);

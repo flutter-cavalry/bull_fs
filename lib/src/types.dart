@@ -358,3 +358,14 @@ class UpdatedBFPath {
     return '$path|$newName';
   }
 }
+
+typedef BFNameUpdaterFunc =
+    String Function(String fileName, bool isDir, int attempt);
+
+abstract class BFNameUpdater {
+  final Set<String>? nameRegistry;
+
+  BFNameUpdater(this.nameRegistry);
+
+  String updateName(String fileName, bool isDir, int attempt);
+}

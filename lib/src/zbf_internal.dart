@@ -6,21 +6,27 @@ import 'types.dart';
 
 const _maxNameAttempts = 200;
 
-final bfDefaultNameUpdater = BFNameUpdater(
-  bfDefaultFileNameUpdaterFn,
-);
+final _defNameUpdaterNoReg = BFDefaultNameUpdater(null);
 
-String bfDefaultFileNameUpdaterFn(
-  String fileName,
-  bool isDir,
-  int attempt,
-) {
-  if (isDir) {
-    return '$fileName ($attempt)';
+class BFDefaultNameUpdater extends BFNameUpdater {
+  final BFNameUpdaterFunc? updateFn;
+
+  BFDefaultNameUpdater(super.nameRegistry, {this.updateFn});
+
+  @override
+  String updateName(String fileName, bool isDir, int attempt) {
+    if (updateFn != null) {
+      return updateFn!(fileName, isDir, attempt);
+    }
+    if (isDir) {
+      return '$fileName ($attempt)';
+    }
+    final basename = p.basenameWithoutExtension(fileName);
+    final ext = p.extension(fileName);
+    return '$basename ($attempt)$ext';
   }
-  final basename = p.basenameWithoutExtension(fileName);
-  final ext = p.extension(fileName);
-  return '$basename ($attempt)$ext';
+
+  static BFDefaultNameUpdater get noRegistry => _defNameUpdaterNoReg;
 }
 
 class ZBFInternal {
@@ -42,7 +48,7 @@ class ZBFInternal {
     }
 
     for (var i = 1; i <= _maxNameAttempts; i++) {
-      final newName = nameUpdater.updateFn(unsafeFileName, isDir, i);
+      final newName = nameUpdater.updateName(unsafeFileName, isDir, i);
       if (await _checkNameAvailable(
         env,
         dir,
