@@ -14,17 +14,17 @@ class ZBFInternal {
     bool isDir,
     BFNameUpdaterFunc nameUpdater, {
 
-    /// Optional registry to save generated file names.
-    Set<String>? registry,
+    /// Optional name registry to save generated file names.
+    Set<String>? nameRegistry,
   }) async {
     // First attempt.
-    if (await _checkNameAvailable(env, dir, unsafeFileName, registry)) {
+    if (await _checkNameAvailable(env, dir, unsafeFileName, nameRegistry)) {
       return unsafeFileName;
     }
 
     for (var i = 1; i <= _maxNameAttempts; i++) {
       final newName = nameUpdater(unsafeFileName, isDir, i);
-      if (await _checkNameAvailable(env, dir, newName, registry)) {
+      if (await _checkNameAvailable(env, dir, newName, nameRegistry)) {
         return newName;
       }
     }

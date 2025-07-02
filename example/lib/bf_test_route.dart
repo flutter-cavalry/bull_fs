@@ -1387,7 +1387,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       await _createFile(env, r, 'a 二', [1]);
       var name = await ZBFInternal.nextAvailableFileName(
           env, r, 'a 二', false, ZBFInternal.defaultFileNameUpdater,
-          registry: {'a 二', 'a 二 (1)'});
+          nameRegistry: {'a 二', 'a 二 (1)'});
       h.equals(name, 'a 二 (2)');
     });
 
