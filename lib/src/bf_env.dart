@@ -2,7 +2,8 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tmp_path/tmp_path.dart';
 
-import '../bull_fs.dart';
+import 'bf_name_finder.dart';
+import 'types.dart';
 
 /// Type of [BFEnv].
 enum BFEnvType {
@@ -55,13 +56,14 @@ abstract class BFEnv {
   /// [dir] is the destination directory.
   /// [unsafeName] is the destination file name. It's unsafe because it may conflict
   /// with existing files and may change.
-  /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
+  /// [nameFinder] updates the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
   Future<UpdatedBFPath> pasteLocalFile(
     String localSrc,
     BFPath dir,
     String unsafeName, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   });
 
@@ -96,18 +98,19 @@ abstract class BFEnv {
   /// [dir] is the parent directory.
   /// [unsafeName] is the directory name. It's unsafe because it may conflict
   /// with existing files and may change.
-  /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
+  /// [nameFinder] updates the file name if it conflicts with existing files.
   Future<UpdatedBFPath> createDir(
     BFPath dir,
     String unsafeName, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
   }) async {
-    final safeName = await ZBFInternal.nextAvailableFileName(
+    final safeName = await (nameFinder ?? BFNameFinder.instance).findFileName(
       this,
       dir,
       unsafeName,
       true,
-      nameUpdater ?? BFDefaultNameUpdater.noRegistry,
+      pendingNames: pendingNames,
     );
     final newDir = await mkdirp(dir, [safeName].lock);
     return UpdatedBFPath(newDir, safeName);
@@ -147,20 +150,28 @@ abstract class BFEnv {
   /// [isDir] is whether the source is a directory.
   /// [srcDir] is the parent directory of the source.
   /// [destDir] is the destination directory.
-  /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
+  /// [nameFinder] updates the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
   Future<UpdatedBFPath> moveToDir(
     BFPath src,
     bool isDir,
     BFPath srcDir,
     BFPath destDir, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   }) {
     if (overwrite == true) {
       return _moveToDirByForce(src, isDir, srcDir, destDir);
     }
-    return moveToDirSafe(src, isDir, srcDir, destDir, nameUpdater: nameUpdater);
+    return moveToDirSafe(
+      src,
+      isDir,
+      srcDir,
+      destDir,
+      nameFinder: nameFinder,
+      pendingNames: pendingNames,
+    );
   }
 
   /// Moves a file or directory to a directory.
@@ -171,14 +182,15 @@ abstract class BFEnv {
   /// [isDir] whether the source is a directory.
   /// [srcDir] is the parent directory of the source.
   /// [destDir] is the destination directory.
-  /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
+  /// [nameFinder] updates the file name if it conflicts with existing files.
   @protected
   Future<UpdatedBFPath> moveToDirSafe(
     BFPath src,
     bool isDir,
     BFPath srcDir,
     BFPath destDir, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
   });
 
   /// Moves a file or directory to a directory and overwrites the existing item.
@@ -244,12 +256,13 @@ abstract class BFEnv {
   /// [dir] is the directory to write the file.
   /// [unsafeName] is the file name. It's unsafe because it may conflict
   /// with existing files and may change.
-  /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
+  /// [nameFinder] updates the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
   Future<BFOutStream> writeFileStream(
     BFPath dir,
     String unsafeName, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   });
 
@@ -265,13 +278,14 @@ abstract class BFEnv {
   /// [dir] is the directory to write the file.
   /// [unsafeName] is the file name. It's unsafe because it may conflict
   /// with existing files and may change.
-  /// [nameUpdater] is a function to update the file name if it conflicts with existing files.
+  /// [nameFinder] updates the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
   Future<UpdatedBFPath> writeFileBytes(
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   });
 

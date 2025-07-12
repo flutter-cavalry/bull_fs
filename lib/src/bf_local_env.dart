@@ -129,20 +129,22 @@ class BFLocalEnv extends BFEnv {
     bool isDir,
     BFPath srcDir,
     BFPath destDir, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
   }) async {
-    final srcName = p.basename(src.localPath());
-    final destItemFileName = await ZBFInternal.nextAvailableFileName(
-      this,
-      destDir,
-      srcName,
-      isDir,
-      nameUpdater ?? BFDefaultNameUpdater.noRegistry,
-    );
-    final destItemPath = p.join(destDir.toString(), destItemFileName);
+    final unsafeSrcName = p.basename(src.localPath());
+    final safeDestName = await (nameFinder ?? BFNameFinder.instance)
+        .findFileName(
+          this,
+          destDir,
+          unsafeSrcName,
+          isDir,
+          pendingNames: pendingNames,
+        );
+    final destItemPath = p.join(destDir.toString(), safeDestName);
 
     await _move(src.localPath(), destItemPath, isDir);
-    return UpdatedBFPath(BFLocalPath(destItemPath), destItemFileName);
+    return UpdatedBFPath(BFLocalPath(destItemPath), safeDestName);
   }
 
   Future<void> _move(String src, String dest, bool isDir) async {
@@ -166,18 +168,19 @@ class BFLocalEnv extends BFEnv {
   Future<BFOutStream> writeFileStream(
     BFPath dir,
     String unsafeName, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   }) async {
     final dirPath = dir.localPath();
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(
+        : await (nameFinder ?? BFNameFinder.instance).findFileName(
             this,
             dir,
             unsafeName,
             false,
-            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
+            pendingNames: pendingNames,
           );
     final destPath = p.join(dirPath, safeName);
     return await outStreamForLocalPath(destPath);
@@ -188,18 +191,19 @@ class BFLocalEnv extends BFEnv {
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   }) async {
     final dirPath = dir.localPath();
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(
+        : await (nameFinder ?? BFNameFinder.instance).findFileName(
             this,
             dir,
             unsafeName,
             false,
-            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
+            pendingNames: pendingNames,
           );
     final destPath = p.join(dirPath, safeName);
     await File(destPath).writeAsBytes(bytes);
@@ -211,17 +215,18 @@ class BFLocalEnv extends BFEnv {
     String localSrc,
     BFPath dir,
     String unsafeName, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(
+        : await (nameFinder ?? BFNameFinder.instance).findFileName(
             this,
             dir,
             unsafeName,
             false,
-            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
+            pendingNames: pendingNames,
           );
     final dirPath = dir.localPath();
     final destPath = p.join(dirPath, safeName);

@@ -7,10 +7,10 @@ import 'package:path/path.dart' as p;
 
 final DarwinUrl _darwinUrlPlugin = DarwinUrl();
 
-class BFDuplicateItemExp implements Exception {
+class BFDuplicateItemException implements Exception {
   final String itemName;
 
-  BFDuplicateItemExp(this.itemName);
+  BFDuplicateItemException(this.itemName);
 
   @override
   String toString() {
@@ -18,9 +18,9 @@ class BFDuplicateItemExp implements Exception {
   }
 }
 
-class BFTooManyDuplicateFilenamesExp implements Exception {}
+class BFNoAvailableNameException implements Exception {}
 
-class BFNoPermissionExp implements Exception {}
+class BFNoPermissionException implements Exception {}
 
 /// Abstract class for all file system paths.
 abstract class BFPath {
@@ -357,15 +357,4 @@ class UpdatedBFPath {
   String toString() {
     return '$path|$newName';
   }
-}
-
-typedef BFNameUpdaterFunc =
-    String Function(String fileName, bool isDir, int attempt);
-
-abstract class BFNameUpdater {
-  final Set<String>? nameRegistry;
-
-  BFNameUpdater(this.nameRegistry);
-
-  String updateName(String fileName, bool isDir, int attempt);
 }

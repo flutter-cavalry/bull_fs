@@ -12,11 +12,11 @@ class BFUiUtil {
     required String bfzTooManyDuplicateFilenames,
     required String bfzPermissionDenied,
   }) {
-    if (err is BFDuplicateItemExp) {
+    if (err is BFDuplicateItemException) {
       return bfzSameFileOrFolderExist;
-    } else if (err is BFTooManyDuplicateFilenamesExp) {
+    } else if (err is BFNoAvailableNameException) {
       return bfzTooManyDuplicateFilenames;
-    } else if (err is BFNoPermissionExp) {
+    } else if (err is BFNoPermissionException) {
       return bfzPermissionDenied;
     }
     return null;

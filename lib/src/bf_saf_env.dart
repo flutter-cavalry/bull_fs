@@ -136,7 +136,8 @@ class BFSafEnv extends BFEnv {
     bool isDir,
     BFPath srcDir,
     BFPath destDir, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
   }) async {
     // Since SAF doesn't allow renaming a file while moving. We first rename src file to a random name.
     // Then move the file to dest and rename it back to the desired name.
@@ -150,13 +151,14 @@ class BFSafEnv extends BFEnv {
       srcTmpUri = await rename(src, isDir, srcDir, srcTmpName);
 
       final unsafeDestName = srcName;
-      final safeDestName = await ZBFInternal.nextAvailableFileName(
-        this,
-        destDir,
-        unsafeDestName,
-        isDir,
-        nameUpdater ?? BFDefaultNameUpdater.noRegistry,
-      );
+      final safeDestName = await (nameFinder ?? BFNameFinder.instance)
+          .findFileName(
+            this,
+            destDir,
+            unsafeDestName,
+            isDir,
+            pendingNames: pendingNames,
+          );
 
       final tmpDestInfo = await _safMove(srcTmpUri, isDir, srcDir, destDir);
 
@@ -216,17 +218,18 @@ class BFSafEnv extends BFEnv {
   Future<BFOutStream> writeFileStream(
     BFPath dir,
     String unsafeName, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(
+        : await (nameFinder ?? BFNameFinder.instance).findFileName(
             this,
             dir,
             unsafeName,
             false,
-            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
+            pendingNames: pendingNames,
           );
     final res = await _streamPlugin.startWriteStream(
       dir.scopedUri(),
@@ -251,17 +254,18 @@ class BFSafEnv extends BFEnv {
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(
+        : await (nameFinder ?? BFNameFinder.instance).findFileName(
             this,
             dir,
             unsafeName,
             false,
-            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
+            pendingNames: pendingNames,
           );
     final res = await _streamPlugin.writeFileBytes(
       dir.scopedUri(),
@@ -288,17 +292,18 @@ class BFSafEnv extends BFEnv {
     String localSrc,
     BFPath dir,
     String unsafeName, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(
+        : await (nameFinder ?? BFNameFinder.instance).findFileName(
             this,
             dir,
             unsafeName,
             false,
-            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
+            pendingNames: pendingNames,
           );
     final res = await _streamPlugin.pasteLocalFile(
       localSrc,

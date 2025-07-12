@@ -6,8 +6,8 @@ import 'package:ns_file_coordinator_util/ns_file_coordinator_util.dart';
 import 'package:ns_file_coordinator_util/ns_file_coordinator_util_platform_interface.dart';
 
 import 'bf_env.dart';
+import 'bf_name_finder.dart';
 import 'types.dart';
-import 'zbf_internal.dart';
 
 final _darwinUrlPlugin = DarwinUrl();
 
@@ -119,19 +119,21 @@ class BFNsfcEnv extends BFEnv {
     bool isDir,
     BFPath srcDir,
     BFPath destDir, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
   }) async {
     final srcName = await findBasename(src, isDir);
     if (srcName == null) {
       throw Exception('Unexpected null basename from item stat');
     }
-    final destItemFileName = await ZBFInternal.nextAvailableFileName(
-      this,
-      destDir,
-      srcName,
-      isDir,
-      nameUpdater ?? BFDefaultNameUpdater.noRegistry,
-    );
+    final destItemFileName = await (nameFinder ?? BFNameFinder.instance)
+        .findFileName(
+          this,
+          destDir,
+          srcName,
+          isDir,
+          pendingNames: pendingNames,
+        );
     final destItemPath = await destDir.iosJoinRelPath(
       [destItemFileName].lock,
       isDir,
@@ -157,17 +159,18 @@ class BFNsfcEnv extends BFEnv {
   Future<BFOutStream> writeFileStream(
     BFPath dir,
     String unsafeName, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(
+        : await (nameFinder ?? BFNameFinder.instance).findFileName(
             this,
             dir,
             unsafeName,
             false,
-            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
+            pendingNames: pendingNames,
           );
     final destPathUrl = await _darwinUrlPlugin.append(dir.toString(), [
       safeName,
@@ -183,17 +186,18 @@ class BFNsfcEnv extends BFEnv {
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(
+        : await (nameFinder ?? BFNameFinder.instance).findFileName(
             this,
             dir,
             unsafeName,
             false,
-            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
+            pendingNames: pendingNames,
           );
     final destPathUrl = await _darwinUrlPlugin.append(dir.toString(), [
       safeName,
@@ -208,17 +212,18 @@ class BFNsfcEnv extends BFEnv {
     String localSrc,
     BFPath dir,
     String unsafeName, {
-    BFNameUpdater? nameUpdater,
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
     bool? overwrite,
   }) async {
     final safeName = overwrite == true
         ? unsafeName
-        : await ZBFInternal.nextAvailableFileName(
+        : await (nameFinder ?? BFNameFinder.instance).findFileName(
             this,
             dir,
             unsafeName,
             false,
-            nameUpdater ?? BFDefaultNameUpdater.noRegistry,
+            pendingNames: pendingNames,
           );
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);

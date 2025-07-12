@@ -480,12 +480,12 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       // Add first.
       var out = await env.writeFileStream(r, '一 二.txt.png',
-          nameUpdater: _testNameUpdater);
+          nameFinder: _testNameFinder);
       await out.write(_defStringContentsBytes);
       await out.close();
       // Add second which triggers the name updater.
       out = await env.writeFileStream(r, '一 二.txt.png',
-          nameUpdater: _testNameUpdater);
+          nameFinder: _testNameFinder);
       await out.write(_defStringContentsBytes);
       await out.close();
       var st = await env.stat(out.getPath(), false);
@@ -683,10 +683,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       // Add first.
       await env.pasteLocalFile(tmpFile, r, '一 二.txt.png',
-          nameUpdater: _testNameUpdater);
+          nameFinder: _testNameFinder);
       // Add second which triggers the name updater.
       var pasteRes = await env.pasteLocalFile(tmpFile, r, '一 二.txt.png',
-          nameUpdater: _testNameUpdater);
+          nameFinder: _testNameFinder);
       var st = await env.stat(pasteRes.path, false);
       h.equals(st!.name, 'NU-一 二.txt.png-false-1');
       h.equals(st.name, pasteRes.newName);
@@ -786,11 +786,11 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
       // Add first.
       await env.writeFileBytes(r, '一 二.txt.png', _defStringContentsBytes,
-          nameUpdater: _testNameUpdater);
+          nameFinder: _testNameFinder);
       // Add second which triggers the name updater.
       var writeRes = await env.writeFileBytes(
           r, '一 二.txt.png', _defStringContentsBytes,
-          nameUpdater: _testNameUpdater);
+          nameFinder: _testNameFinder);
       var st = await env.stat(writeRes.path, false);
       h.equals(st!.name, 'NU-一 二.txt.png-false-1');
       h.equals(st.name, writeRes.newName);
@@ -1310,83 +1310,116 @@ class _BFTestRouteState extends State<BFTestRoute> {
     ns.add('nextAvailableFile', (h) async {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二', [1]);
-      var name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'a 二', false, BFDefaultNameUpdater.noRegistry);
+      var name = await BFNameFinder.instance.findFileName(
+        env,
+        r,
+        'a 二',
+        false,
+      );
       h.equals(name, 'a 二 (1)');
 
-      name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b', false, BFDefaultNameUpdater.noRegistry);
+      name = await BFNameFinder.instance.findFileName(
+        env,
+        r,
+        'b',
+        false,
+      );
       h.equals(name, 'b');
       await _createFile(env, r, 'b', [2]);
 
-      name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b', false, BFDefaultNameUpdater.noRegistry);
+      name = await BFNameFinder.instance.findFileName(
+        env,
+        r,
+        'b',
+        false,
+      );
       h.equals(name, 'b (1)');
     });
 
     ns.add('nextAvailableFile (extension)', (h) async {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二.zz', [1]);
-      var name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'a 二.zz', false, BFDefaultNameUpdater.noRegistry);
+      var name = await BFNameFinder.instance.findFileName(
+        env,
+        r,
+        'a 二.zz',
+        false,
+      );
       h.equals(name, 'a 二 (1).zz');
 
-      name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b.zz', false, BFDefaultNameUpdater.noRegistry);
+      name = await BFNameFinder.instance.findFileName(
+        env,
+        r,
+        'b.zz',
+        false,
+      );
       h.equals(name, 'b.zz');
       await _createFile(env, r, 'b.zz', [2]);
 
-      name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b.zz', false, BFDefaultNameUpdater.noRegistry);
+      name = await BFNameFinder.instance.findFileName(
+        env,
+        r,
+        'b.zz',
+        false,
+      );
       h.equals(name, 'b (1).zz');
     });
 
     ns.add('nextAvailableFile (folder with extension)', (h) async {
       final r = h.data as BFPath;
       await env.mkdirp(r, ['a 二.zz'].lock);
-      var name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'a 二.zz', true, BFDefaultNameUpdater.noRegistry);
+      var name = await BFNameFinder.instance.findFileName(
+        env,
+        r,
+        'a 二.zz',
+        true,
+      );
       h.equals(name, 'a 二.zz (1)');
 
-      name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b.zz', true, BFDefaultNameUpdater.noRegistry);
+      name = await BFNameFinder.instance.findFileName(
+        env,
+        r,
+        'b.zz',
+        true,
+      );
       h.equals(name, 'b.zz');
       await env.mkdirp(r, ['b.zz'].lock);
 
-      name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b.zz', true, BFDefaultNameUpdater.noRegistry);
+      name = await BFNameFinder.instance.findFileName(
+        env,
+        r,
+        'b.zz',
+        true,
+      );
       h.equals(name, 'b.zz (1)');
     });
 
     ns.add('nextAvailableFile (custom name updater)', (h) async {
       // ignore: prefer_function_declarations_over_variables
-      final nameUpdater = BFDefaultNameUpdater(null,
-          updateFn: (String name, bool isDir, int count) => '$name -> $count');
+      final nameUpdater = BFCustomNameFinder(
+          (String name, bool isDir, int count) => '$name -> $count');
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二.zz.abc', [1]);
-      var name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'a 二.zz.abc', false, nameUpdater);
+      var name = await nameUpdater.findFileName(env, r, 'a 二.zz.abc', false);
       h.equals(name, 'a 二.zz.abc -> 1');
 
-      name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b.zz.abc', false, nameUpdater);
+      name = await nameUpdater.findFileName(env, r, 'b.zz.abc', false);
       h.equals(name, 'b.zz.abc');
       await _createFile(env, r, 'b.zz.abc', [2]);
 
-      name = await ZBFInternal.nextAvailableFileName(
-          env, r, 'b.zz.abc', false, nameUpdater);
+      name = await nameUpdater.findFileName(env, r, 'b.zz.abc', false);
       h.equals(name, 'b.zz.abc -> 1');
     });
 
     ns.add('nextAvailableFile (registry)', (h) async {
       final r = h.data as BFPath;
       await _createFile(env, r, 'a 二', [1]);
-      var name = await ZBFInternal.nextAvailableFileName(
+      final name = await BFNameFinder.instance.findFileName(
         env,
         r,
         'a 二',
         false,
-        BFDefaultNameUpdater({'a 二', 'a 二 (1)'}),
+        pendingNames: {'a 二', 'a 二 (1)'},
       );
       h.equals(name, 'a 二 (2)');
     });
@@ -1456,8 +1489,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
   }
 }
 
-final _testNameUpdater = BFDefaultNameUpdater(null,
-    updateFn: (String fileName, bool isDir, int attempt) {
+final _testNameFinder =
+    BFCustomNameFinder((String fileName, bool isDir, int attempt) {
   return 'NU-$fileName-$isDir-$attempt';
 });
 
