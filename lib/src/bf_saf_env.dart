@@ -108,6 +108,9 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<BFEntity?> child(BFPath path, IList<String> names) async {
+    if (names.isEmpty) {
+      return stat(path, null);
+    }
     final df = await _utilPlugin.child(path.scopedUri(), names.unlock);
     if (df == null) {
       return null;
