@@ -705,7 +705,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     void testwriteFileBytes(String fileName, bool multiple, bool overwrite,
         Map<String, dynamic> fs) {
       ns.add(
-          'writeFileSync  $fileName multiple: $multiple, overwrite: $overwrite',
+          'writeFileBytes  $fileName multiple: $multiple, overwrite: $overwrite',
           (h) async {
         final r = h.data as BFPath;
         // Add first test.txt
@@ -781,7 +781,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
     });
     testwriteFileBytes('test 三', true, true, {"test 三": "41424344"});
 
-    ns.add('writeFileSync (name updater)', (h) async {
+    ns.add('writeFileBytes (name updater)', (h) async {
       final r = h.data as BFPath;
 
       // Add first.

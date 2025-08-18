@@ -279,7 +279,7 @@ class BFSafEnv extends BFEnv {
     );
     final fileName = res.fileName;
     if (fileName == null || fileName.isEmpty) {
-      throw Exception('Unexpected null fileName from writeFileSync');
+      throw Exception('Unexpected null fileName from writeFileBytes');
     }
     return UpdatedBFPath(BFScopedPath(res.uri.toString()), fileName);
   }
