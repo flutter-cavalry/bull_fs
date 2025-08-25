@@ -6,6 +6,7 @@ export 'src/bf_name_finder.dart';
 export 'src/bf_nsfc_env.dart';
 export 'src/bf_path_bundle.dart';
 export 'src/bf_saf_env.dart';
+export 'src/bf_serial_queue.dart';
 export 'src/bf_ui_util.dart';
 export 'src/extensions.dart';
 export 'src/types.dart';

@@ -94,8 +94,9 @@ class NTRSuite {
 
   Future<List<String>> run({String? debugName}) async {
     _failed = [];
+    final debugNameLower = debugName?.toLowerCase();
     for (var i = 0; i < _caseNames.length; i++) {
-      if (debugName == null || _caseNames[i].contains(debugName)) {
+      if (debugNameLower == null || _caseNames[i].contains(debugNameLower)) {
         await _cases[i]();
       }
     }

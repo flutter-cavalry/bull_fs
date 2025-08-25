@@ -231,13 +231,16 @@ class _BFTestRouteState extends State<BFTestRoute> {
 
     ns.add('ensureDir (failed)', (h) async {
       final r = h.data as BFPath;
+      var hasError = false;
       try {
         await env.writeFileBytes(r, 'space 一 二 三', Uint8List.fromList([1]));
         await env.mkdirp(r, ['space 一 二 三'].lock);
         throw Error();
       } on Exception catch (_) {
+        hasError = true;
         h.mapEquals(await env.directoryToMap(r), {"space 一 二 三": "01"});
       }
+      h.isTrue(hasError);
     });
 
     ns.add('ensureDirs', (h) async {
@@ -1430,6 +1433,84 @@ class _BFTestRouteState extends State<BFTestRoute> {
         pendingNames: {'a 二', 'a 二 (1)'},
       );
       h.equals(name, 'a 二 (2)');
+    });
+
+    ns.add('BFSerialQueue', (h) async {
+      final r = h.data as BFPath;
+      final queue = BFSerialQueue();
+      for (var i = 0; i < 10; i++) {
+        queue.queue((_) async {
+          await _createFile(env, r, 'a.txt', [i]);
+        });
+      }
+      await queue.drain();
+
+      h.mapEquals(await env.directoryToMap(r), {
+        "a (1).txt": "01",
+        "a (6).txt": "06",
+        "a (7).txt": "07",
+        "a (8).txt": "08",
+        "a (4).txt": "04",
+        "a (5).txt": "05",
+        "a.txt": "00",
+        "a (9).txt": "09",
+        "a (2).txt": "02",
+        "a (3).txt": "03"
+      });
+    });
+
+    ns.add('BFSerialQueue with `queueAndWait`', (h) async {
+      final r = h.data as BFPath;
+      final queue = BFSerialQueue();
+      for (var i = 0; i < 10; i++) {
+        await queue.queueAndWait((_) async {
+          await _createFile(env, r, 'a.txt', [i]);
+        });
+      }
+
+      // With `queueAndWait`, we don't need to call drain explicitly.
+      // await queue.drain();
+
+      h.mapEquals(await env.directoryToMap(r), {
+        "a (1).txt": "01",
+        "a (6).txt": "06",
+        "a (7).txt": "07",
+        "a (8).txt": "08",
+        "a (4).txt": "04",
+        "a (5).txt": "05",
+        "a.txt": "00",
+        "a (9).txt": "09",
+        "a (2).txt": "02",
+        "a (3).txt": "03"
+      });
+    });
+
+    ns.add('BFSerialQueue with error', (h) async {
+      final r = h.data as BFPath;
+      final queue = BFSerialQueue();
+      for (var i = 0; i < 10; i++) {
+        queue.queue((_) async {
+          if (i == 5) {
+            throw Exception('Test error');
+          }
+          await _createFile(env, r, 'a.txt', [i]);
+        });
+      }
+      var hasError = false;
+      try {
+        await queue.drain();
+      } catch (_) {
+        hasError = true;
+      }
+
+      h.isTrue(hasError);
+      h.mapEquals(await env.directoryToMap(r), {
+        "a (1).txt": "01",
+        "a (2).txt": "02",
+        "a (3).txt": "03",
+        "a.txt": "00",
+        "a (4).txt": "04",
+      });
     });
 
     final failedNames = await ns.run();
