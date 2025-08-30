@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:darwin_url/darwin_url.dart';
 
 import 'bf_env.dart';
-import 'bf_saf_env.dart';
-import 'bf_nsfc_env.dart';
 import 'bf_local_env.dart';
+import 'bf_nsfc_env.dart';
+import 'bf_saf_env.dart';
 import 'types.dart';
 
 final DarwinUrl _darwinUrl = DarwinUrl();
@@ -16,11 +16,11 @@ class BFEnvUtil {
   static BFEnv typeToEnv(BFEnvType type) {
     switch (type) {
       case BFEnvType.local:
-        return BFLocalEnv();
+        return BFLocalEnv.instance;
       case BFEnvType.nsfc:
-        return BFNsfcEnv();
+        return BFNsfcEnv.instance;
       case BFEnvType.saf:
-        return BFSafEnv();
+        return BFSafEnv.instance;
     }
   }
 
