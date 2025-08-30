@@ -1,10 +1,12 @@
 export 'src/bf_apple_scoped_res.dart';
+export 'src/bf_entity.dart';
 export 'src/bf_env.dart';
 export 'src/bf_env_util.dart';
 export 'src/bf_local_env.dart';
 export 'src/bf_name_finder.dart';
 export 'src/bf_nsfc_env.dart';
-export 'src/bf_path_bundle.dart';
+export 'src/bf_out_stream.dart';
+export 'src/bf_path_types.dart';
 export 'src/bf_saf_env.dart';
 export 'src/bf_serial_queue.dart';
 export 'src/bf_ui_util.dart';

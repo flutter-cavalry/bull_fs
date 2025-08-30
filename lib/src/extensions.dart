@@ -1,5 +1,7 @@
 import 'package:convert/convert.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
+
+import 'bf_entity.dart';
 import 'bf_env.dart';
 import 'types.dart';
 

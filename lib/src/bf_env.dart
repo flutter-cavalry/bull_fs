@@ -2,7 +2,10 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tmp_path/tmp_path.dart';
 
+import 'bf_entity.dart';
 import 'bf_name_finder.dart';
+import 'bf_out_stream.dart';
+import 'bf_path_types.dart';
 import 'types.dart';
 
 /// Type of [BFEnv].

@@ -5,8 +5,11 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:ns_file_coordinator_util/ns_file_coordinator_util.dart';
 import 'package:ns_file_coordinator_util/ns_file_coordinator_util_platform_interface.dart';
 
+import 'bf_entity.dart';
 import 'bf_env.dart';
 import 'bf_name_finder.dart';
+import 'bf_out_stream.dart';
+import 'bf_path_types.dart';
 import 'types.dart';
 
 final _darwinUrlPlugin = DarwinUrl();
