@@ -1439,8 +1439,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       final queue = BFSerialQueue();
       for (var i = 0; i < 10; i++) {
-        queue.queue((_) async {
-          await _createFile(env, r, 'a.txt', [i]);
+        queue.queue(() async {
+          return await _createFile(env, r, 'a.txt', [i]);
         });
       }
       await queue.drain();
@@ -1463,8 +1463,8 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       final queue = BFSerialQueue();
       for (var i = 0; i < 10; i++) {
-        await queue.queueAndWait((_) async {
-          await _createFile(env, r, 'a.txt', [i]);
+        await queue.queueAndWait(() async {
+          return await _createFile(env, r, 'a.txt', [i]);
         });
       }
 
@@ -1489,7 +1489,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       final r = h.data as BFPath;
       final queue = BFSerialQueue();
       for (var i = 0; i < 10; i++) {
-        queue.queue((_) async {
+        queue.queue(() async {
           if (i == 5) {
             throw Exception('Test error');
           }
