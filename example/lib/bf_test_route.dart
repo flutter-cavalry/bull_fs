@@ -347,7 +347,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, 'space 一 二 三');
-      h.equals(newDir.newName, st.name);
+      h.equals(newDir.fileName, st.name);
 
       h.mapEquals(await env.directoryToMap(r), {"space 一 二 三": {}});
     });
@@ -363,7 +363,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.notNull(st);
       h.equals(st!.isDir, true);
       h.equals(st.name, 'space 一 二 三 (1)');
-      h.equals(newDir.newName, st.name);
+      h.equals(newDir.fileName, st.name);
 
       h.mapEquals(await env.directoryToMap(r),
           {"space 一 二 三 (1)": {}, "space 一 二 三": "01"});
@@ -610,7 +610,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             overwrite: overwrite);
         var st = await env.stat(pasteRes.path, false);
         h.equals(st!.name, fileName);
-        h.equals(st.name, pasteRes.newName);
+        h.equals(st.name, pasteRes.fileName);
         h.equals(st.length, 17);
 
         if (multiple) {
@@ -620,7 +620,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
               overwrite: overwrite);
           st = await env.stat(pasteRes.path, false);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 2));
-          h.equals(st.name, pasteRes.newName);
+          h.equals(st.name, pasteRes.fileName);
           h.equals(st.length, 17);
 
           // Add third test.txt
@@ -629,7 +629,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
               overwrite: overwrite);
           st = await env.stat(pasteRes.path, false);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 3));
-          h.equals(st.name, pasteRes.newName);
+          h.equals(st.name, pasteRes.fileName);
           h.equals(st.length, 17);
         }
 
@@ -692,7 +692,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           nameFinder: _testNameFinder);
       var st = await env.stat(pasteRes.path, false);
       h.equals(st!.name, 'NU-一 二.txt.png-false-1');
-      h.equals(st.name, pasteRes.newName);
+      h.equals(st.name, pasteRes.fileName);
     });
 
     ns.add('readFileSync', (h) async {
@@ -717,7 +717,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
             overwrite: overwrite);
         var st = await env.stat(pasteRes.path, false);
         h.equals(st!.name, fileName);
-        h.equals(st.name, pasteRes.newName);
+        h.equals(st.name, pasteRes.fileName);
         h.equals(st.length, 17);
 
         if (multiple) {
@@ -727,7 +727,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
               overwrite: overwrite);
           st = await env.stat(pasteRes.path, false);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 2));
-          h.equals(st.name, pasteRes.newName);
+          h.equals(st.name, pasteRes.fileName);
           h.equals(st.length, 17);
 
           // Add third test.txt
@@ -736,7 +736,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
               overwrite: overwrite);
           st = await env.stat(pasteRes.path, false);
           h.equals(st!.name, overwrite ? fileName : _dupSuffix(fileName, 3));
-          h.equals(st.name, pasteRes.newName);
+          h.equals(st.name, pasteRes.fileName);
           h.equals(st.length, 4);
         }
 
@@ -796,7 +796,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           nameFinder: _testNameFinder);
       var st = await env.stat(writeRes.path, false);
       h.equals(st!.name, 'NU-一 二.txt.png-false-1');
-      h.equals(st.name, writeRes.newName);
+      h.equals(st.name, writeRes.fileName);
     });
 
     ns.add('stat and child (folder)', (h) async {
@@ -990,7 +990,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
       final st = await e.stat(newPath.path, true);
       h.equals(st!.name, 'a');
-      h.equals(st.name, newPath.newName);
+      h.equals(st.name, newPath.fileName);
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -1029,7 +1029,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
       final st = await e.stat(newPath.path, false);
       h.equals(st!.name, _dupSuffix('a', 2));
-      h.equals(st.name, newPath.newName);
+      h.equals(st.name, newPath.fileName);
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -1070,7 +1070,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
       final st = await e.stat(newPath.path, true);
       h.equals(st!.name, 'a (1)');
-      h.equals(st.name, newPath.newName);
+      h.equals(st.name, newPath.fileName);
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -1104,7 +1104,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
       final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a');
-      h.equals(st.name, newPath.newName);
+      h.equals(st.name, newPath.fileName);
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -1138,7 +1138,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
       final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a (1)');
-      h.equals(st.name, newPath.newName);
+      h.equals(st.name, newPath.fileName);
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -1172,7 +1172,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'));
       final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a (1)');
-      h.equals(st.name, newPath.newName);
+      h.equals(st.name, newPath.fileName);
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -1204,7 +1204,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           overwrite: true);
       final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a');
-      h.equals(st.name, newPath.newName);
+      h.equals(st.name, newPath.fileName);
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -1238,7 +1238,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           overwrite: true);
       final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a');
-      h.equals(st.name, newPath.newName);
+      h.equals(st.name, newPath.fileName);
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -1270,7 +1270,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           overwrite: true);
       final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a');
-      h.equals(st.name, newPath.newName);
+      h.equals(st.name, newPath.fileName);
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {
@@ -1305,7 +1305,7 @@ class _BFTestRouteState extends State<BFTestRoute> {
           overwrite: true);
       final st = await e.stat(newPath.path, false);
       h.equals(st!.name, 'a');
-      h.equals(st.name, newPath.newName);
+      h.equals(st.name, newPath.fileName);
 
       h.mapEquals(await e.directoryToMap(r), {
         "move": {

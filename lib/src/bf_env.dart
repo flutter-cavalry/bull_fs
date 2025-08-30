@@ -61,7 +61,7 @@ abstract class BFEnv {
   /// with existing files and may change.
   /// [nameFinder] updates the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
-  Future<UpdatedBFPath> pasteLocalFile(
+  Future<BFPathAndName> pasteLocalFile(
     String localSrc,
     BFPath dir,
     String unsafeName, {
@@ -102,7 +102,7 @@ abstract class BFEnv {
   /// [unsafeName] is the directory name. It's unsafe because it may conflict
   /// with existing files and may change.
   /// [nameFinder] updates the file name if it conflicts with existing files.
-  Future<UpdatedBFPath> createDir(
+  Future<BFPathAndName> createDir(
     BFPath dir,
     String unsafeName, {
     BFNameFinder? nameFinder,
@@ -116,7 +116,7 @@ abstract class BFEnv {
       pendingNames: pendingNames,
     );
     final newDir = await mkdirp(dir, [safeName].lock);
-    return UpdatedBFPath(newDir, safeName);
+    return BFPathAndName(newDir, safeName);
   }
 
   /// Platform implementation of [BFEnv.rename].
@@ -155,7 +155,7 @@ abstract class BFEnv {
   /// [destDir] is the destination directory.
   /// [nameFinder] updates the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
-  Future<UpdatedBFPath> moveToDir(
+  Future<BFPathAndName> moveToDir(
     BFPath src,
     bool isDir,
     BFPath srcDir,
@@ -187,7 +187,7 @@ abstract class BFEnv {
   /// [destDir] is the destination directory.
   /// [nameFinder] updates the file name if it conflicts with existing files.
   @protected
-  Future<UpdatedBFPath> moveToDirSafe(
+  Future<BFPathAndName> moveToDirSafe(
     BFPath src,
     bool isDir,
     BFPath srcDir,
@@ -198,7 +198,7 @@ abstract class BFEnv {
 
   /// Moves a file or directory to a directory and overwrites the existing item.
   /// This is called by [moveToDir] when [overwrite] is `true`.
-  Future<UpdatedBFPath> _moveToDirByForce(
+  Future<BFPathAndName> _moveToDirByForce(
     BFPath src,
     bool isDir,
     BFPath srcDir,
@@ -213,9 +213,9 @@ abstract class BFEnv {
     // Call `moveToDir` if the destination item does not exist and no new name assigned.
     if (destItemStat == null) {
       final newPath = await moveToDirSafe(src, isDir, srcDir, destDir);
-      if (newPath.newName != srcName) {
+      if (newPath.fileName != srcName) {
         throw Exception(
-          'Unexpected new name: ${newPath.newName}, expected: $srcName',
+          'Unexpected new name: ${newPath.fileName}, expected: $srcName',
         );
       }
       return newPath;
@@ -232,9 +232,9 @@ abstract class BFEnv {
 
     // Move the source item to the destination.
     final newPath = await moveToDirSafe(src, isDir, srcDir, destDir);
-    if (newPath.newName != srcName) {
+    if (newPath.fileName != srcName) {
       throw Exception(
-        'Unexpected new name: ${newPath.newName}, expected: $srcName',
+        'Unexpected new name: ${newPath.fileName}, expected: $srcName',
       );
     }
 
@@ -283,7 +283,7 @@ abstract class BFEnv {
   /// with existing files and may change.
   /// [nameFinder] updates the file name if it conflicts with existing files.
   /// [overwrite] is whether to overwrite the existing file.
-  Future<UpdatedBFPath> writeFileBytes(
+  Future<BFPathAndName> writeFileBytes(
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {

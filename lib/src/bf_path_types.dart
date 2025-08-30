@@ -2,20 +2,27 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 
 import '../bull_fs.dart';
 
-/// Represents a path that has been updated.
-class UpdatedBFPath {
-  /// The updated path.
+/// Represents a [BFPath] and a file name.
+class BFPathAndName {
   final BFPath path;
 
-  /// The file name of the updated path.
-  final String newName;
+  final String fileName;
 
-  UpdatedBFPath(this.path, this.newName);
+  BFPathAndName(this.path, this.fileName);
 
   @override
   String toString() {
-    return '$path|$newName';
+    return '$path|$fileName';
   }
+
+  Map<String, dynamic> toJson() => {
+    'path': path.encodeToString(),
+    'fileName': fileName,
+  };
+
+  BFPathAndName.fromJson(Map<String, dynamic> json)
+    : path = decodeStringToBFPath(json['path'] as String),
+      fileName = json['fileName'] as String;
 }
 
 /// A bundle that contains a [BFEnv], a [BFPath], and a file name.

@@ -118,7 +118,7 @@ class BFSafEnv extends BFEnv {
     return _fromSAFEntity(df, dirRelPath: null);
   }
 
-  Future<UpdatedBFPath> _safMove(
+  Future<BFPathAndName> _safMove(
     BFPath srcPath,
     bool isDir,
     BFPath srcDir,
@@ -130,11 +130,11 @@ class BFSafEnv extends BFEnv {
       srcDir.scopedUri(),
       destDir.scopedUri(),
     );
-    return UpdatedBFPath(BFScopedPath(df.uri.toString()), df.name);
+    return BFPathAndName(BFScopedPath(df.uri.toString()), df.name);
   }
 
   @override
-  Future<UpdatedBFPath> moveToDirSafe(
+  Future<BFPathAndName> moveToDirSafe(
     BFPath src,
     bool isDir,
     BFPath srcDir,
@@ -172,7 +172,7 @@ class BFSafEnv extends BFEnv {
         destDir,
         safeDestName,
       );
-      return UpdatedBFPath(destUri, safeDestName);
+      return BFPathAndName(destUri, safeDestName);
     } catch (err) {
       // Try reverting changes if exception happened.
       if (srcTmpUri != null && await child(srcDir, [srcTmpName].lock) != null) {
@@ -253,7 +253,7 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> writeFileBytes(
+  Future<BFPathAndName> writeFileBytes(
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {
@@ -281,7 +281,7 @@ class BFSafEnv extends BFEnv {
     if (fileName == null || fileName.isEmpty) {
       throw Exception('Unexpected null fileName from writeFileBytes');
     }
-    return UpdatedBFPath(BFScopedPath(res.uri.toString()), fileName);
+    return BFPathAndName(BFScopedPath(res.uri.toString()), fileName);
   }
 
   String _getMime(String fileName) {
@@ -291,7 +291,7 @@ class BFSafEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> pasteLocalFile(
+  Future<BFPathAndName> pasteLocalFile(
     String localSrc,
     BFPath dir,
     String unsafeName, {
@@ -319,7 +319,7 @@ class BFSafEnv extends BFEnv {
     if (fileName == null || fileName.isEmpty) {
       throw Exception('Unexpected null fileName from writeFileFromLocal');
     }
-    return UpdatedBFPath(BFScopedPath(res.uri.toString()), fileName);
+    return BFPathAndName(BFScopedPath(res.uri.toString()), fileName);
   }
 
   @override

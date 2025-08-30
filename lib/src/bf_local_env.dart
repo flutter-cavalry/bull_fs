@@ -124,7 +124,7 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> moveToDirSafe(
+  Future<BFPathAndName> moveToDirSafe(
     BFPath src,
     bool isDir,
     BFPath srcDir,
@@ -144,7 +144,7 @@ class BFLocalEnv extends BFEnv {
     final destItemPath = p.join(destDir.toString(), safeDestName);
 
     await _move(src.localPath(), destItemPath, isDir);
-    return UpdatedBFPath(BFLocalPath(destItemPath), safeDestName);
+    return BFPathAndName(BFLocalPath(destItemPath), safeDestName);
   }
 
   Future<void> _move(String src, String dest, bool isDir) async {
@@ -187,7 +187,7 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> writeFileBytes(
+  Future<BFPathAndName> writeFileBytes(
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {
@@ -207,11 +207,11 @@ class BFLocalEnv extends BFEnv {
           );
     final destPath = p.join(dirPath, safeName);
     await File(destPath).writeAsBytes(bytes);
-    return UpdatedBFPath(BFLocalPath(destPath), safeName);
+    return BFPathAndName(BFLocalPath(destPath), safeName);
   }
 
   @override
-  Future<UpdatedBFPath> pasteLocalFile(
+  Future<BFPathAndName> pasteLocalFile(
     String localSrc,
     BFPath dir,
     String unsafeName, {
@@ -232,7 +232,7 @@ class BFLocalEnv extends BFEnv {
     final destPath = p.join(dirPath, safeName);
     final destBFPath = BFLocalPath(destPath);
     await _copy(localSrc, destBFPath.localPath(), false);
-    return UpdatedBFPath(destBFPath, safeName);
+    return BFPathAndName(destBFPath, safeName);
   }
 
   @override

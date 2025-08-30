@@ -117,7 +117,7 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> moveToDirSafe(
+  Future<BFPathAndName> moveToDirSafe(
     BFPath src,
     bool isDir,
     BFPath srcDir,
@@ -142,7 +142,7 @@ class BFNsfcEnv extends BFEnv {
       isDir,
     );
     await _plugin.move(src.scopedUri(), destItemPath.scopedUri());
-    return UpdatedBFPath(destItemPath, destItemFileName);
+    return BFPathAndName(destItemPath, destItemFileName);
   }
 
   @override
@@ -185,7 +185,7 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<UpdatedBFPath> writeFileBytes(
+  Future<BFPathAndName> writeFileBytes(
     BFPath dir,
     String unsafeName,
     Uint8List bytes, {
@@ -207,11 +207,11 @@ class BFNsfcEnv extends BFEnv {
     ], isDir: false);
     final destPath = BFScopedPath(destPathUrl);
     await _plugin.writeFile(destPathUrl, bytes);
-    return UpdatedBFPath(destPath, safeName);
+    return BFPathAndName(destPath, safeName);
   }
 
   @override
-  Future<UpdatedBFPath> pasteLocalFile(
+  Future<BFPathAndName> pasteLocalFile(
     String localSrc,
     BFPath dir,
     String unsafeName, {
@@ -231,7 +231,7 @@ class BFNsfcEnv extends BFEnv {
     final destPath = await dir.iosJoinRelPath([safeName].lock, false);
     final srcUrl = await _darwinUrlPlugin.filePathToUrl(localSrc);
     await _plugin.copyPath(srcUrl, destPath.scopedUri(), overwrite: overwrite);
-    return UpdatedBFPath(destPath, safeName);
+    return BFPathAndName(destPath, safeName);
   }
 
   @override
