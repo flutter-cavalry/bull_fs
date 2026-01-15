@@ -76,6 +76,7 @@ class BFEntity {
   static Future<BFEntity> fromLocalEntity(
     FileSystemEntity entity, {
     required IList<String>? dirRelPath,
+    bool? skipLastMod,
   }) async {
     int length;
     bool isDir;
@@ -83,7 +84,9 @@ class BFEntity {
     if (entity is File) {
       isDir = false;
       length = await entity.length();
-      lastMod = await entity.lastModified();
+      if (!(skipLastMod ?? false)) {
+        lastMod = await entity.lastModified();
+      }
     } else {
       isDir = true;
       length = 0;
@@ -102,9 +105,14 @@ class BFEntity {
   static Future<BFEntity?> fromLocalEntityNE(
     FileSystemEntity entity, {
     required IList<String>? dirRelPath,
+    bool? skipLastMod,
   }) async {
     try {
-      return await fromLocalEntity(entity, dirRelPath: dirRelPath);
+      return await fromLocalEntity(
+        entity,
+        dirRelPath: dirRelPath,
+        skipLastMod: skipLastMod,
+      );
     } catch (_) {
       return null;
     }
