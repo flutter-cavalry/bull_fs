@@ -82,8 +82,8 @@ class BFLocalEnv extends BFEnv {
   }
 
   @override
-  Future<BFEntity?> stat(BFPath path, bool? isDir) async {
-    return _stat(path.localPath());
+  Future<BFEntity?> stat(BFPath path, bool? isDir, {bool? throws}) async {
+    return _stat(path.localPath(), throws: throws);
   }
 
   @override
@@ -96,9 +96,12 @@ class BFLocalEnv extends BFEnv {
     return _stat(filePath);
   }
 
-  Future<BFEntity?> _stat(String filePath) async {
+  Future<BFEntity?> _stat(String filePath, {bool? throws}) async {
     final ioType = await FileSystemEntity.type(filePath);
     if (ioType == FileSystemEntityType.notFound) {
+      if (throws == true) {
+        throw Exception('Path not found: $filePath');
+      }
       return null;
     }
 

@@ -78,10 +78,11 @@ abstract class BFEnv {
 
   /// Gets the stat of a file or directory.
   ///
-  /// [path] is the path to delete.
+  /// [path] is the path to stat.
   /// [isDir] is whether the path is a directory. [null] means
   /// auto-detect.
-  Future<BFEntity?> stat(BFPath path, bool? isDir);
+  /// [throws] is whether to throw an exception if the path does not exist or is inaccessible.
+  Future<BFEntity?> stat(BFPath path, bool? isDir, {bool? throws});
 
   /// Gets a child identified by [path] + [names].
   ///

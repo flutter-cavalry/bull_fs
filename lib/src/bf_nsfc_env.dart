@@ -82,9 +82,12 @@ class BFNsfcEnv extends BFEnv {
   }
 
   @override
-  Future<BFEntity?> stat(BFPath path, bool? isDir) async {
+  Future<BFEntity?> stat(BFPath path, bool? isDir, {bool? throws}) async {
     final e = await _plugin.stat(path.scopedUri());
     if (e == null) {
+      if (throws == true) {
+        throw Exception('Path not found: ${path.scopedUri()}');
+      }
       return null;
     }
     return _fromIcloudEntity(e, dirRelPath: null);
