@@ -869,6 +869,25 @@ class _BFTestRouteState extends State<BFTestRoute> {
       h.isNull(st);
     });
 
+    ns.add('stat, throws', (h) async {
+      final r = h.data as BFPath;
+      final newDir = await env.mkdirp(r, ['a', '一 二'].lock);
+      final fileUri = (await env.writeFileBytes(
+              newDir, 'test 仨.txt', _defStringContentsBytes))
+          .path;
+      // Delete the created file to test null stat.
+      await env.delete(fileUri, false);
+
+      var catchHit = false;
+      try {
+        await env.stat(fileUri, true, throws: true);
+      } on Exception catch (_) {
+        catchHit = true;
+      }
+
+      h.equals(catchHit, true);
+    });
+
     ns.add('listDir', (h) async {
       final r = h.data as BFPath;
       await _createNestedDir(env, r);
