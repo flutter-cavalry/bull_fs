@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: app_tmp_path
-      sha256: "6ccf15762bd4b81406daf25d4dca0bf10df2998a3d206fa7b16fc63e8d9a88dc"
+      sha256: e8f190e4998d1eb87fd7811c24c754975e262b31f919dde0a8c3626890a05dad
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "2.0.0"
   args:
     dependency: transitive
     description:
