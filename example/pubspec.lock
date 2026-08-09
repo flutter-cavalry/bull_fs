@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: app_tmp_path
-      sha256: e8f190e4998d1eb87fd7811c24c754975e262b31f919dde0a8c3626890a05dad
+      sha256: "2c3a057c23efba978fcc8b55d099cf9f1ab5bb9bd2e3929380c259b37ba57d33"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "3.0.0"
   args:
     dependency: transitive
     description:
@@ -299,10 +299,10 @@ packages:
     dependency: transitive
     description:
       name: jni
-      sha256: "5bc9a9daac5ccfbd6a758377600b9f7fdce13d93f26e8012a8941014a5d978d1"
+      sha256: f038e58b4dc2c9037f50e233175086337e0b305e356d28211bf55f21c504cbd3
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.2"
+    version: "1.0.3"
   jni_flutter:
     dependency: transitive
     description:
