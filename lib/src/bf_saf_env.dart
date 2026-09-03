@@ -396,6 +396,8 @@ class BFSafEnv extends BFEnv {
       e.lastModified == 0
           ? null
           : DateTime.fromMillisecondsSinceEpoch(e.lastModified),
+      // Creation time is not available on Android SAF.
+      null,
       false,
       dirRelPath: dirRelPath,
     );

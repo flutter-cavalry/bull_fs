@@ -310,6 +310,7 @@ class BFNsfcEnv extends BFEnv {
       entity.isDir,
       entity.length,
       entity.lastMod,
+      entity.creation,
       isOnCloud,
       dirRelPath: dirRelPath,
     );

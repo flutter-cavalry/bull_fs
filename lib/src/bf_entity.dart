@@ -22,6 +22,9 @@ class BFEntity {
   /// The last modified time of the entity.
   final DateTime? lastMod;
 
+  /// The creation time of the entity. Not available on Android SAF.
+  final DateTime? created;
+
   /// Whether the entity is not available locally. (For example, not downloaded from iCloud).
   final bool notDownloaded;
 
@@ -35,6 +38,7 @@ class BFEntity {
     this.isDir,
     int length,
     this.lastMod,
+    this.created,
     this.notDownloaded, {
     IList<String>? dirRelPath,
   }) {
@@ -80,6 +84,7 @@ class BFEntity {
     int length;
     bool isDir;
     DateTime? lastMod;
+    DateTime? created;
     if (entity is File) {
       isDir = false;
       length = await entity.length();
@@ -87,6 +92,11 @@ class BFEntity {
         lastMod = await entity.lastModified();
       } catch (_) {
         lastMod = null;
+      }
+      try {
+        created = await entity.stat().then((stat) => stat.changed);
+      } catch (_) {
+        created = null;
       }
     } else {
       isDir = true;
@@ -98,6 +108,7 @@ class BFEntity {
       isDir,
       length,
       lastMod,
+      created,
       false,
       dirRelPath: dirRelPath,
     );

@@ -419,10 +419,10 @@ packages:
     dependency: transitive
     description:
       name: ns_file_coordinator_util
-      sha256: c2cb6a2a431f0a1a47d8e8070a930c131c77c1d51c4d11a41d659667ae18717e
+      sha256: "979a88866ed8cf54523f51c932acb964e83ca2cc640140823cf0b18ab708ae67"
       url: "https://pub.dev"
     source: hosted
-    version: "0.26.0"
+    version: "0.26.1"
   objective_c:
     dependency: transitive
     description:
