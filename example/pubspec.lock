@@ -13,10 +13,10 @@ packages:
     dependency: transitive
     description:
       name: app_tmp_path
-      sha256: d1b8c447dca1b13056368bee3c80218b8d1c367bf6db70b7538b36d91c58296b
+      sha256: d59f937521913303b1f3430fc7a6f1eba3eebdcdb4e61913389cf4d5d40da23f
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.0"
+    version: "3.2.2"
   args:
     dependency: transitive
     description:
@@ -299,10 +299,10 @@ packages:
     dependency: transitive
     description:
       name: ios_real_tmp_dir
-      sha256: ed9a63291bfc8387010c2bba1464e587ec17107a3965e250e2b0a4387a124aed
+      sha256: "1ba51f3e2c868a875d62af606a63a02abf2fad579f2f8f0ffd6c835baee6aca0"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.0"
+    version: "0.2.0"
   jni:
     dependency: transitive
     description:
@@ -499,10 +499,10 @@ packages:
     dependency: transitive
     description:
       name: platform
-      sha256: "5d6b1b0036a5f331ebc77c850ebc8506cbc1e9416c27e59b439f917a902a4984"
+      sha256: a36d119c13416516a7b5913fbe8af8531e11633d784c550b2125f76c758524ec
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.6"
+    version: "3.2.0"
   plugin_platform_interface:
     dependency: transitive
     description:
