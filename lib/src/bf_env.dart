@@ -231,12 +231,20 @@ abstract class BFEnv {
       tmpDestName,
     );
 
-    // Move the source item to the destination.
-    final newPath = await moveToDirSafe(src, isDir, srcDir, destDir);
-    if (newPath.fileName != srcName) {
-      throw Exception(
-        'Unexpected new name: ${newPath.fileName}, expected: $srcName',
-      );
+    late final BFPathAndName newPath;
+    try {
+      // Move the source item to the destination.
+      newPath = await moveToDirSafe(src, isDir, srcDir, destDir);
+      if (newPath.fileName != srcName) {
+        throw Exception(
+          'Unexpected new name: ${newPath.fileName}, expected: $srcName',
+        );
+      }
+    } catch (_) {
+      if (await child(destDir, [srcName].lock) == null) {
+        await rename(tmpDestPath, destItemStat.isDir, destDir, srcName);
+      }
+      rethrow;
     }
 
     // Remove the tmp file after it's been overwritten.

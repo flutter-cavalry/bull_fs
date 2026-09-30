@@ -14,24 +14,13 @@ class BFNameFinder {
     Set<String>? pendingNames,
   }) async {
     // First attempt.
-    if (await _checkNameAvailable(
-      env,
-      dir,
-      unsafeName,
-      pendingNames,
-    )) {
+    if (await _checkNameAvailable(env, dir, unsafeName, pendingNames)) {
       return unsafeName;
     }
 
     for (int i = 0; i < 100; i++) {
       final name = formatFileName(unsafeName, isDir, i + 1);
-      if (await _checkNameAvailable(
-        env,
-        dir,
-        name,
-        pendingNames,
-      )) {
-        pendingNames?.add(name);
+      if (await _checkNameAvailable(env, dir, name, pendingNames)) {
         return name;
       }
     }
@@ -69,10 +58,19 @@ Future<bool> _checkNameAvailable(
   String fileName,
   Set<String>? pendingNames,
 ) async {
-  if (pendingNames?.contains(fileName) == true) {
+  if (pendingNames?.add(fileName) == false) {
     // Already registered, so it is not available.
     return false;
   }
-  final stat = await env.child(dir, [fileName].lock);
-  return stat == null;
+  try {
+    final stat = await env.child(dir, [fileName].lock);
+    if (stat == null) {
+      return true;
+    }
+    pendingNames?.remove(fileName);
+    return false;
+  } catch (_) {
+    pendingNames?.remove(fileName);
+    rethrow;
+  }
 }

@@ -16,6 +16,20 @@ const _defFolderContentFile = 'content.bin';
 const _defStringContents = 'abcdef 🍉🌏';
 final _defStringContentsBytes = utf8.encode(_defStringContents);
 
+class _FailingMoveLocalEnv extends BFLocalEnv {
+  @override
+  Future<BFPathAndName> moveToDirSafe(
+    BFPath src,
+    bool isDir,
+    BFPath srcDir,
+    BFPath destDir, {
+    BFNameFinder? nameFinder,
+    Set<String>? pendingNames,
+  }) async {
+    throw Exception('Injected move failure');
+  }
+}
+
 class BFTestRoute extends StatefulWidget {
   const BFTestRoute({super.key});
 
@@ -1263,6 +1277,46 @@ class _BFTestRouteState extends State<BFTestRoute> {
       });
     });
 
+    if (env.envType() == BFEnvType.local) {
+      ns.add('Move and replace restores destination after failure', (h) async {
+        final r = h.data as BFPath;
+        final failingEnv = _FailingMoveLocalEnv();
+        final srcDir = await failingEnv.mkdirp(r, ['source'].lock);
+        final destDir = await failingEnv.mkdirp(r, ['dest'].lock);
+        await failingEnv.writeFileBytes(
+          srcDir,
+          'same.txt',
+          Uint8List.fromList([1]),
+        );
+        await failingEnv.writeFileBytes(
+          destDir,
+          'same.txt',
+          Uint8List.fromList([2]),
+        );
+
+        var failed = false;
+        try {
+          await failingEnv.moveToDir(
+            await failingEnv
+                .child(srcDir, ['same.txt'].lock)
+                .then((e) => e!.path),
+            false,
+            srcDir,
+            destDir,
+            overwrite: true,
+          );
+        } catch (_) {
+          failed = true;
+        }
+
+        h.isTrue(failed);
+        h.mapEquals(await failingEnv.directoryToMap(r), {
+          'source': {'same.txt': '01'},
+          'dest': {'same.txt': '02'},
+        });
+      });
+    }
+
     ns.add('Move and replace file (new name = default name) (no conflict)',
         (h) async {
       final e = env;
@@ -1445,6 +1499,31 @@ class _BFTestRouteState extends State<BFTestRoute> {
         pendingNames: {'a 二', 'a 二 (1)'},
       );
       h.equals(name, 'a 二 (2)');
+
+      final reservedNames = <String>{};
+      final concurrentNames = await Future.wait([
+        BFNameFinder.instance.findFileName(
+          env,
+          r,
+          'reserved.txt',
+          false,
+          pendingNames: reservedNames,
+        ),
+        BFNameFinder.instance.findFileName(
+          env,
+          r,
+          'reserved.txt',
+          false,
+          pendingNames: reservedNames,
+        ),
+      ]);
+      h.equals(concurrentNames.toSet().length, 2);
+      h.equals(
+        concurrentNames.toSet().containsAll(
+          {'reserved.txt', 'reserved (1).txt'},
+        ),
+        true,
+      );
     });
 
     ns.add('BFSerialQueue', (h) async {
