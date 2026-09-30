@@ -1,4 +1,3 @@
-export 'src/bf_apple_scoped_res.dart';
 export 'src/bf_entity.dart';
 export 'src/bf_env.dart';
 export 'src/bf_env_util.dart';

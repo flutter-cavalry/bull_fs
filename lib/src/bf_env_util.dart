@@ -24,7 +24,7 @@ class BFEnvUtil {
     }
   }
 
-  /// Returns a [BFInitResult] which determines the resolve [BFEnv] and [BFPath] based on the platform.
+  /// Returns a [BFDirInitResult] which determines the resolve [BFEnv] and [BFPath] based on the platform.
   /// [path] and [uri] cannot be both null.
   ///
   /// [path] is the local path of the directory.

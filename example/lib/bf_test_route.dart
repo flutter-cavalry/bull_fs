@@ -87,17 +87,10 @@ class _BFTestRouteState extends State<BFTestRoute> {
         path: pickerResult.path, uri: pickerResult.uri, macosIcloud: true);
     final env = bfInit.env;
 
-    if (_env is BFNsfcEnv) {
-      final resScope = BFAppleScopedRes(bfInit.path.toString());
-
-      await resScope.tryAccess((bool granted) async {
-        if (!granted) {
-          throw Exception('Failed to get iOS folder access');
-        }
-        await _runTests(env, bfInit.path);
-      });
-    } else {
+    try {
       await _runTests(env, bfInit.path);
+    } finally {
+      await pickerResult.release();
     }
   }
 

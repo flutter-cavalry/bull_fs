@@ -68,10 +68,10 @@ packages:
     dependency: transitive
     description:
       name: code_assets
-      sha256: cfd4f5f575a49c5f10ca856e9846073f1e6c3ee94912377eea5f6cefc5272941
+      sha256: "828110d598123b5ea96c00c9f3c72105bf79f8ee36c20a39b26209ade421ec57"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "2.1.0"
   collection:
     dependency: "direct main"
     description:
@@ -108,10 +108,10 @@ packages:
     dependency: "direct main"
     description:
       name: cupertino_icons
-      sha256: "41e005c33bd814be4d3096aff55b1908d419fde52ca656c8c47719ec745873cd"
+      sha256: b7cc2390aac296c083bea762859413eb1cf5b630c70e0c7e4d831018f762a8b2
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.9"
+    version: "2.0.0"
   darwin_url:
     dependency: "direct main"
     description:
@@ -131,10 +131,11 @@ packages:
   fast_file_picker:
     dependency: "direct main"
     description:
-      name: fast_file_picker
-      sha256: "9782502c1cb09d3e6c884d0c7c61f0f2f292cfcf1676d1b8a0b7844129266244"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: HEAD
+      resolved-ref: "58dbc69f1a214c5ac1d0bdda3d36b71fe032ed4d"
+      url: "https://github.com/flutter-cavalry/fast_file_picker"
+    source: git
     version: "1.0.2"
   fast_immutable_collections:
     dependency: "direct main"
@@ -172,10 +173,10 @@ packages:
     dependency: transitive
     description:
       name: file_selector_android
-      sha256: "7c76473740e33a11343c8fce88166049230850d2f19cd8a652ea935fcb8c9206"
+      sha256: d670cd0ce77a2e785b18d8b4d0a8d6a222d6a813ec9b7ddf2790a1b4fb6fa92c
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.2+10"
+    version: "0.5.2+11"
   file_selector_ios:
     dependency: transitive
     description:
@@ -291,10 +292,10 @@ packages:
     dependency: transitive
     description:
       name: ios_document_picker
-      sha256: a26b450d6a868a7f737d6e7fd9eaf68200a7d867d624eae9fbc2670103e64ff0
+      sha256: "3c78b76d54f39fa046aa34d32bf11cee5bb2919700cece1476f9310b7741d215"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.0"
+    version: "2.0.1"
   ios_real_tmp_dir:
     dependency: transitive
     description:
@@ -371,10 +372,10 @@ packages:
     dependency: transitive
     description:
       name: macos_file_picker
-      sha256: "03914a61dc2d922ff6e4fe4a211136f4ace83da3229473973dac09c7acffee13"
+      sha256: "24cb5996da8b77bd4fb973fc19ec9df99ec0cfd8bdd807356d9e59ec9ec074d7"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.3"
+    version: "2.0.0"
   matcher:
     dependency: transitive
     description:
@@ -531,18 +532,18 @@ packages:
     dependency: transitive
     description:
       name: saf_stream
-      sha256: "3f740a4bb8411100d2b6b209e9cbbc3e711f4992d5af2c1513d9f047f2162620"
+      sha256: "3c98c0875e8946f6fd5901050f0e5e4b3f5b3162622ee99c5730cf015a9ec669"
       url: "https://pub.dev"
     source: hosted
-    version: "4.0.1"
+    version: "4.0.2"
   saf_util:
     dependency: transitive
     description:
       name: saf_util
-      sha256: "35cd99ec282f9fc68ec0fb35338315a7198250f8ff0d24006f8507a6aae3d344"
+      sha256: c630df86aa412d3c5b715eb941ebefa9c97eefe31395bf45223ba5efb3862a43
       url: "https://pub.dev"
     source: hosted
-    version: "3.1.0"
+    version: "3.1.1"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -624,10 +625,10 @@ packages:
     dependency: transitive
     description:
       name: vector_math
-      sha256: f36f9f3be64c6198714492bb455c11056e33e2f85d9a0b676a48301e44fdcf47
+      sha256: "92b9910f66ed1057fd4da7b040ae7c74cafacf885bdc81be496928d5049b032d"
       url: "https://pub.dev"
     source: hosted
-    version: "2.4.2"
+    version: "2.4.3"
   vm_service:
     dependency: transitive
     description:
