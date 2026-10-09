@@ -124,18 +124,18 @@ packages:
     dependency: "direct main"
     description:
       name: fast_file_picker
-      sha256: "619f7af44fc07fe0cec0145ab66f7028a59cd44f7af4f4e6df57f5eec2b5aa0f"
+      sha256: bea50b7c6dd449ed770f3d0457de0a867c5d0d7da7077c5244aab22e4d2abaef
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "2.0.1"
   fast_immutable_collections:
     dependency: "direct main"
     description:
       name: fast_immutable_collections
-      sha256: "58cec99fc068427c71901e82d4b31b232240ebe6e61200993c2cb91bcada0ff6"
+      sha256: "293012edcb75c742f39a5cfe184baab8d6382cd478dabca8f2cf264f668494da"
       url: "https://pub.dev"
     source: hosted
-    version: "11.2.0"
+    version: "12.0.0"
   fc_quick_dialog:
     dependency: "direct main"
     description:
@@ -283,10 +283,10 @@ packages:
     dependency: transitive
     description:
       name: ios_document_picker
-      sha256: "3c78b76d54f39fa046aa34d32bf11cee5bb2919700cece1476f9310b7741d215"
+      sha256: d03dfa9dcea56f0b208765d41c981f366092f9e056dbc916a4fa87b3ecbbe5a9
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.1"
+    version: "2.0.2"
   ios_real_tmp_dir:
     dependency: transitive
     description:
@@ -299,18 +299,18 @@ packages:
     dependency: transitive
     description:
       name: jni
-      sha256: f038e58b4dc2c9037f50e233175086337e0b305e356d28211bf55f21c504cbd3
+      sha256: "6b9ca0602fef0230e83149afbe3f9f8227e94f2bbe84a1da4f14d699742f402d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3"
+    version: "1.1.0"
   jni_flutter:
     dependency: transitive
     description:
       name: jni_flutter
-      sha256: b2310cdd4c18c65c081ab141a41efa94aa26c65431803703ece51996f174f351
+      sha256: "0dd33d67797560f66e961a6053882d4df54bd345bf063b8fe7ea133f7ad8b191"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.3"
+    version: "1.0.4+1"
   jni_util:
     dependency: transitive
     description:
@@ -420,10 +420,10 @@ packages:
     dependency: transitive
     description:
       name: objective_c
-      sha256: ad56fd53a78ff6b1472fa59ff2a4e8b8ccabafc586fc263a1dfad0b99b5553e3
+      sha256: "5c80c2ad6e2c0397de5db38c6d653e69616a3397e13aa7633bf39eb668f2041b"
       url: "https://pub.dev"
     source: hosted
-    version: "9.6.0"
+    version: "9.6.2"
   package_config:
     dependency: transitive
     description:
