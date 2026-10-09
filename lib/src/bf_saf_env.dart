@@ -329,6 +329,13 @@ class BFSafEnv extends BFEnv {
 
   @override
   Future<Uint8List> readFileBytes(BFPath path, {int? start, int? count}) async {
+    if (count == 0) {
+      if (start != null && start < 0) {
+        throw ArgumentError.value(start, 'start', 'Must be non-negative');
+      }
+      await stat(path, false, throws: true);
+      return Uint8List(0);
+    }
     return _streamPlugin.readFileBytes(
       path.scopedUri(),
       start: start,
@@ -355,14 +362,11 @@ class BFSafEnv extends BFEnv {
     IList<String>? extendedPath,
   ) async {
     if (extendedPath == null || extendedPath.isEmpty) {
-      final res = await _utilPlugin.documentFileFromUri(
-        path.scopedUri(),
-        isDir,
-      );
-      if (res == null) {
+      final res = await stat(path, null);
+      if (res == null || res.isDir != isDir) {
         return null;
       }
-      return BFScopedPath(res.uri.toString());
+      return res.path;
     }
     final st = await child(path, extendedPath);
     if (st == null) {

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bull_fs/bull_fs.dart';
@@ -120,17 +119,12 @@ class BFEnvSuite {
       });
 
       _test('ensureDir (failed)', (root) async {
-        final r = root;
-        var hasError = false;
-        try {
-          await env.writeFileBytes(r, 'space 一 二 三', Uint8List.fromList([1]));
-          await env.mkdirp(r, ['space 一 二 三'].lock);
-          throw Error();
-        } on Exception catch (_) {
-          hasError = true;
-          expect(await env.directoryToMap(r), {"space 一 二 三": "01"});
-        }
-        expect(hasError, isTrue);
+        await env.writeFileBytes(root, 'space 一 二 三', Uint8List.fromList([1]));
+        await expectLater(
+          env.mkdirp(root, ['space 一 二 三'].lock),
+          throwsException,
+        );
+        expect(await env.directoryToMap(root), {"space 一 二 三": "01"});
       });
 
       _test('ensureDirs', (root) async {
@@ -162,22 +156,19 @@ class BFEnvSuite {
       });
 
       _test('ensureDirs (failed)', (root) async {
-        final r = root;
-        try {
-          await env.mkdirp(r, ['space 一 二 三', '22', '3 33'].lock);
-          await env.writeFileBytes(
-              (await env.directoryExists(r, ['space 一 二 三', '22'].lock))!,
-              'file',
-              Uint8List.fromList([1]));
-          await env.mkdirp(r, ['space 一 二 三', '22', 'file', 'another'].lock);
-          throw Error();
-        } on Exception catch (_) {
-          expect(await env.directoryToMap(r), {
-            "space 一 二 三": {
-              "22": {"file": "01", "3 33": {}}
-            }
-          });
-        }
+        await env.mkdirp(root, ['space 一 二 三', '22', '3 33'].lock);
+        final parent =
+            await env.directoryExists(root, ['space 一 二 三', '22'].lock);
+        await env.writeFileBytes(parent!, 'file', Uint8List.fromList([1]));
+        await expectLater(
+          env.mkdirp(root, ['space 一 二 三', '22', 'file', 'another'].lock),
+          throwsException,
+        );
+        expect(await env.directoryToMap(root), {
+          "space 一 二 三": {
+            "22": {"file": "01", "3 33": {}}
+          }
+        });
       });
 
       _test('exists and findBasename (dir)', (root) async {
@@ -587,14 +578,133 @@ class BFEnvSuite {
         expect(st.name, pasteRes.fileName);
       });
 
-      _test('readFileSync', (root) async {
-        final r = root;
-        final tmpFile = _temporaryFilePath();
-        await File(tmpFile).writeAsString(_defStringContents);
-        final pasteRes = await env.pasteLocalFile(tmpFile, r, 'test.txt');
+      _test('binary bytes and stream round trip', (root) async {
+        final contents = Uint8List.fromList(
+          List.generate(4096, (index) => index % 256),
+        );
+        final file = await env.writeFileBytes(root, 'binary.bin', contents);
+        expect(await env.readFileBytes(file.path), contents);
+        final stream =
+            await env.readFileStream(file.path, bufferSize: 7, start: 253);
+        expect(await stream.expand((chunk) => chunk).toList(),
+            contents.sublist(253));
+        expect(await env.readFileBytes(file.path, start: 253, count: 7),
+            contents.sublist(253, 260));
+      });
 
-        final bytes = await env.readFileBytes(pasteRes.path);
-        expect(utf8.decode(bytes), _defStringContents);
+      _test('copyToLocalFile preserves bytes and source', (root) async {
+        final contents = Uint8List.fromList([0, 255, 128, 1, 10, 13]);
+        final source = await env.writeFileBytes(root, 'source.bin', contents);
+        final destination = _temporaryFilePath();
+        await env.copyToLocalFile(source.path, destination);
+        expect(await File(destination).readAsBytes(), contents);
+        expect(await env.readFileBytes(source.path), contents);
+        expect((await env.listDir(root)).map((entity) => entity.name),
+            ['source.bin']);
+      });
+
+      _test('empty bytes truncate an existing file', (root) async {
+        await env.writeFileBytes(
+            root, 'empty.bin', Uint8List.fromList([1, 2, 3]));
+        final file = await env.writeFileBytes(root, 'empty.bin', Uint8List(0),
+            overwrite: true);
+        expect((await env.stat(file.path, false))!.length, 0);
+        expect(await env.readFileBytes(file.path), isEmpty);
+        final stream = await env.readFileStream(file.path);
+        expect(await stream.expand((chunk) => chunk).toList(), isEmpty);
+        expect(await env.directoryToMap(root), {'empty.bin': ''});
+      });
+
+      _test('empty stream creates a readable file', (root) async {
+        final output = await env.writeFileStream(root, 'empty.bin');
+        await output.close();
+        await output.close();
+        expect(output.getFileName(), 'empty.bin');
+        expect((await env.stat(output.getPath(), false))!.length, 0);
+        expect(await env.readFileBytes(output.getPath()), isEmpty);
+      });
+
+      _test('readFileBytes zero count and end of file', (root) async {
+        final file = await env.writeFileBytes(
+            root, 'range.bin', Uint8List.fromList([0, 128, 255]));
+        expect(await env.readFileBytes(file.path, count: 0), isEmpty);
+        expect(await env.readFileBytes(file.path, start: 2, count: 0), isEmpty);
+        expect(await env.readFileBytes(file.path, start: 3), isEmpty);
+        expect(await env.readFileBytes(file.path, start: 2, count: 10), [255]);
+        await env.delete(file.path, false);
+        await expectLater(
+            env.readFileBytes(file.path, count: 0), throwsException);
+      });
+
+      _test('delete removes only the requested subtree', (root) async {
+        final subtree = await env.mkdirp(root, ['delete', 'nested'].lock);
+        await env.writeFileBytes(subtree, 'child.bin', Uint8List.fromList([1]));
+        await env.writeFileBytes(root, 'keep.bin', Uint8List.fromList([2]));
+        final directory = await env.directoryExists(root, ['delete'].lock);
+        await env.delete(directory!, true);
+        expect(await env.child(root, ['delete'].lock), isNull);
+        expect(await env.directoryToMap(root), {'keep.bin': '02'});
+        final file = await env.fileExists(root, ['keep.bin'].lock);
+        await env.delete(file!, false);
+        expect(await env.stat(file, false), isNull);
+        expect(await env.listDir(root), isEmpty);
+        expect(await env.listDirContentFiles(root), isEmpty);
+      });
+
+      _test('deletePathIfExists is repeatable and respects item type',
+          (root) async {
+        final directory = await env.mkdirp(root, ['folder'].lock);
+        final file =
+            await env.writeFileBytes(root, 'file.bin', Uint8List.fromList([1]));
+        expect(await env.fileExists(directory, null), isNull);
+        expect(await env.directoryExists(file.path, <String>[].lock), isNull);
+        expect(await env.fileExists(file.path, <String>[].lock), file.path);
+        expect(await env.directoryExists(directory, null), directory);
+        await env.deletePathIfExists(root, ['folder'].lock, false);
+        await env.deletePathIfExists(root, ['file.bin'].lock, true);
+        expect(
+            await env.directoryToMap(root), {'folder': {}, 'file.bin': '01'});
+        await env.deletePathIfExists(file.path, null, false);
+        await env.deletePathIfExists(file.path, null, false);
+        expect(await env.fileExists(file.path, null), isNull);
+        await env.deletePathIfExists(directory, null, true);
+        await env.deletePathIfExists(directory, null, true);
+        expect(await env.directoryExists(directory, <String>[].lock), isNull);
+        expect(await env.directoryToMap(root), isEmpty);
+      });
+
+      _test('directoryToMap filters recursively and hides contents',
+          (root) async {
+        await _createNestedDir(env, root);
+        expect(
+            await env.directoryToMap(
+              root,
+              hideFileContents: true,
+              filter: (name, entity) => name != 'b' && name != 'b.txt',
+            ),
+            {
+              '一 二': {
+                'a.txt': null,
+                'deep': {'c.txt': null}
+              },
+              'root.txt': null,
+              'root2.txt': null,
+            });
+      });
+
+      _test('concurrent writes reserve distinct pending names', (root) async {
+        final pendingNames = <String>{};
+        final files = await Future.wait([
+          for (var index = 0; index < 5; index++)
+            env.writeFileBytes(
+                root, 'reserved.bin', Uint8List.fromList([index]),
+                pendingNames: pendingNames),
+        ]);
+        expect(files.map((file) => file.fileName).toSet().length, 5);
+        expect((await env.listDir(root)).length, 5);
+        for (var index = 0; index < files.length; index++) {
+          expect(await env.readFileBytes(files[index].path), [index]);
+        }
       });
 
       void testwriteFileBytes(String fileName, bool multiple, bool overwrite,
@@ -771,14 +881,8 @@ class BFEnvSuite {
         // Delete the created file to test null stat.
         await env.delete(fileUri, false);
 
-        var catchHit = false;
-        try {
-          await env.stat(fileUri, true, throws: true);
-        } on Exception catch (_) {
-          catchHit = true;
-        }
-
-        expect(catchHit, true);
+        await expectLater(
+            env.stat(fileUri, false, throws: true), throwsException);
       });
 
       _test('listDir', (root) async {
@@ -832,18 +936,14 @@ class BFEnvSuite {
       });
 
       _test('rename (folder) (failed)', (root) async {
-        final r = root;
-        try {
-          await env.mkdirp(r, ['一 二'].lock);
-          await env.writeFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
-
-          await env.rename(
-              await _getPath(env, r, '一 二'), true, r, 'test 仨.txt');
-          throw Error();
-        } on Exception catch (_) {
-          expect(await env.directoryToMap(r),
-              {"一 二": {}, "test 仨.txt": "61626364656620f09f8d89f09f8c8f"});
-        }
+        final source = await env.mkdirp(root, ['一 二'].lock);
+        await env.writeFileBytes(root, 'test 仨.txt', _defStringContentsBytes);
+        await expectLater(
+          env.rename(source, true, root, 'test 仨.txt'),
+          throwsException,
+        );
+        expect(await env.directoryToMap(root),
+            {"一 二": {}, "test 仨.txt": "61626364656620f09f8d89f09f8c8f"});
       });
 
       _test('rename (file)', (root) async {
@@ -866,21 +966,17 @@ class BFEnvSuite {
       });
 
       _test('rename (file) (failed)', (root) async {
-        final r = root;
-        try {
-          await env.mkdirp(r, ['test 仨 2.txt'].lock);
-
-          await env.writeFileBytes(r, 'test 仨.txt', _defStringContentsBytes);
-
-          await env.rename(await _getPath(env, r, 'test 仨 2.txt/test 仨.txt'),
-              false, await _getPath(env, r, 'test 仨 2.txt'), 'test 仨 2.txt');
-          throw Error();
-        } on Exception catch (_) {
-          expect(await env.directoryToMap(r), {
-            "test 仨.txt": "61626364656620f09f8d89f09f8c8f",
-            "test 仨 2.txt": {}
-          });
-        }
+        await env.mkdirp(root, ['test 仨 2.txt'].lock);
+        final source = await env.writeFileBytes(
+            root, 'test 仨.txt', _defStringContentsBytes);
+        await expectLater(
+          env.rename(source.path, false, root, 'test 仨 2.txt'),
+          throwsException,
+        );
+        expect(await env.directoryToMap(root), {
+          "test 仨.txt": "61626364656620f09f8d89f09f8c8f",
+          "test 仨 2.txt": {}
+        });
       });
 
       _test('Move folder', (root) async {
@@ -1182,22 +1278,16 @@ class BFEnvSuite {
             Uint8List.fromList([2]),
           );
 
-          var failed = false;
-          try {
-            await failingEnv.moveToDir(
-              await failingEnv
-                  .child(srcDir, ['same.txt'].lock)
-                  .then((e) => e!.path),
-              false,
-              srcDir,
-              destDir,
-              overwrite: true,
-            );
-          } catch (_) {
-            failed = true;
-          }
-
-          expect(failed, isTrue);
+          final source = await failingEnv.child(srcDir, ['same.txt'].lock);
+          await expectLater(
+            failingEnv.moveToDir(source!.path, false, srcDir, destDir,
+                overwrite: true),
+            throwsA(isA<Exception>().having(
+              (error) => error.toString(),
+              'message',
+              contains('Injected move failure'),
+            )),
+          );
           expect(await failingEnv.directoryToMap(r), {
             'source': {'same.txt': '01'},
             'dest': {'same.txt': '02'},
@@ -1205,72 +1295,54 @@ class BFEnvSuite {
         });
       }
 
-      _test('Move and replace file (new name = default name) (no conflict)',
-          (root) async {
-        final e = env;
-        final r = root;
-
-        // Move move/a to move/b
-        await e.mkdirp(r, ['move', 'b'].lock);
-        await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
-        final destDir = await _getPath(e, r, 'move/b');
-
-        // Create some files and dirs for each dir.
-        await _createFile(e, destDir, 'file2', [2]);
-        await _createFolderWithDefFile(e, destDir, 'b_sub');
-
-        final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), false,
-            await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'),
-            overwrite: true);
-        final st = await e.stat(newPath.path, false);
-        expect(st!.name, 'a');
-        expect(st.name, newPath.fileName);
-
-        expect(await e.directoryToMap(r), {
-          "move": {
-            "b": {
-              "a": "41",
-              "file2": "02",
-              "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
-            }
+      for (final (sourceIsDir, destinationIsDir) in [
+        (true, true),
+        (true, false),
+        (false, true)
+      ]) {
+        _test(
+            'Move and replace ${sourceIsDir ? 'folder' : 'file'} over ${destinationIsDir ? 'folder' : 'file'}',
+            (root) async {
+          final sourceParent = await env.mkdirp(root, ['source'].lock);
+          final destinationParent =
+              await env.mkdirp(root, ['destination'].lock);
+          final BFPath source;
+          if (sourceIsDir) {
+            source = await env.mkdirp(sourceParent, ['same'].lock);
+            await env.writeFileBytes(
+                source, 'new.bin', Uint8List.fromList([1]));
+          } else {
+            source = (await env.writeFileBytes(
+                    sourceParent, 'same', Uint8List.fromList([1])))
+                .path;
           }
-        });
-      });
-
-      _test('Move and replace file (new name = default name) (with conflict)',
-          (root) async {
-        final e = env;
-        final r = root;
-
-        // Move move/a to move/b
-        await e.mkdirp(r, ['move', 'b'].lock);
-        await _createFile(e, await _getPath(e, r, 'move'), 'a', [65]);
-        final destDir = await _getPath(e, r, 'move/b');
-
-        // Create some files and dirs for each dir.
-        await _createFile(e, destDir, 'file2', [2]);
-        await _createFolderWithDefFile(e, destDir, 'b_sub');
-
-        // Create a conflict.
-        await _createFile(e, destDir, 'a', [1, 2, 3]);
-
-        final newPath = await e.moveToDir(await _getPath(e, r, 'move/a'), false,
-            await _getPath(e, r, 'move'), await _getPath(e, r, 'move/b'),
-            overwrite: true);
-        final st = await e.stat(newPath.path, false);
-        expect(st!.name, 'a');
-        expect(st.name, newPath.fileName);
-
-        expect(await e.directoryToMap(r), {
-          "move": {
-            "b": {
-              "a": "41",
-              "file2": "02",
-              "b_sub": {"content.bin": "61626364656620f09f8d89f09f8c8f"}
-            }
+          if (destinationIsDir) {
+            final oldDirectory =
+                await env.mkdirp(destinationParent, ['same', 'nested'].lock);
+            await env.writeFileBytes(
+                oldDirectory, 'old.bin', Uint8List.fromList([2]));
+          } else {
+            await env.writeFileBytes(
+                destinationParent, 'same', Uint8List.fromList([2]));
           }
+          await env.writeFileBytes(
+              destinationParent, 'keep.bin', Uint8List.fromList([3]));
+          final result = await env.moveToDir(
+              source, sourceIsDir, sourceParent, destinationParent,
+              overwrite: true);
+          expect(result.fileName, 'same');
+          final stat = await env.stat(result.path, sourceIsDir);
+          expect(stat!.isDir, sourceIsDir);
+          expect(await env.child(sourceParent, ['same'].lock), isNull);
+          expect(await env.directoryToMap(root), {
+            'source': {},
+            'destination': {
+              'same': sourceIsDir ? {'new.bin': '01'} : '01',
+              'keep.bin': '03'
+            },
+          });
         });
-      });
+      }
 
       _test('nextAvailableFile', (root) async {
         final r = root;
@@ -1475,14 +1547,13 @@ class BFEnvSuite {
             await _createFile(env, r, 'a.txt', [i]);
           });
         }
-        var hasError = false;
-        try {
-          await queue.drain();
-        } catch (_) {
-          hasError = true;
-        }
-
-        expect(hasError, isTrue);
+        await expectLater(
+            queue.drain(),
+            throwsA(isA<Exception>().having(
+              (error) => error.toString(),
+              'message',
+              contains('Test error'),
+            )));
         expect(await env.directoryToMap(r), {
           "a (1).txt": "01",
           "a (2).txt": "02",
@@ -1555,10 +1626,9 @@ final _testNameFinder =
 
 extension BFOutStreamExtension on BFOutStream {
   Future<void> writeManyChunks(String prefix) async {
-    final random = Random();
     for (var i = 0; i < 50; i++) {
       await write(Uint8List.fromList('$prefix $i'.codeUnits));
-      await Future.delayed(Duration(milliseconds: random.nextInt(100)));
+      await Future<void>.delayed(const Duration(milliseconds: 1));
     }
     await close();
   }

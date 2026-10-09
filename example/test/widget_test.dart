@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
 
+import 'package:bull_fs/bull_fs.dart';
 import 'package:example/main.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,5 +32,53 @@ void main() {
         isNotNull);
     expect(await File(filePath).readAsString(), 'keep');
     await fixture.deleteTestRoot(secondRoot);
+  });
+
+  test('Fixture disposal releases access without deleting the selected parent',
+      () async {
+    final selected = await Directory.systemTemp.createTemp('bull_fs_selected_');
+    addTearDown(() => selected.delete(recursive: true));
+    final scratch = await Directory.systemTemp.createTemp('bull_fs_scratch_');
+    addTearDown(() async {
+      if (await scratch.exists()) {
+        await scratch.delete(recursive: true);
+      }
+    });
+    var releaseCount = 0;
+    final fixture = BFTestEnvironment(
+        BFLocalEnv(), BFLocalPath(selected.path), scratch, () async {
+      releaseCount++;
+    });
+    await fixture.env.writeFileBytes(
+        BFLocalPath(selected.path), 'keep.txt', Uint8List.fromList([1]));
+    final root = await fixture.createTestRoot();
+    final scratchFile = fixture.temporaryFilePath();
+    await File(scratchFile).writeAsString('temporary');
+
+    await fixture.deleteTestRoot(root);
+    await fixture.dispose();
+
+    expect(await fixture.env.directoryToMap(BFLocalPath(selected.path)),
+        {'keep.txt': '01'});
+    expect(await scratch.exists(), isFalse);
+    expect(await File(scratchFile).exists(), isFalse);
+    expect(releaseCount, 1);
+  });
+
+  test('Fixture releases access even when scratch cleanup fails', () async {
+    final selected = await Directory.systemTemp.createTemp('bull_fs_selected_');
+    addTearDown(() => selected.delete(recursive: true));
+    final scratch = await Directory.systemTemp.createTemp('bull_fs_scratch_');
+    var released = false;
+    final fixture = BFTestEnvironment(
+        BFLocalEnv(), BFLocalPath(selected.path), scratch, () async {
+      released = true;
+    });
+    await scratch.delete();
+
+    await expectLater(fixture.dispose(), throwsA(isA<FileSystemException>()));
+
+    expect(released, isTrue);
+    expect(await selected.exists(), isTrue);
   });
 }
