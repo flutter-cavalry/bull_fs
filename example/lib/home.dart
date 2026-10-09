@@ -1,5 +1,4 @@
 import 'package:bull_fs/bull_fs.dart';
-import 'package:example/bf_test_route.dart';
 import 'package:example/folder_route.dart';
 import 'package:fast_file_picker/fast_file_picker.dart';
 import 'package:fc_quick_dialog/fc_quick_dialog.dart';
@@ -27,11 +26,6 @@ class _MyHomePageState extends State<MyHomePage> {
               OutlinedButton(
                   onPressed: () => _openExample(context),
                   child: Text('Examples (Pick a folder first)')),
-              const SizedBox(height: 10),
-              OutlinedButton(
-                  onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const BFTestRoute())),
-                  child: Text('Tests')),
             ],
           )),
     );
